@@ -1,0 +1,64 @@
+#pragma once
+
+#include "Editor/EditorUI/EditorPanel.h"
+#include "Core/EngineString.h"
+#include "Containers/Array.h"
+#include <unordered_set>
+
+class UAnimSequence;
+class USkeleton;
+class USkeletalMesh;
+class UClass;
+
+class FAnimationSequenceViewer : public IEditorPanel
+{
+public:
+	explicit FAnimationSequenceViewer(FString InPanelName = "Animation Sequence");
+
+	bool Init() override;
+	void Tick(float DeltaTime) override;
+	void OnRender() override;
+	const char* GetPanelName() const override { return PanelName.c_str(); }
+
+	void SetSequence(UAnimSequence* InSequence);
+	UAnimSequence* GetSequence() const { return Sequence; }
+	USkeleton* GetSkeleton() const { return Skeleton; }
+	USkeletalMesh* GetPreviewMesh() const { return PreviewMesh; }
+	float GetPreviewTime() const { return PreviewTime; }
+	void RefreshAssets();
+
+private:
+	void DrawSequenceHeader();
+	void DrawSequenceList();
+	void SelectSkeleton(USkeleton* InSkeleton);
+	void DrawPlaybackControls();
+	void DrawTimeline();
+	void DrawNotifyDetails();
+	void DrawAddNotifyMenu();
+	void AddNotifyAtCursor(UClass* StateClass);
+	void SortSelectedNotify();
+
+private:
+	FString PanelName;
+	USkeleton* Skeleton = nullptr;
+	USkeletalMesh* PreviewMesh = nullptr;
+	UAnimSequence* Sequence = nullptr; // Non-owning asset reference.
+	TArray<USkeleton*> Skeletons;
+	TArray<USkeletalMesh*> Meshes;
+	TArray<UAnimSequence*> Sequences;
+	ImGuiTextFilter SequenceFilter;
+	float PreviewTime = 0.f;
+	bool bLooping = true;
+	bool bPlaying = false;
+	bool bRefreshAssetsRequested = false;
+	bool bReversePlay = false;
+	char NotifyName[128] = "Notify";
+	int32 SelectedNotify = -1;
+	bool bNotifyOrderDirty = false;
+	int32 DraggedPointNotify = -1;
+	int32 DraggedPointStartFrame = 0;
+	float DraggedPointMouseX = 0.f;
+	ImGuiTextFilter NotifyClassFilter;
+	FString SaveStatus;
+	std::unordered_set<UAnimSequence*> ModifiedSequences;
+};

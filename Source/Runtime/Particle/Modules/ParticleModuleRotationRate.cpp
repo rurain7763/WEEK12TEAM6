@@ -1,0 +1,18 @@
+#include "EnginePCH.h"
+#include "Particle/Modules/ParticleModuleRotationRate.h"
+
+
+UParticleModuleRotationRate::UParticleModuleRotationRate()
+{
+	bSpawnModule = true;
+}
+
+void UParticleModuleRotationRate::Spawn(const FSpawnContext& Ctx)
+{
+	Ctx.Particle->RotationRate = StartRotationRate;
+}
+
+void UParticleModuleRotationRate::SetRotationRate(float InRotationRate)
+{
+	StartRotationRate = InRotationRate;
+}

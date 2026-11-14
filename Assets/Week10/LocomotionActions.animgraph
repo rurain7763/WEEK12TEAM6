@@ -1,0 +1,375 @@
+{
+    "AnimGraph": {
+        "AnimSequencePlayers": [
+            {
+                "Looping": false,
+                "SequencePath": "Models/FbxTest/UAL1_Armature|Punch_Jab",
+                "Speed": 1.0
+            },
+            {
+                "Looping": false,
+                "SequencePath": "Models/FbxTest/UAL1_Armature|Hit_Chest",
+                "Speed": 1.0
+            },
+            {
+                "Looping": false,
+                "SequencePath": "Models/FbxTest/UAL1_Armature|Jump_Start",
+                "Speed": 1.0
+            },
+            {
+                "Looping": true,
+                "SequencePath": "Models/FbxTest/UAL1_Armature|Jump_Loop",
+                "Speed": 1.0
+            },
+            {
+                "Looping": false,
+                "SequencePath": "Models/FbxTest/UAL1_Armature|Jump_Land",
+                "Speed": 1.0
+            }
+        ],
+        "AnimTwoWayBlends": [],
+        "BlendSpacePlayers": [
+            {
+                "BlendSpacePath": "Week10/Locomotion.blendspace",
+                "Looping": true,
+                "Speed": 1.0,
+                "X": 0.0,
+                "XParameterName": "Speed",
+                "Y": 0.0
+            }
+        ],
+        "Nodes": [
+            {
+                "ActualType": 0,
+                "NodeID": 1,
+                "Type": 2
+            },
+            {
+                "ActualType": 0,
+                "NodeID": 2,
+                "Type": 0
+            },
+            {
+                "ActualType": 1,
+                "NodeID": 3,
+                "Type": 0
+            },
+            {
+                "ActualType": 2,
+                "NodeID": 4,
+                "Type": 0
+            },
+            {
+                "ActualType": 0,
+                "NodeID": 5,
+                "Type": 3
+            },
+            {
+                "ActualType": 3,
+                "NodeID": 6,
+                "Type": 0
+            },
+            {
+                "ActualType": 4,
+                "NodeID": 7,
+                "Type": 0
+            }
+        ],
+        "Parameters": [
+            {
+                "Name": "Attack",
+                "Type": 3,
+                "Value": false
+            },
+            {
+                "Name": "Hit",
+                "Type": 3,
+                "Value": false
+            },
+            {
+                "Name": "Jump",
+                "Type": 3,
+                "Value": false
+            },
+            {
+                "Name": "Action",
+                "Type": 0,
+                "Value": 0
+            },
+            {
+                "Name": "Speed",
+                "Type": 2,
+                "Value": 0.0
+            },
+            {
+                "Name": "ZVelocity",
+                "Type": 2,
+                "Value": 0.0
+            },
+            {
+                "Name": "Grounded",
+                "Type": 1,
+                "Value": false
+            }
+        ],
+        "Properties": {},
+        "RootNodeID": 5,
+        "StateMachines": [
+            {
+                "AnyTransitions": [
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": "Hit",
+                            "Value": false
+                        },
+                        "CrossfadeDuration": 0.10000000149011612,
+                        "ExitTime": 1.0,
+                        "HasExitTime": false,
+                        "NextStateID": 2,
+                        "PreviousStateID": -1
+                    }
+                ],
+                "InitStateID": 0,
+                "Name": "test",
+                "States": [
+                    {
+                        "Name": "Locomotion",
+                        "NodeID": 1,
+                        "StateID": 0
+                    },
+                    {
+                        "Name": "Attack",
+                        "NodeID": 2,
+                        "StateID": 1
+                    },
+                    {
+                        "Name": "Hit",
+                        "NodeID": 3,
+                        "StateID": 2
+                    },
+                    {
+                        "Name": "Jump_Start",
+                        "NodeID": 4,
+                        "StateID": 3
+                    },
+                    {
+                        "Name": "Jump_Loop",
+                        "NodeID": 6,
+                        "StateID": 4
+                    },
+                    {
+                        "Name": "Jump_Land",
+                        "NodeID": 7,
+                        "StateID": 5
+                    }
+                ],
+                "Transitions": [
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": "Attack",
+                            "Value": false
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": false,
+                        "NextStateID": 1,
+                        "PreviousStateID": 0
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": "Jump",
+                            "Value": false
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": false,
+                        "NextStateID": 3,
+                        "PreviousStateID": 0
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 4,
+                            "ParameterName": "Action",
+                            "Value": 0
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": true,
+                        "NextStateID": 0,
+                        "PreviousStateID": 1
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": "Jump",
+                            "Value": false
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": false,
+                        "NextStateID": 3,
+                        "PreviousStateID": 1
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 4,
+                            "ParameterName": "Action",
+                            "Value": 0
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": true,
+                        "NextStateID": 0,
+                        "PreviousStateID": 2
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": "Attack",
+                            "Value": false
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": false,
+                        "NextStateID": 1,
+                        "PreviousStateID": 2
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": "Jump",
+                            "Value": false
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": false,
+                        "NextStateID": 3,
+                        "PreviousStateID": 2
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": "Grounded",
+                            "Value": true
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": false,
+                        "NextStateID": 5,
+                        "PreviousStateID": 4
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": ""
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": true,
+                        "NextStateID": 0,
+                        "PreviousStateID": 5
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 5,
+                            "ParameterName": "ZVelocity",
+                            "Value": 0.0
+                        },
+                        "CrossfadeDuration": 0.20000000298023224,
+                        "ExitTime": 1.0,
+                        "HasExitTime": false,
+                        "NextStateID": 4,
+                        "PreviousStateID": 3
+                    }
+                ]
+            }
+        ]
+    },
+    "Editor": {
+        "Nodes": [
+            {
+                "NodeID": 1,
+                "X": 60.0,
+                "Y": 60.0
+            },
+            {
+                "NodeID": 2,
+                "X": 60.0,
+                "Y": 230.0
+            },
+            {
+                "NodeID": 3,
+                "X": 60.0,
+                "Y": 400.0
+            },
+            {
+                "NodeID": 4,
+                "X": 60.0,
+                "Y": 570.0
+            },
+            {
+                "NodeID": 5,
+                "X": 560.0,
+                "Y": 260.0
+            },
+            {
+                "NodeID": 6,
+                "X": 82.0,
+                "Y": 792.0
+            },
+            {
+                "NodeID": 7,
+                "X": 78.0,
+                "Y": 969.0
+            }
+        ],
+        "States": [
+            {
+                "MachineNodeID": 5,
+                "StateID": 0,
+                "X": 800.825439453125,
+                "Y": 214.17376708984375
+            },
+            {
+                "MachineNodeID": 5,
+                "StateID": 1,
+                "X": 1380.6817626953125,
+                "Y": 658.2352294921875
+            },
+            {
+                "MachineNodeID": 5,
+                "StateID": 2,
+                "X": 277.0,
+                "Y": 668.0
+            },
+            {
+                "MachineNodeID": 5,
+                "StateID": 3,
+                "X": 667.0020751953125,
+                "Y": 1047.8076171875
+            },
+            {
+                "MachineNodeID": 5,
+                "StateID": 4,
+                "X": 883.0,
+                "Y": 1314.0
+            },
+            {
+                "MachineNodeID": 5,
+                "StateID": 5,
+                "X": 909.0,
+                "Y": 1444.0
+            },
+            {
+                "MachineNodeID": 5,
+                "StateID": -1,
+                "X": -139.77064514160156,
+                "Y": 379.5214538574219
+            }
+        ]
+    },
+    "Version": 1
+}
