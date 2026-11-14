@@ -24,6 +24,6 @@ public:
 private:
 	friend class FParticleEmitterInstance;
 
-	int32 MaxParticleCount = 100;
+	int32 MaxParticleCount = 1000;
 	int32 ParticleSize = 0;
 };

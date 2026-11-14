@@ -14,4 +14,7 @@ public:
 
 private:
 	FVector StartVelocity = FVector::UpVector;
+
+	bool bHasRandomValue = true;
+	float MinVelocity = 0.1f, MaxVelocity = 1.f;
 };

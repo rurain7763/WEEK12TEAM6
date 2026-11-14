@@ -10,5 +10,15 @@ UParticleModuleVelocity::UParticleModuleVelocity()
 
 void UParticleModuleVelocity::Spawn(const FSpawnContext& Ctx)
 {
-	Ctx.Particle->Velocity = Ctx.Emitter->EmitterToSimulate.TransformVector(StartVelocity);
+	FVector Velocity;
+	if (bHasRandomValue)
+	{
+		Velocity = FRandomStream::GetUnitVector() * FRandomStream::FRandRange(MinVelocity, MaxVelocity);
+	}
+	else
+	{
+		Velocity = StartVelocity;
+	}
+
+	Ctx.Particle->Velocity = Ctx.Emitter->EmitterToSimulate.TransformVector(Velocity);
 }
