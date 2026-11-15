@@ -13,6 +13,7 @@
 #include "Component/DecalComponent.h"
 #include "Component/TextRenderComponent.h"
 #include "Component/ParticleSubUVComponent.h"
+#include "Component/ParticleSystemComponent.h"
 #include "Component/RotatingMovementComponent.h"
 #include "Component/ProjectileMovementComponent.h"
 #include "Component/BoxComponent.h"
@@ -556,6 +557,52 @@ namespace
 				if (UAnimGraph* Graph = UAssetManager::Get().LoadAnimGraph(Path))
 				{ *GraphPtr = Graph; bChanged = Graph != Current; }
 				else HTR_LOG(Warning, "Details: could not load AnimGraph '{}'", Path);
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", Key.c_str());
+			ImGui::PopID();
+		}
+		ImGui::EndCombo();
+		return bChanged;
+	}
+
+	bool DrawParticleSystemSlot(UObject* Owner, UParticleSystem** SystemPtr)
+	{
+		UParticleSystem* Current = *SystemPtr;
+		const FString Preview = Current ? GetAssetDisplayName(Current->GetPath()) : "None";
+		const bool bOpen = ImGui::BeginCombo("##ParticleSystem", Preview.c_str());
+		if (Current && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", Current->GetPath().c_str());
+		if (!bOpen) return false;
+
+		bool bChanged = false;
+		auto SelectSystem = [&](UParticleSystem* System)
+		{
+			if (UParticleSystemComponent* Component = Cast<UParticleSystemComponent>(Owner))
+				Component->SetTemplate(System);
+			else
+				*SystemPtr = System;
+			bChanged = System != Current;
+		};
+		if (ImGui::Selectable("None", Current == nullptr)) SelectSystem(nullptr);
+
+		TArray<FString> Paths;
+		std::error_code Error;
+		std::filesystem::recursive_directory_iterator It("Assets", std::filesystem::directory_options::skip_permission_denied, Error), End;
+		for (; !Error && It != End; It.increment(Error))
+		{
+			if (It->is_regular_file(Error) && It->path().extension() == ".particlesys")
+				Paths.Add(PathUtils::ToUtf8(It->path()));
+		}
+		std::sort(Paths.begin(), Paths.end());
+		for (const FString& Path : Paths)
+		{
+			const FString Key = PathUtils::ToUtf8(PathUtils::FromUtf8(Path).lexically_relative("Assets"));
+			ImGui::PushID(Path.c_str());
+			if (ImGui::Selectable(GetAssetDisplayName(Path).c_str(), Current && Current->GetPath() == Key))
+			{
+				if (UParticleSystem* System = UAssetManager::Get().LoadParticleSystem(Path))
+					SelectSystem(System);
+				else
+					HTR_LOG(Warning, "Details: could not load ParticleSystem '{}'", Path);
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", Key.c_str());
 			ImGui::PopID();
@@ -1219,6 +1266,10 @@ namespace
 			{
 				bChanged = DrawAnimGraphSlot(reinterpret_cast<UAnimGraph**>(ObjPtr));
 			}
+			else if (Property.Class == UParticleSystem::StaticClass())
+			{
+				bChanged = DrawParticleSystemSlot(Object, reinterpret_cast<UParticleSystem**>(ObjPtr));
+			}
 			else if (Property.Class == ULevelSequence::StaticClass())
 			{
 				bChanged = DrawSequenceSlot(Object, reinterpret_cast<ULevelSequence**>(ObjPtr));
@@ -1372,6 +1423,12 @@ namespace
 			if (ImGui::MenuItem("Text Component"))
 			{
 				OutSelectedComponent = Actor->AddComponent(UTextRenderComponent::StaticClass(), FString(ComponentNameInputBuf));
+				ComponentNameInputBuf[0] = '\0';
+				ImGui::CloseCurrentPopup();
+			}
+			if (ImGui::MenuItem("Particle System Component"))
+			{
+				OutSelectedComponent = Actor->AddComponent(UParticleSystemComponent::StaticClass(), FString(ComponentNameInputBuf));
 				ComponentNameInputBuf[0] = '\0';
 				ImGui::CloseCurrentPopup();
 			}

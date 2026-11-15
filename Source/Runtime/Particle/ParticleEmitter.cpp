@@ -2,7 +2,15 @@
 #include "Particle/ParticleEmitter.h"
 #include "Particle/ParticleTypes.h"
 #include "Particle/ParticleEmitterInstance.h"
+#include "Particle/ParticleLODLevel.h"
+#include "Serialization/StructuredArchiveHelpers.h"
 
+void UParticleEmitter::Serialize(FStructuredArchive::FRecord Record)
+{
+	Record << SA_VALUE("MaxParticleCount", MaxParticleCount);
+	Record << SA_VALUE("ParticleSize", ParticleSize);
+	StructuredArchiveHelpers::SerializeArray(Record, "LODLevels", LODLevels);
+}
 
 UParticleLODLevel* UParticleEmitter::GetLODLevel(int32 LODLevel)
 {

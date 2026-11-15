@@ -8,6 +8,8 @@ class UParticleModuleVelocity : public UParticleModule
 	DECLARE_CLASS(UParticleModuleVelocity, UParticleModule)
 
 public:
+	void Serialize(FStructuredArchive::FRecord Record) override;
+
 	UParticleModuleVelocity();
 
 	void Spawn(const FSpawnContext& Ctx) override;

@@ -10,6 +10,8 @@ class UParticleModuleRequired : public UParticleModule
 	DECLARE_CLASS(UParticleModuleRequired, UParticleModule)
 
 public:
+	void Serialize(FStructuredArchive::FRecord Record) override;
+
 	inline void SetMaterial(UMaterial* InMaterial)
 	{
 		Material = InMaterial;
@@ -31,6 +33,6 @@ public:
 	}
 
 private:
-	UMaterial* Material = nullptr;
 	bool bUseLocalSpace = true;
+	UMaterial* Material = nullptr;
 };

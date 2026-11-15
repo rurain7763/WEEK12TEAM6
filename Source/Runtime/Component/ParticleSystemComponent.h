@@ -1,13 +1,17 @@
 #pragma once
 
 #include "Component/FXSystemComponent.h"
+#include "Particle/ParticleSystem.h"
 
-class UParticleSystem;
 struct FParticleEmitterInstance;
 
 class UParticleSystemComponent : public UFXSystemComponent
 {
 	DECLARE_CLASS(UParticleSystemComponent, UFXSystemComponent)
+
+	REFLECT_START(ThisClass)
+		PROPERTY(Template)
+	REFLECT_END()
 
 public:
 	UParticleSystemComponent();
@@ -32,5 +36,6 @@ public:
 
 private:
 	UParticleSystem* Template = nullptr;
+
 	TArray<FParticleEmitterInstance*> EmitterInstances;
 };

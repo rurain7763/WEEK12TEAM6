@@ -1,5 +1,6 @@
 #include "EnginePCH.h"
 #include "Particle/Modules/ParticleModuleSizeOfLifeTime.h"
+#include "Serialization/MathSerialization.h"
 #include "Particle/ParticleEmitterInstance.h"
 
 
@@ -18,4 +19,10 @@ void UParticleModuleSizeOfLifeTime::Update(const FUpdateContext& Ctx)
 
 		Particle->Size = Particle->BaseSize * Scale;
 	}
+}
+
+void UParticleModuleSizeOfLifeTime::Serialize(FStructuredArchive::FRecord Record)
+{
+	Record << SA_VALUE("StartScale", StartScale);
+	Record << SA_VALUE("EndScale", EndScale);
 }

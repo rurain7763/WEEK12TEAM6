@@ -19,6 +19,7 @@ class ULevelSequence;
 class UAnimGraph;
 class UBlendSpace1D;
 class FShader;
+class UParticleSystem;
 
 namespace fs = std::filesystem;
 
@@ -73,6 +74,7 @@ public:
 	ULevelSequence* LoadLevelSequence(const FString& Path);
 	UAnimGraph* LoadAnimGraph(const FString& Path);
 	UBlendSpace1D* LoadBlendSpace1D(const FString& Path);
+	UParticleSystem* LoadParticleSystem(const FString& Path);
 
 	FLODGenerateResult GenerateStaticMeshLODs(UStaticMesh& Mesh,const FLODGenerateRequest& Request);
 

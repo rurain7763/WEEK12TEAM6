@@ -8,6 +8,8 @@ class UParticleModuleLocation : public UParticleModule
 	DECLARE_CLASS(UParticleModuleLocation, UParticleModule)
 
 public:
+	void Serialize(FStructuredArchive::FRecord Record) override;
+
 	UParticleModuleLocation();
 
 	void Spawn(const FSpawnContext& Ctx) override;

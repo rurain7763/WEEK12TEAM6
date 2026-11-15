@@ -27,6 +27,7 @@
 #include "Animation/AnimSequence.h"
 #include "Animation/BlendSpace1D.h"
 #include "Animation/Graph/AnimGraph.h"
+#include "Particle/ParticleSystem.h"
 #include "Core/PathUtils.h"
 
 namespace
@@ -209,11 +210,11 @@ void UAssetManager::Init(const FAssetLoadProgress& OnProgress)
 	Get().CreateDefaultTextures();
 	Get().CreateDefaultMaterial();
 	Get().LoadFontAtlas(ResourcePaths::DefaultFont, ResourcePaths::DefaultFontAtlas);
-	Get().ScanAssets("Assets", OnProgress);
 	Get().CreateDefaultMeshes();
 	Get().CreateParticleMaterial();
 	Get().CreateSpriteMaterial();
 	Get().CreateDecalMaterial();
+	Get().ScanAssets("Assets", OnProgress);
 }
 
 void UAssetManager::ScanAssets(const fs::path& AssetRoot, const FAssetLoadProgress& OnProgress)
@@ -286,6 +287,10 @@ void UAssetManager::LoadAsset(const FString& Key, const FString& Path)
 	else if (Extension == ".blendspace")
 	{
 		LoadBlendSpace1D(Path);
+	}
+	else if (Extension == ".particlesys")
+	{
+		LoadParticleSystem(Path);
 	}
 }
 
@@ -685,6 +690,28 @@ UBlendSpace1D* UAssetManager::LoadBlendSpace1D(const FString& Path)
 	BlendSpace->SetAssetFilePath(Path);
 
 	return BlendSpace;
+}
+
+UParticleSystem* UAssetManager::LoadParticleSystem(const FString& Path)
+{
+	const FString Key = MakeAssetKey(Path);
+	if (UParticleSystem* Cached = GetAssetByPath<UParticleSystem>(Key))
+	{
+		return Cached;
+	}
+
+	UParticleSystem* Asset = NewObject<UParticleSystem>();
+	if (!FJsonArchive::LoadParticleSystem(Asset, Path))
+	{
+		HTR_LOG(Warning, "Can't load level sequence");
+		delete Asset;
+		return nullptr;
+	}
+
+	RegisterAsset(Key, Asset);
+	Asset->SetAssetFilePath(Path);
+
+	return Asset;
 }
 
 bool UAssetManager::ReorientStaticMesh(UStaticMesh& Mesh, const std::function<FVector(const FVector&)>& Rotate)

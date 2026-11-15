@@ -30,8 +30,5 @@ private:
 
 	static void SerializeBoneAnimation(FStructuredArchive::FRecord& Record, FModelBoneAnimation& Animation);
 
-	template <typename ElementType, typename ElementSerializer>
-	static void SerializeArray(FStructuredArchive::FRecord& Record, const char* Name, TArray<ElementType>& Array, ElementSerializer Serializer);
-
 	static void SerializeModelData(FStructuredArchive::FRecord& Record, FModelData& ModelData);
 };

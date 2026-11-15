@@ -1,5 +1,6 @@
 #include "EnginePCH.h"
 #include "Particle/Modules/ParticleModuleLifeTime.h"
+#include "Serialization/MathSerialization.h"
 
 
 UParticleModuleLifeTime::UParticleModuleLifeTime()
@@ -17,4 +18,9 @@ void UParticleModuleLifeTime::Spawn(const FSpawnContext& Ctx)
 	{
 		Ctx.Particle->InvMaxLifeTime = 1.f / LifeTime;
 	}
+}
+
+void UParticleModuleLifeTime::Serialize(FStructuredArchive::FRecord Record)
+{
+	Record << SA_VALUE("LifeTime", LifeTime);
 }

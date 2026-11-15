@@ -1,5 +1,6 @@
 #include "EnginePCH.h"
 #include "Particle/Modules/ParticleModuleRotationRate.h"
+#include "Serialization/MathSerialization.h"
 
 
 UParticleModuleRotationRate::UParticleModuleRotationRate()
@@ -15,4 +16,9 @@ void UParticleModuleRotationRate::Spawn(const FSpawnContext& Ctx)
 void UParticleModuleRotationRate::SetRotationRate(float InRotationRate)
 {
 	StartRotationRate = InRotationRate;
+}
+
+void UParticleModuleRotationRate::Serialize(FStructuredArchive::FRecord Record)
+{
+	Record << SA_VALUE("StartRotationRate", StartRotationRate);
 }

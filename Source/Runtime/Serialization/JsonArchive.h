@@ -7,6 +7,7 @@ class UMovieSceneSequence;
 class UAnimSequence;
 class UAnimGraph;
 class UBlendSpace1D;
+class UParticleSystem;
 
 class FJsonArchive
 {
@@ -44,6 +45,12 @@ public:
 
 	static bool LoadBlend1DGraph(UBlendSpace1D* Blend1D, const FString& Path);
 	static bool LoadBlend1DFromBytes(UBlendSpace1D* Blend1D, const TArray<uint8>& Bytes);
+
+	static bool SaveParticleSystem(UParticleSystem* ParticleSys, const FString& Path);
+	static bool SaveParticleSystemToBytes(UParticleSystem* ParticleSys, TArray<uint8>& OutBytes);
+
+	static bool LoadParticleSystem(UParticleSystem* ParticleSys, const FString& Path);
+	static bool LoadParticleSystemFromBytes(UParticleSystem* ParticleSys, const TArray<uint8>& Bytes);
 
 private:
 	static bool WriteFile(const FString& Path, const TArray<uint8>& Bytes);

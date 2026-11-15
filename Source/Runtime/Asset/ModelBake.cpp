@@ -1,6 +1,7 @@
 #include "EnginePCH.h"
 #include "Core/PathUtils.h"
 #include "Asset/ModelBake.h"
+#include "Serialization/StructuredArchiveHelpers.h"
 
 #include "Serialization/MemoryWriter.h"
 #include "Serialization/MemoryReader.h"
@@ -19,24 +20,6 @@ struct FModelBakeHeader
 	char Magic[4] = { 'M', 'O', 'D', 'B' }; // 'M''o'del 'D'ata 'B'ake
 	uint32 Version = ModelBakeVersion;
 };
-}
-
-template <typename ElementType, typename ElementSerializer>
-void FModelBake::SerializeArray(FStructuredArchive::FRecord& Record, const char* Name, TArray<ElementType>& Array, ElementSerializer Serializer)
-{
-	int32 Count = Array.Num();
-
-	auto ArrayRecord = Record.EnterArray(Name, Count);
-	if (Record.GetUnderlyingArchive().IsLoading())
-	{
-		Array.SetNum(Count);
-	}
-
-	for (int32 i = 0; i < Count; ++i)
-	{
-		auto ElementRecord = ArrayRecord.EnterElement().EnterRecord();
-		Serializer(ElementRecord, Array[i]);
-	}
 }
 
 bool FModelBake::ReadBaked(const FString& Path, FModelData& OutModelData)
@@ -208,9 +191,9 @@ void FModelBake::SerializeBoneAnimationTrack(FStructuredArchive::FRecord& Record
 {
 	Record << SA_VALUE("BoneIndex", Track.BoneIndex);
 	Record << SA_VALUE("KeyCount", Track.KeyCount);
-	SerializeArray(Record, "PosKeys", Track.PosKeys, [](FStructuredArchive::FRecord& Record, FVector& Value) { Record << SA_VALUE("Position", Value); });
-	SerializeArray(Record, "RotationKeys", Track.RotKeys, [](FStructuredArchive::FRecord& Record, FQuat& Value) { Record << SA_VALUE("Rotation", Value); });
-	SerializeArray(Record, "ScaleKeys", Track.ScaleKeys, [](FStructuredArchive::FRecord& Record, FVector& Value) { Record << SA_VALUE("Scale", Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "PosKeys", Track.PosKeys, [](FStructuredArchive::FRecord& Record, FVector& Value) { Record << SA_VALUE("Position", Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "RotationKeys", Track.RotKeys, [](FStructuredArchive::FRecord& Record, FQuat& Value) { Record << SA_VALUE("Rotation", Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "ScaleKeys", Track.ScaleKeys, [](FStructuredArchive::FRecord& Record, FVector& Value) { Record << SA_VALUE("Scale", Value); });
 }
 
 void FModelBake::SerializeBoneAnimation(FStructuredArchive::FRecord& Record, FModelBoneAnimation& Animation)
@@ -218,20 +201,20 @@ void FModelBake::SerializeBoneAnimation(FStructuredArchive::FRecord& Record, FMo
 	Record << SA_VALUE("Name", Animation.Name);
 	Record << SA_VALUE("Duration", Animation.Duration);
 	Record << SA_VALUE("SampleRate", Animation.SampleRate);
-	SerializeArray(Record, "Tracks", Animation.Tracks, SerializeBoneAnimationTrack);
+	StructuredArchiveHelpers::SerializeArray(Record, "Tracks", Animation.Tracks, SerializeBoneAnimationTrack);
 }
 
 void FModelBake::SerializeModelData(FStructuredArchive::FRecord& Record, FModelData& ModelData)
 {
 	Record << SA_VALUE("IsSkeletal", ModelData.IsSkeletal);
 
-	SerializeArray(Record, "Vertices", ModelData.MeshData.Vertices, SerializeVertex);
-	SerializeArray(Record, "Indices", ModelData.MeshData.Indices, [](FStructuredArchive::FRecord& Record, uint32& Value) { Record << SA_VALUE("Index", Value); });
-	SerializeArray(Record, "Sections", ModelData.MeshData.Sections, SerializeMeshSection);
-	SerializeArray(Record, "MaterialSlots", ModelData.MeshData.MaterialSlots, SerializeMaterialSlot);
-	SerializeArray(Record, "Nodes", ModelData.Nodes, SerializeModelNode);
-	SerializeArray(Record, "Bones", ModelData.Bones, SerializeModelBone);
-	SerializeArray(Record, "Meshs", ModelData.Meshs, SerializeModelMesh);
-	SerializeArray(Record, "VertexInfluencesList", ModelData.VertexInfluencesList, SerializeModelVertexInfluences);
-	SerializeArray(Record, "Animations", ModelData.Animations, SerializeBoneAnimation);
+	StructuredArchiveHelpers::SerializeArray(Record, "Vertices", ModelData.MeshData.Vertices, SerializeVertex);
+	StructuredArchiveHelpers::SerializeArray(Record, "Indices", ModelData.MeshData.Indices, [](FStructuredArchive::FRecord& Record, uint32& Value) { Record << SA_VALUE("Index", Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "Sections", ModelData.MeshData.Sections, SerializeMeshSection);
+	StructuredArchiveHelpers::SerializeArray(Record, "MaterialSlots", ModelData.MeshData.MaterialSlots, SerializeMaterialSlot);
+	StructuredArchiveHelpers::SerializeArray(Record, "Nodes", ModelData.Nodes, SerializeModelNode);
+	StructuredArchiveHelpers::SerializeArray(Record, "Bones", ModelData.Bones, SerializeModelBone);
+	StructuredArchiveHelpers::SerializeArray(Record, "Meshs", ModelData.Meshs, SerializeModelMesh);
+	StructuredArchiveHelpers::SerializeArray(Record, "VertexInfluencesList", ModelData.VertexInfluencesList, SerializeModelVertexInfluences);
+	StructuredArchiveHelpers::SerializeArray(Record, "Animations", ModelData.Animations, SerializeBoneAnimation);
 }

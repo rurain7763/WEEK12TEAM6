@@ -8,6 +8,8 @@ class UParticleModuleSpawn : public UParticleModule
 	DECLARE_CLASS(UParticleModuleSpawn, UParticleModule)
 
 public:
+	void Serialize(FStructuredArchive::FRecord Record) override;
+
 	inline float GetSpawnRate() const
 	{
 		return SpawnRate;
