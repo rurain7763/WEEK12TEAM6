@@ -3,6 +3,7 @@
 #include "EnginePCH.h"
 #include "LaunchEngineLoop.h"
 #include "Core/EngineLog.h"
+#include "Crash/WindowsPlatformCrashContext.h"
 #include <cstdio>
 #include <Windows.h>
 
@@ -52,6 +53,8 @@ extern UClass* GetEngineClass();
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	RegisterUnhandledExceptionHandler();
+
 #if defined(ENGINE_DEBUG)
 	FDebugConsole DebugConsole;
 #endif
@@ -66,7 +69,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	EngineLoop.Exit();
 
 	if (FEngineStatics::TotalAllocationCount > 0)
+	{
 		OutputDebugStringA("leaked UObjects\n");
+	}
 
 	return 0;
 }

@@ -209,6 +209,7 @@ project "HitoriEngine"
         "libxml2-md.lib",
         "zlib-md.lib",
         "bcrypt",
+        "Ole32.lib",
     }
 
     -- Debug 계열: Debug용 라이브러리 폴더
@@ -270,6 +271,8 @@ project "HitoriEditor"
         "libxml2-md.lib",
         "zlib-md.lib",
         "bcrypt",
+        "Dbghelp.lib",
+        "Ole32.lib",
     }
 
     -- Debug 계열: Debug용 라이브러리 폴더
