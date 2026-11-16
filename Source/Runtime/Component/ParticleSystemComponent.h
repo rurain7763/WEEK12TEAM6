@@ -36,7 +36,10 @@ public:
 	virtual FPrimitiveSceneProxy* CreateSceneProxy();
 
 private:
+	void UpdateAutomaticLOD(float DeltaTime);
+
 	UParticleSystem* Template = nullptr;
 
 	TArray<FParticleEmitterInstance*> EmitterInstances;
+	float LODDistanceCheckElapsed = 0.f;
 };

@@ -17,6 +17,9 @@ public:
 
 	void BuildModuleLists();
 
+	int32 GetLevel() const { return Level; }
+	bool IsEnabled() const { return bEnable; }
+
 public:
 	TArray<UParticleModule*> Modules;
 	UParticleModuleSpawn* SpawnModule = nullptr;

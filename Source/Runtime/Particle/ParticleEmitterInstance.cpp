@@ -78,7 +78,7 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, const FVector& InitLo
 
 void FParticleEmitterInstance::SpawnParticle(const FVector& InitLocation)
 {
-	if (!ParticleData || !CurrentLODLevel)
+	if (!ParticleData || !CurrentLODLevel || !CurrentLODLevel->IsEnabled())
 	{
 		return;
 	}
@@ -164,8 +164,8 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
 		Module->Update(Context);
 	}
 
-	// 파티클 생성 관리
-	if (CurrentLODLevel->SpawnModule)
+	// 비활성 LOD는 생성량을 누적하지 않는다. 기존 입자의 갱신과 수명 처리는 유지한다.
+	if (CurrentLODLevel->IsEnabled() && CurrentLODLevel->SpawnModule)
 	{
 		SpawnFraction += DeltaTime * CurrentLODLevel->SpawnModule->GetSpawnRate();
 
