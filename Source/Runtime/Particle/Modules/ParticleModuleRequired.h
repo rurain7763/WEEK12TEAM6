@@ -2,35 +2,24 @@
 
 #include "Particle/ParticleModule.h"
 #include "Particle/ParticleTypes.h"
+#include "Render/Material.h"
 
-class UMaterial;
-
-class UParticleModuleRequired : public UParticleModule
-{
+class UParticleModuleRequired : public UParticleModule {
 	DECLARE_CLASS(UParticleModuleRequired, UParticleModule)
+
+	REFLECT_START(ThisClass)
+		PROPERTY(bUseLocalSpace)
+		PROPERTY(Material)
+	REFLECT_END()
 
 public:
 	void Serialize(FStructuredArchive::FRecord Record) override;
 
-	inline void SetMaterial(UMaterial* InMaterial)
-	{
-		Material = InMaterial;
-	}
+	void SetMaterial(UMaterial* InMaterial);
+	UMaterial* GetMaterial();
 
-	inline UMaterial* GetMaterial()
-	{
-		return Material;
-	}
-
-	inline void EnableLocalSpace(bool bEnable)
-	{
-		bUseLocalSpace = bEnable;
-	}
-
-	inline bool GetUseLocalSpace()
-	{
-		return bUseLocalSpace;
-	}
+	void EnableLocalSpace(bool Enable);
+	bool GetUseLocalSpace();
 
 private:
 	bool bUseLocalSpace = true;

@@ -9,6 +9,16 @@
 #include "Sequence/LevelSequence.h"
 #include "Sequence/MovieScene.h"
 #include "Serialization/JsonArchive.h"
+#include "Particle/ParticleSystem.h"
+#include "Particle/ParticleEmitter.h"
+#include "Particle/ParticleLODLevel.h"
+#include "Particle/Modules/ParticleModuleRequired.h"
+#include "Particle/Modules/ParticleModuleSpawn.h"
+#include "Particle/Modules/ParticleModuleLifeTime.h"
+#include "Particle/Modules/ParticleModuleLocation.h"
+#include "Particle/Modules/ParticleModuleVelocity.h"
+#include "Particle/Modules/ParticleModuleSize.h"
+#include "Particle/Modules/ParticleModuleColor.h"
 
 bool FContentDrawerPanel::Init()
 {
@@ -210,6 +220,9 @@ void FContentDrawerPanel::OnRender()
 				}
 				if (ImGui::MenuItem("AnimGraph")) CreateAnimGraphFile();
 				if (ImGui::MenuItem("BlendSpace1D")) CreateBlendSpaceFile();
+				if (ImGui::MenuItem("Particle System")) {
+					CreateParticleSystemFile();
+				}
 				ImGui::EndMenu();
 			}
 			ImGui::EndPopup();
@@ -217,6 +230,53 @@ void FContentDrawerPanel::OnRender()
 	}
 	ImGui::EndChild();
 	ImGui::End();
+}
+
+void FContentDrawerPanel::CreateParticleSystemFile() {
+	CreateAssetError.clear();
+	try {
+		std::filesystem::path Path{ CurrentPath / "NewParticleSystem.particlesys" };
+		for (int32 Index{ 1 }; std::filesystem::exists(Path); ++Index) {
+			Path = CurrentPath / ("NewParticleSystem_" + std::to_string(Index) + ".particlesys");
+		}
+
+		TUniquePtr<UParticleSystem> System{ NewObject<UParticleSystem>() };
+		TUniquePtr<UParticleEmitter> Emitter{ NewObject<UParticleEmitter>(System.get()) };
+		TUniquePtr<UParticleLODLevel> LOD{ NewObject<UParticleLODLevel>(Emitter.get()) };
+		TUniquePtr<UParticleModuleRequired> Required{ NewObject<UParticleModuleRequired>(LOD.get()) };
+		TUniquePtr<UParticleModuleSpawn> Spawn{ NewObject<UParticleModuleSpawn>(LOD.get()) };
+		TUniquePtr<UParticleModuleLifeTime> Lifetime{ NewObject<UParticleModuleLifeTime>(LOD.get()) };
+		TUniquePtr<UParticleModuleLocation> Location{ NewObject<UParticleModuleLocation>(LOD.get()) };
+		TUniquePtr<UParticleModuleVelocity> Velocity{ NewObject<UParticleModuleVelocity>(LOD.get()) };
+		TUniquePtr<UParticleModuleSize> Size{ NewObject<UParticleModuleSize>(LOD.get()) };
+		TUniquePtr<UParticleModuleColor> Color{ NewObject<UParticleModuleColor>(LOD.get()) };
+
+		Required->SetMaterial(UAssetManager::GetAssetByPath<UMaterial>("SpriteMaterial"));
+		LOD->RequiredModule = Required.get();
+		LOD->SpawnModule = Spawn.get();
+		LOD->Modules.Add(Lifetime.get());
+		LOD->Modules.Add(Location.get());
+		LOD->Modules.Add(Velocity.get());
+		LOD->Modules.Add(Size.get());
+		LOD->Modules.Add(Color.get());
+		Emitter->LODLevels.Add(LOD.get());
+		Emitter->CacheEmitterModuleInfo();
+		System->Emitters.Add(Emitter.get());
+
+		const FString AssetPath{ PathUtils::ToUtf8(Path) };
+		if (!FJsonArchive::SaveParticleSystem(System.get(), AssetPath)) {
+			std::error_code Error{};
+			std::filesystem::remove(Path, Error);
+			CreateAssetError = "Could not create the particle system file.";
+			return;
+		}
+
+		if (mOpenParticleSystem) {
+			mOpenParticleSystem(AssetPath);
+		}
+	} catch (const std::exception& Error) {
+		CreateAssetError = "Create failed: " + FString{ Error.what() };
+	}
 }
 
 void FContentDrawerPanel::CreateBlendSpaceFile()

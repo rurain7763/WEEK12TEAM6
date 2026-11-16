@@ -38,6 +38,7 @@ private:
 	void DrawPathBar();
 	void CreateLevelSequenceFile();
 	void CreateAnimGraphFile();
+	void CreateParticleSystemFile();
 
 private:
 	fs::path AssetRootPath = "Assets";

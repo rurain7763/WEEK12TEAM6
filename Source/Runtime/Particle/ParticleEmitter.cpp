@@ -1,5 +1,6 @@
 #include "EnginePCH.h"
 #include "Particle/ParticleEmitter.h"
+#include <algorithm>
 #include "Particle/ParticleTypes.h"
 #include "Particle/ParticleEmitterInstance.h"
 #include "Particle/ParticleLODLevel.h"
@@ -29,4 +30,9 @@ FParticleEmitterInstance* UParticleEmitter::CreateInstance(UParticleSystemCompon
 	Instance->Initialize();
 
 	return Instance;
+}
+
+void UParticleEmitter::PostEditChangeProperty(const FProperty& Property) {
+	Super::PostEditChangeProperty(Property);
+	MaxParticleCount = std::clamp(MaxParticleCount, 1, 65535);
 }
