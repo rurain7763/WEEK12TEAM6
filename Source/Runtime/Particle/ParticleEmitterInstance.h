@@ -11,11 +11,19 @@ struct FParticleEmitterRenderData;
 struct FParticleEmitterInstance
 {
 	UParticleEmitter* EmitterTemplate = nullptr;
-	UParticleLODLevel* CurrentLODLevel = nullptr;
-	UParticleSystemComponent* Owner = nullptr;
 
-	uint8* ParticleData = nullptr; // 파티클 데이터 배열 시작 주소
+	int32 CurrentLODLevelIndex = -1;
+	UParticleLODLevel* CurrentLODLevel = nullptr;
+
+	UParticleSystemComponent* Owner = nullptr;
+	
+	// 파티클 데이터 배열 시작 주소
+	uint8* ParticleData = nullptr;
+	
+	// 다음 입자 슬롯까지 이동할 바이트 수.
 	int32 ParticleStride = 0;
+
+	// 확보한 메모리에 최대 몇 개의 입자를 담을 수 있는지
 	int32 MaxActiveParticles = 0;
 
 	uint16* ParticleIndices = nullptr; // 활성화된 파티클 인덱스 배열 시작 주소
@@ -27,9 +35,9 @@ struct FParticleEmitterInstance
 	FMatrix SimulateToWorld;
 
 	FParticleEmitterInstance() = default;
-
 	~FParticleEmitterInstance();
 
+	// 복사 생성과 복사 대입 금지
 	FParticleEmitterInstance(const FParticleEmitterInstance& Other) = delete;
 	FParticleEmitterInstance& operator=(const FParticleEmitterInstance& Other) = delete;
 
@@ -43,7 +51,6 @@ struct FParticleEmitterInstance
 	}
 
 	void SpawnParticles(int32 Count, const FVector& InitLocation);
-
 	void SpawnParticle(const FVector& InitLocation);
 
 	void KillParticle(int32 Position);
@@ -53,4 +60,6 @@ struct FParticleEmitterInstance
 	void Tick(float DeltaTime);
 
 	void BuildRenderData(FParticleEmitterRenderData& RenderData) const;
+
+	void SetCurrentLODIndex(int32 InLODIndex);
 };
