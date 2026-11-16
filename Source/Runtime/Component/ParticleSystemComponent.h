@@ -25,6 +25,7 @@ public:
 	void EndPlay() override;
 
 	void SetTemplate(UParticleSystem* InSystem);
+	void SetLODLevel(int32 InLODIndex);
 
 	void ClearEmitterInstances();
 

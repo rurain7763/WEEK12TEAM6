@@ -31,6 +31,9 @@ void UParticleSystemComponent::BeginPlay()
 		UParticleEmitter* Emitter = Template->Emitters[i];
 		EmitterInstances[i] = Emitter->CreateInstance(this);
 	}
+
+	// 임시 확인용: 거리 기반 선택 연결 전 LOD 1로 재생한다.
+	SetLODLevel(1);
 }
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
@@ -53,6 +56,17 @@ void UParticleSystemComponent::EndPlay()
 void UParticleSystemComponent::SetTemplate(UParticleSystem* InSystem)
 {
 	Template = InSystem;
+}
+
+void UParticleSystemComponent::SetLODLevel(int32 InLODIndex)
+{
+	for (FParticleEmitterInstance* Instance : EmitterInstances)
+	{
+		if (Instance)
+		{
+			Instance->SetCurrentLODIndex(InLODIndex);
+		}
+	}
 }
 
 void UParticleSystemComponent::ClearEmitterInstances()
