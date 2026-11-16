@@ -12,6 +12,8 @@ class UParticleEmitter : public UObject
 	DECLARE_CLASS(UParticleEmitter, UObject)
 
 public:
+	virtual void Serialize(FStructuredArchive::FRecord Record) override;
+
 	FParticleEmitterInstance* CreateInstance(UParticleSystemComponent* Owner);
 
 	UParticleLODLevel* GetLODLevel(int32 LODLevel);

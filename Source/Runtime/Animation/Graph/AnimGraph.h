@@ -57,12 +57,6 @@ public:
 	UAnimInstance* CreateAnimInstance();
 
 private:
-	template <typename T>
-	void SerializeArray(FStructuredArchiveRecord& Parent, const char* Name, TArray<T>& Values);
-
-	template <typename T>
-	void SerializeEnum(FStructuredArchiveRecord& Parent, const char* Name, T& Value, T LastValue);
-
 	void SerializeValue(FStructuredArchiveRecord& Parent, EAnimParameterType Type, FAnimParameterValue& Value);
 
 	void SerializeData(FStructuredArchiveRecord& Record, FAnimNodeData& Node);

@@ -8,6 +8,8 @@ class UParticleModuleSize : public UParticleModule
 	DECLARE_CLASS(UParticleModuleSize, UParticleModule)
 
 public:
+	void Serialize(FStructuredArchive::FRecord Record) override;
+
 	UParticleModuleSize();
 
 	void Spawn(const FSpawnContext& Ctx) override;

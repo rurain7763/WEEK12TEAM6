@@ -8,6 +8,8 @@ class UParticleModuleColorOverLife : public UParticleModule
 	DECLARE_CLASS(UParticleModuleColorOverLife, UParticleModule)
 
 public:
+	void Serialize(FStructuredArchive::FRecord Record) override;
+
 	UParticleModuleColorOverLife();
 
 	void Update(const FUpdateContext& Ctx) override;

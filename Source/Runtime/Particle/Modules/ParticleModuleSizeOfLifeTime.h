@@ -8,6 +8,8 @@ class UParticleModuleSizeOfLifeTime : public UParticleModule
 	DECLARE_CLASS(UParticleModuleSizeOfLifeTime, UParticleModule)
 
 public:
+	void Serialize(FStructuredArchive::FRecord Record) override;
+
 	UParticleModuleSizeOfLifeTime();
 
 	void Update(const FUpdateContext& Ctx) override;

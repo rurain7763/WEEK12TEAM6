@@ -13,6 +13,8 @@ class UParticleLODLevel : public UObject
 	DECLARE_CLASS(UParticleLODLevel, UObject)
 
 public:
+	virtual void Serialize(FStructuredArchive::FRecord Record);
+
 	void BuildModuleLists();
 
 public:

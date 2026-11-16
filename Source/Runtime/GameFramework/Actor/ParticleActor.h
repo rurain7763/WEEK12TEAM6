@@ -1,12 +1,10 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include <memory>
 
 class UParticleSystemComponent;
-struct FParticlePlaybackTestSettings;
 
-// Temporary playback host for the new particle-system implementation.
+// Hosts a particle system component configured with an asset.
 class AParticleActor : public AActor
 {
 	DECLARE_CLASS(AParticleActor, AActor)
@@ -16,13 +14,8 @@ class AParticleActor : public AActor
 
 public:
 	AParticleActor();
-	~AParticleActor() override;
-
-	void BeginPlay() override;
-	void EndPlay() override;
+	~AParticleActor() override = default;
 
 private:
-	void ClearTestPlayback();
 	UParticleSystemComponent* ParticleComponent = nullptr;
-	std::unique_ptr<FParticlePlaybackTestSettings> TestPlaybackSettings;
 };

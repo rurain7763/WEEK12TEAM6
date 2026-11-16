@@ -14,6 +14,7 @@
 #include "Animation/AnimSequence.h"
 #include "Animation/Graph/AnimGraph.h"
 #include "Animation/BlendSpace1D.h"
+#include "Particle/ParticleSystem.h"
 
 #include "Serialization/MemoryWriter.h"
 #include "Serialization/MemoryReader.h"
@@ -29,6 +30,7 @@ namespace
 	constexpr int32 AnimSequenceVersion = 1;
 	constexpr int32 AnimGraphVersion = 1;
 	constexpr int32 Blend1DVersion = 1;
+	constexpr int32 ParticleSystemVersion = 1;
 }
 
 bool FJsonArchive::SaveWorldToBytes(UWorld* World, TArray<uint8>& OutBytes)
@@ -234,6 +236,28 @@ bool FJsonArchive::LoadBlend1DGraph(UBlendSpace1D* Blend1D, const FString& Path)
 bool FJsonArchive::LoadBlend1DFromBytes(UBlendSpace1D* Blend1D, const TArray<uint8>& Bytes)
 {
 	return LoadObjectFromBytes(Blend1D, "Blend1D", Blend1DVersion, Bytes);
+}
+
+bool FJsonArchive::SaveParticleSystem(UParticleSystem* ParticleSys, const FString& Path)
+{
+	TArray<uint8> Bytes;
+	return SaveParticleSystemToBytes(ParticleSys, Bytes) && WriteFile(Path, Bytes);
+}
+
+bool FJsonArchive::SaveParticleSystemToBytes(UParticleSystem* ParticleSys, TArray<uint8>& OutBytes)
+{
+	return SaveObjectToBytes(ParticleSys, "ParticleSystem", ParticleSystemVersion, OutBytes);
+}
+
+bool FJsonArchive::LoadParticleSystem(UParticleSystem* ParticleSys, const FString& Path)
+{
+	TArray<uint8> Bytes;
+	return ReadFile(Path, Bytes) && LoadParticleSystemFromBytes(ParticleSys, Bytes);
+}
+
+bool FJsonArchive::LoadParticleSystemFromBytes(UParticleSystem* ParticleSys, const TArray<uint8>& Bytes)
+{
+	return LoadObjectFromBytes(ParticleSys, "ParticleSystem", ParticleSystemVersion, Bytes);
 }
 
 bool FJsonArchive::WriteFile(const FString& Path, const TArray<uint8>& Bytes)

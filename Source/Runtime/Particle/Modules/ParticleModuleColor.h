@@ -10,6 +10,8 @@ class UParticleModuleColor : public UParticleModule
 public:
 	UParticleModuleColor();
 
+	void Serialize(FStructuredArchive::FRecord Record) override;
+
 	void Spawn(const FSpawnContext& Ctx) override;
 
 private:

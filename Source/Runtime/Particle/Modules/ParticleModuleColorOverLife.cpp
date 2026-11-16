@@ -1,5 +1,6 @@
 #include "EnginePCH.h"
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
+#include "Serialization/MathSerialization.h"
 #include "Particle/ParticleEmitterInstance.h"
 
 
@@ -18,4 +19,10 @@ void UParticleModuleColorOverLife::Update(const FUpdateContext& Ctx)
 
 		Particle->Color = Color;
 	}
+}
+
+void UParticleModuleColorOverLife::Serialize(FStructuredArchive::FRecord Record)
+{
+	Record << SA_VALUE("StartColor", StartColor);
+	Record << SA_VALUE("EndColor", EndColor);
 }

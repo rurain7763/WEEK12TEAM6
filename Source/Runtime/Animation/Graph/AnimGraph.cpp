@@ -1,5 +1,6 @@
 #include "EnginePCH.h"
 #include "Animation/Graph/AnimGraph.h"
+#include "Serialization/StructuredArchiveHelpers.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimSequence.h"
 #include "Animation/BlendSpace.h"
@@ -9,38 +10,6 @@
 #include "Animation/AnimNodes/AnimNode_StateMachine.h"
 #include "Asset/AssetManager.h"
 #include <algorithm>
-
-template <typename T>
-void UAnimGraph::SerializeArray(FStructuredArchiveRecord& Parent, const char* Name, TArray<T>& Values)
-{
-	FArchive& Archive = Parent.GetUnderlyingArchive();
-	int32 Count = Values.Num();
-	auto Array = Parent.EnterArray(Name, Count);
-	if (Archive.IsLoading()) Values.SetNum(Count);
-	for (T& Value : Values)
-	{
-		auto Element = Array.EnterElement().EnterRecord();
-		SerializeData(Element, Value);
-	}
-}
-
-template <typename T>
-void UAnimGraph::SerializeEnum(FStructuredArchiveRecord& Parent, const char* Name, T& Value, T LastValue)
-{
-	FArchive& Archive = Parent.GetUnderlyingArchive();
-	int32 Number = Archive.IsLoading() ? 0 : static_cast<int32>(Value);
-	Parent << SA_VALUE(Name, Number);
-	if (Number < 0 || Number > static_cast<int32>(LastValue))
-	{
-		Archive.SetError();
-		return;
-	}
-
-	if (Archive.IsLoading())
-	{
-		Value = static_cast<T>(Number);
-	}
-}
 
 template <typename T>
 T* UAnimGraph::BuildAnimGraph(TMap<int32, FAnimNode_Base*>& NodeInstances, int32 TargetID)
@@ -182,13 +151,13 @@ void UAnimGraph::Serialize(FStructuredArchive::FRecord Record)
 	Super::Serialize(Record);
 
 	Record << SA_VALUE("RootNodeID", RootNodeID);
-	SerializeArray(Record, "Nodes", Nodes);
+	StructuredArchiveHelpers::SerializeArray(Record, "Nodes", Nodes, [this](FStructuredArchive::FRecord& Element, auto& Value) { SerializeData(Element, Value); });
 	// Parameter types must be loaded before transition union values.
-	SerializeArray(Record, "Parameters", Parameters);
-	SerializeArray(Record, "AnimSequencePlayers", AnimSequencePlayers);
-	SerializeArray(Record, "AnimTwoWayBlends", AnimTwoWayBlends);
-	SerializeArray(Record, "BlendSpacePlayers", BlendSpacePlayers);
-	SerializeArray(Record, "StateMachines", StateMachines);
+	StructuredArchiveHelpers::SerializeArray(Record, "Parameters", Parameters, [this](FStructuredArchive::FRecord& Element, auto& Value) { SerializeData(Element, Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "AnimSequencePlayers", AnimSequencePlayers, [this](FStructuredArchive::FRecord& Element, auto& Value) { SerializeData(Element, Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "AnimTwoWayBlends", AnimTwoWayBlends, [this](FStructuredArchive::FRecord& Element, auto& Value) { SerializeData(Element, Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "BlendSpacePlayers", BlendSpacePlayers, [this](FStructuredArchive::FRecord& Element, auto& Value) { SerializeData(Element, Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "StateMachines", StateMachines, [this](FStructuredArchive::FRecord& Element, auto& Value) { SerializeData(Element, Value); });
 }
 
 UAnimInstance* UAnimGraph::CreateAnimInstance()
@@ -260,7 +229,7 @@ const FAnimParameterData* UAnimGraph::FindParameterData(const FString& Name) con
 void UAnimGraph::SerializeData(FStructuredArchiveRecord& Record, FAnimTransitionConditionData& Condition)
 {
 	Record << SA_VALUE("ParameterName", Condition.ParameterName);
-	SerializeEnum(Record, "ComparisonOperator", Condition.ComparisonOperator, EAnimComparisonOperator::LessEqual);
+	StructuredArchiveHelpers::SerializeEnum(Record, "ComparisonOperator", Condition.ComparisonOperator, EAnimComparisonOperator::LessEqual);
 
 	if (Condition.ParameterName.empty())
 	{
@@ -292,22 +261,22 @@ void UAnimGraph::SerializeData(FStructuredArchiveRecord& Record, FAnimStateMachi
 {
 	Record << SA_VALUE("InitStateID", Machine.InitStateID);
 	Record << SA_VALUE("Name", Machine.Name);
-	SerializeArray(Record, "States", Machine.States);
-	SerializeArray(Record, "AnyTransitions", Machine.AnyTransitions);
-	SerializeArray(Record, "Transitions", Machine.Transitions);
+	StructuredArchiveHelpers::SerializeArray(Record, "States", Machine.States, [this](FStructuredArchive::FRecord& Element, auto& Value) { SerializeData(Element, Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "AnyTransitions", Machine.AnyTransitions, [this](FStructuredArchive::FRecord& Element, auto& Value) { SerializeData(Element, Value); });
+	StructuredArchiveHelpers::SerializeArray(Record, "Transitions", Machine.Transitions, [this](FStructuredArchive::FRecord& Element, auto& Value) { SerializeData(Element, Value); });
 }
 
 void UAnimGraph::SerializeData(FStructuredArchiveRecord& Record, FAnimNodeData& Node)
 {
 	Record << SA_VALUE("NodeID", Node.NodeID);
-	SerializeEnum(Record, "Type", Node.Type, EAnimNodeDataType::AnimStateMachine);
+	StructuredArchiveHelpers::SerializeEnum(Record, "Type", Node.Type, EAnimNodeDataType::AnimStateMachine);
 	Record << SA_VALUE("ActualType", Node.ActualDataIndex);
 }
 
 void UAnimGraph::SerializeData(FStructuredArchiveRecord& Record, FAnimParameterData& Parameter)
 {
 	Record << SA_VALUE("Name", Parameter.Name);
-	SerializeEnum(Record, "Type", Parameter.Type, EAnimParameterType::Trigger);
+	StructuredArchiveHelpers::SerializeEnum(Record, "Type", Parameter.Type, EAnimParameterType::Trigger);
 	SerializeValue(Record, Parameter.Type, Parameter.Value);
 }
 

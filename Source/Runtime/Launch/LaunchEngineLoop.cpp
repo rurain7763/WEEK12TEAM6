@@ -19,6 +19,7 @@
 #include "Core/Async/TaskPool.h"
 
 #include "UObject/UObjectGlobals.h"
+#include "UObject/UObjectRegistration.h"
 #include "Script/LuaScriptSystem.h"
 #include "Sound/SoundSystem.h"
 
@@ -43,6 +44,8 @@ FEngineLoop::~FEngineLoop() = default;
 
 bool FEngineLoop::PreInit(HINSTANCE hInstance, UClass* EngineClass)
 {
+	RegisterUClasses();
+
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	if (!EngineClass || !EngineClass->IsChildOf(UEngine::StaticClass()))
 	{
