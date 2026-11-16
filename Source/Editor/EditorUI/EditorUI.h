@@ -8,6 +8,8 @@
 
 #include <functional> 
 
+class UParticleSystem;
+
 class FEditorUI
 {
 public:
@@ -40,16 +42,22 @@ public:
 	const TArray<TUniquePtr<FEditorTab>>& GetTabs() const { return Tabs; }
 	void RequestOpenAnimGraph(const FString& Path) { PendingAnimGraphPath = Path; }
 	void RequestOpenBlendSpace(const FString& Path) { PendingBlendSpacePath = Path; }
+	void RequestOpenParticleSystem(const FString& Path);
+
+private:
+	void DrawMainMenuBar();
+	void DrawPanelMenuItems(const FEditorTab& Tab);
+
+	void OpenParticleEditor(UParticleSystem* ParticleSystem = nullptr);
 
 private:
 	bool bUseDockSpace = true;
 	bool bPassthruCentralNode = false;
 	bool bPendingOpenAnimationEditor = false;
+	bool mPendingOpenParticleEditor{};
+	FString mPendingParticleSystemPath{};
 	FString PendingAnimGraphPath;
 	FString PendingBlendSpacePath;
-
-	void DrawMainMenuBar();
-	void DrawPanelMenuItems(const FEditorTab& Tab);
 
 	TArray<TUniquePtr<FEditorTab>> Tabs;
 

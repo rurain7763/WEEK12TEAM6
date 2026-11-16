@@ -21,6 +21,10 @@ void FContentDrawerPanel::Tick(float DeltaTime)
 {
 }
 
+void FContentDrawerPanel::SetOpenParticleSystemBinding(std::function<void(const FString&)> InOpenParticleSystem) {
+	mOpenParticleSystem = std::move(InOpenParticleSystem);
+}
+
 void FContentDrawerPanel::OnRender()
 {
 	ImGui::Begin("Content Drawer");
@@ -184,6 +188,9 @@ void FContentDrawerPanel::OnRender()
 					else if (Path.extension() == ".blendspace" && OpenBlendSpace)
 					{
 						OpenBlendSpace(PathString);
+					}
+					else if (_wcsicmp(Path.extension().c_str(), L".particlesys") == 0 && mOpenParticleSystem) {
+						mOpenParticleSystem(PathString);
 					}
 				}
 				// 파일 이름 표시

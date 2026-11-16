@@ -46,7 +46,6 @@ void FSettingsPanel::OnRender()
 	ImGui::Checkbox("Decals", &Settings.bDrawDecals);
 	ImGui::Checkbox("Bounding Boxes", &Settings.bDrawBoundingBox);
 	ImGui::Checkbox("Object UUID", &Settings.bShowUUID);
-	ImGui::Checkbox("Grid", &Settings.bDrawGrid);
 	ImGui::Checkbox("Exponential Height Fog", &Settings.bExponentialHeightFog);
 	ImGui::Checkbox("Tile Light Count", &Settings.bVisualizeTileLightCount);
 	ImGui::Checkbox("Shadow", &Settings.bDrawShadows);
@@ -139,9 +138,8 @@ void FSettingsPanel::OnRender()
 	ImGui::Dummy(ImVec2(0.0f, SectionGap));
 	ImGui::SeparatorText("Grid");
 
-	ImGui::BeginDisabled(!Settings.bDrawGrid);
+	ImGui::TextDisabled("Visibility is configured per viewport.");
 	ImGui::SliderInt("Spacing", &Settings.GridSpacing, 1, 100);
-	ImGui::EndDisabled();
 
 	//////////////////////////////////////////////////////////
 
@@ -196,7 +194,6 @@ bool FSettingsPanel::SaveSettings() const
 	File << "DrawDecals=" << Settings.bDrawDecals << '\n';
 	File << "DrawBoundingBox=" << Settings.bDrawBoundingBox << "\n";
 	File << "ShowUUID=" << Settings.bShowUUID << "\n";
-	File << "DrawGrid=" << Settings.bDrawGrid << "\n";
 	File << "ExponentialHeightFog=" << Settings.bExponentialHeightFog << "\n";
 	File << "VisualizeCascades=" << Settings.bVisualizeCascades << "\n";
 	File << "\n";
@@ -240,6 +237,7 @@ bool FSettingsPanel::SaveSettings() const
         File << "View" << Index << "Fov=" << Snapshot.ViewFov[Index] << "\n";
         File << "View" << Index << "OrthoWidth=" << Snapshot.ViewOrthoWidth[Index] << "\n";
         File << "View" << Index << "Preset=" << Snapshot.ViewPreset[Index] << "\n";
+        File << "View" << Index << "DrawGrid=" << Snapshot.mViewGridVisible[Index] << "\n";
         const FViewRenderMode& RenderMode = Snapshot.ViewRenderMode[Index];
         File << "View" << Index << "ViewMode=" << ViewModeNames[static_cast<int32>(RenderMode.ViewMode)] << "\n";
         File << "View" << Index << "LightingModel=" << LightingModelNames[static_cast<int32>(RenderMode.LightingModel)] << "\n";
@@ -267,6 +265,8 @@ bool FSettingsPanel::LoadSettings()
 
 	uint8 LocationComponentMasks[4]{};
 	uint8 RotationComponentMasks[4]{};
+	bool LegacyGridVisible{ true };
+	bool ViewGridSaved[4]{};
 	for (int32 Index = 0; Index < 4; ++Index)
 	{
 		Settings.bViewLocationSaved[Index] = false;
@@ -291,7 +291,10 @@ bool FSettingsPanel::LoadSettings()
 					FString Prefix = "View";
 					Prefix += static_cast<char>('0' + Index);
 					FViewRenderMode& RenderMode = Settings.ViewRenderMode[Index];
-					if (Key == Prefix + "ViewMode")
+					if (Key == Prefix + "DrawGrid" && (ValueStr == "0" || ValueStr == "1")) {
+						Settings.mViewGridVisible[Index] = ValueStr == "1";
+						ViewGridSaved[Index] = true;
+					} else if (Key == Prefix + "ViewMode")
 						TryParseModeName(ValueStr, ViewModeNames, RenderMode.ViewMode);
 					else if (Key == Prefix + "LightingModel")
 						TryParseModeName(ValueStr, LightingModelNames, RenderMode.LightingModel);
@@ -357,7 +360,9 @@ bool FSettingsPanel::LoadSettings()
 				else if (Key == "DrawDecals") Settings.bDrawDecals = std::stoi(ValueStr);
 				else if (Key == "DrawBoundingBox") Settings.bDrawBoundingBox = std::stoi(ValueStr);
 				else if (Key == "ShowUUID") Settings.bShowUUID = std::stoi(ValueStr);
-				else if (Key == "DrawGrid") Settings.bDrawGrid = std::stoi(ValueStr);
+				else if (Key == "DrawGrid") {
+					LegacyGridVisible = std::stoi(ValueStr) != 0;
+				}
 				else if (Key == "ExponentialHeightFog") Settings.bExponentialHeightFog = std::stoi(ValueStr);
 				else if (Key == "VisualizeCascades") Settings.bVisualizeCascades = std::stoi(ValueStr);
 
@@ -405,6 +410,10 @@ bool FSettingsPanel::LoadSettings()
 	File.close();
 	for (int32 Index = 0; Index < 4; ++Index)
 	{
+		if (!ViewGridSaved[Index]) {
+			Settings.mViewGridVisible[Index] = LegacyGridVisible;
+		}
+
 		Settings.bViewLocationSaved[Index] = LocationComponentMasks[Index] == 0x7;
 		if (RotationComponentMasks[Index] == 0xF)
 		{
@@ -446,6 +455,7 @@ void FSettingsPanel::ReadViewportSettings(FEditorSettings& Out) const
         Out.ViewOrthoWidth[Index] = Camera.Projection.OrthoWidth;
         Out.ViewPreset[Index] = static_cast<int32>(Client.GetCameraPreset());
         Out.ViewRenderMode[Index] = ViewportsPanel->GetViewport(Index).GetViewRenderMode();
+        Out.mViewGridVisible[Index] = ViewportsPanel->GetViewport(Index).IsGridVisible();
         Out.ViewLocation[Index] = Camera.Transform.Location;
         Out.ViewRotation[Index] = Camera.Transform.Rotation;
         Out.bViewLocationSaved[Index] = true;
@@ -476,5 +486,6 @@ void FSettingsPanel::ApplyViewportSettings()
         if (Settings.bViewRotationSaved[Index]) Camera.Transform.Rotation = Settings.ViewRotation[Index];
         Client.ApplyCameraProperties(Camera, false, Rect);
         ViewportsPanel->GetViewport(Index).SetViewRenderMode(Settings.ViewRenderMode[Index]);
+        ViewportsPanel->GetViewport(Index).SetGridVisible(Settings.mViewGridVisible[Index]);
     }
 }

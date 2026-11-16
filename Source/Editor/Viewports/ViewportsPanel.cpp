@@ -374,6 +374,11 @@ void FViewportsPanel::DrawCameraMenu(const int32 ViewIndex, const ImVec2& ViewTo
 		PresetItem(static_cast<EMultipleViewportsCameraPreset>(Preset));
 
 	ImGui::SeparatorText("View");
+	bool GridVisible{ Slots[ViewIndex].Viewport.IsGridVisible() };
+	if (ImGui::Checkbox("Grid", &GridVisible)) {
+		Slots[ViewIndex].Viewport.SetGridVisible(GridVisible);
+	}
+
 	DrawCameraProperties(ViewIndex);
 	ImGui::EndCombo();
 }

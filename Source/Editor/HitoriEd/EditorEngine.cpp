@@ -149,6 +149,9 @@ bool UEditorEngine::Init()
 	{
 		EditorUI->RequestOpenBlendSpace(Path);
 	});
+	ContentDrawerPanel->SetOpenParticleSystemBinding([this](const FString& Path) {
+		EditorUI->RequestOpenParticleSystem(Path);
+	});
 
 	EditorUI->GetLevelTab()->SetGizmo(Gizmo.get());
 	EditorUI->GetLevelTab()->SetViewportsPanel(ViewportsPanel);
@@ -907,7 +910,7 @@ void UEditorEngine::RenderOverlayPass(const FViewport& Viewport, FEditorViewport
 
 	// Grid는 후처리(안개·FXAA)가 끝난 뒤 합성하는 에디터 표시라 안개를 적용하지 않는다.
 	// 원근은 픽셀 셰이더 Grid, 직교는 선 Grid를 쓴다 (언리얼 에디터와 같은 구분).
-	if (bShowEditorOverlay && Settings.bDrawGrid)
+	if (bShowEditorOverlay && Viewport.IsGridVisible())
 	{
 		const EGridPlane GridPlane = OverlayClient->GetGridPlane(Viewport.GetCamera().Transform.Rotation);
 
