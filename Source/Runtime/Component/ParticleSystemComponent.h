@@ -25,6 +25,7 @@ public:
 	void EndPlay() override;
 
 	void SetTemplate(UParticleSystem* InSystem);
+	void SetLODLevel(int32 InLODIndex);
 
 	void ClearEmitterInstances();
 
@@ -35,7 +36,10 @@ public:
 	virtual FPrimitiveSceneProxy* CreateSceneProxy();
 
 private:
+	void UpdateAutomaticLOD(float DeltaTime);
+
 	UParticleSystem* Template = nullptr;
 
 	TArray<FParticleEmitterInstance*> EmitterInstances;
+	float LODDistanceCheckElapsed = 0.f;
 };

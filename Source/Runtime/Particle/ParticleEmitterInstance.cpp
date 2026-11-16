@@ -24,13 +24,21 @@ FParticleEmitterInstance::~FParticleEmitterInstance()
 void FParticleEmitterInstance::InitParameters(UParticleEmitter* Emitter, UParticleSystemComponent* InOwner)
 {
 	EmitterTemplate = Emitter;
-
-	if (Emitter)
-	{
-		CurrentLODLevel = Emitter->GetLODLevel(0);
-	}
-
+	SetCurrentLODIndex(0);
 	Owner = InOwner;
+}
+
+void FParticleEmitterInstance::SetCurrentLODIndex(int32 InLODIndex)
+{
+	if (EmitterTemplate == nullptr) return;
+
+	UParticleLODLevel* NewLODLevel = EmitterTemplate->GetLODLevel(InLODIndex);
+	if (NewLODLevel == nullptr) return;
+
+	NewLODLevel->BuildModuleLists();
+
+	CurrentLODLevelIndex = InLODIndex;
+	CurrentLODLevel = NewLODLevel;
 }
 
 void FParticleEmitterInstance::Initialize()
@@ -41,11 +49,11 @@ void FParticleEmitterInstance::Initialize()
 	}
 
 	EmitterTemplate->CacheEmitterModuleInfo();
-	ParticleStride = EmitterTemplate->ParticleSize;
-	CurrentLODLevel->BuildModuleLists();
 
+	ParticleStride = EmitterTemplate->ParticleSize;
 	MaxActiveParticles = EmitterTemplate->MaxParticleCount;
 
+	// 입자 크기 × 최대 개수만큼의 메모리 확보
 	ParticleData = new uint8[ParticleStride * MaxActiveParticles];
 
 	ParticleIndices = new uint16[MaxActiveParticles];
@@ -70,11 +78,12 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, const FVector& InitLo
 
 void FParticleEmitterInstance::SpawnParticle(const FVector& InitLocation)
 {
-	if (!ParticleData || !CurrentLODLevel)
+	if (!ParticleData || !CurrentLODLevel || !CurrentLODLevel->IsEnabled())
 	{
 		return;
 	}
 
+	// 활성 영역 바로 다음에 있는 첫 빈 슬롯을 가져옴
 	FBaseParticle* Particle = GetParticleFromPosition(ActiveParticles);
 	*Particle = FBaseParticle();
 
@@ -155,8 +164,8 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
 		Module->Update(Context);
 	}
 
-	// 파티클 생성 관리
-	if (CurrentLODLevel->SpawnModule)
+	// 비활성 LOD는 생성량을 누적하지 않는다. 기존 입자의 갱신과 수명 처리는 유지한다.
+	if (CurrentLODLevel->IsEnabled() && CurrentLODLevel->SpawnModule)
 	{
 		SpawnFraction += DeltaTime * CurrentLODLevel->SpawnModule->GetSpawnRate();
 
