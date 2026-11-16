@@ -32,7 +32,7 @@ public:
 	TArray<UParticleLODLevel*> LODLevels;
 
 private:
-	friend class FParticleEmitterInstance;
+	friend struct FParticleEmitterInstance;
 
 	int32 MaxParticleCount = 1000;
 	int32 ParticleSize = 0;

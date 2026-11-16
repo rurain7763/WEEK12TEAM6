@@ -35,6 +35,7 @@ void UParticleSystemComponent::BeginPlay()
 	}
 
 	// 첫 Tick에서 바로 카메라 거리를 검사한다.
+	mEmitterInstancesInitialized = true;
 	LODDistanceCheckElapsed = Template->LODDistanceCheckTime;
 }
 
@@ -59,7 +60,26 @@ void UParticleSystemComponent::EndPlay()
 
 void UParticleSystemComponent::SetTemplate(UParticleSystem* InSystem)
 {
+	if (Template == InSystem) {
+		return;
+	}
+
 	Template = InSystem;
+	ReinitializeEmitterInstances();
+}
+
+UParticleSystem* UParticleSystemComponent::GetTemplate() const {
+	return Template;
+}
+
+void UParticleSystemComponent::ReinitializeEmitterInstances() {
+	if (!mEmitterInstancesInitialized) {
+		return;
+	}
+
+	ClearEmitterInstances();
+	BeginPlay();
+	UpdateDynamicData();
 }
 
 void UParticleSystemComponent::SetLODLevel(int32 InLODIndex)
@@ -135,6 +155,7 @@ void UParticleSystemComponent::ClearEmitterInstances()
 		delete EmitterInstances[i];
 	}
 	EmitterInstances.Reset();
+	mEmitterInstancesInitialized = false;
 	LODDistanceCheckElapsed = 0.f;
 }
 

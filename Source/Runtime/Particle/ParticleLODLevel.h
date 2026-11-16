@@ -16,6 +16,7 @@ public:
 	virtual void Serialize(FStructuredArchive::FRecord Record);
 
 	void BuildModuleLists();
+	void SetLevel(int32 InLevel);
 
 	int32 GetLevel() const { return Level; }
 	bool IsEnabled() const { return bEnable; }
@@ -26,7 +27,7 @@ public:
 	UParticleModuleRequired* RequiredModule = nullptr;
 
 private:
-	friend class FParticleEmitterInstance;
+	friend struct FParticleEmitterInstance;
 
 	int32 Level = 0;
 	bool bEnable = true;

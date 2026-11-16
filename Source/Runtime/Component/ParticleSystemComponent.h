@@ -25,6 +25,8 @@ public:
 	void EndPlay() override;
 
 	void SetTemplate(UParticleSystem* InSystem);
+	UParticleSystem* GetTemplate() const;
+	void ReinitializeEmitterInstances();
 	void SetLODLevel(int32 InLODIndex);
 
 	void ClearEmitterInstances();
@@ -41,5 +43,6 @@ private:
 	UParticleSystem* Template = nullptr;
 
 	TArray<FParticleEmitterInstance*> EmitterInstances;
+	bool mEmitterInstancesInitialized{};
 	float LODDistanceCheckElapsed = 0.f;
 };

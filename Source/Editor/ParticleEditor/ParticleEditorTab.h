@@ -1,20 +1,14 @@
 #pragma once
 
 #include "Editor/Preview/PreviewEditorTab.h"
+#include "ParticleEmitterPanel.h"
 
 class UParticleSystem;
 class UParticleSystemComponent;
-class FParticleEmitterPanel;
 class FParticleModuleDetailsPanel;
+class FParticleSystemEditSession;
 
 class FParticleEditorTab : public FPreviewEditorTab {
-private:
-	struct FPropertySnapshot {
-		UObject* mObject{};
-		std::size_t mOffset{};
-		TArray<uint8> mValue{};
-	};
-
 public:
 	explicit FParticleEditorTab(UParticleSystem* InParticleSystem = nullptr);
 	~FParticleEditorTab() override;
@@ -29,23 +23,22 @@ private:
 	void TickPreview(float DeltaTime) override;
 	void InitializePreviewCamera();
 	void RestartPreview();
+	void ApplyPendingStructureChange();
 
 	void OnPropertiesChanged();
 	void DrawEditorToolbar();
 	void DrawCloseConfirmation();
 	bool SaveAsset();
 
-	void CaptureSavedProperties();
-	void CaptureObjectProperties(UObject* Object);
-	void RestoreSavedProperties();
-
 private:
 	UParticleSystem* mParticleSystem{};
+	TUniquePtr<FParticleSystemEditSession> mEditSession{};
 	UParticleSystemComponent* mPreviewComponent{};
 	FParticleEmitterPanel* mEmitterPanel{};
 	FParticleModuleDetailsPanel* mDetailsPanel{};
-	TArray<FPropertySnapshot> mSavedProperties{};
 	FString mStatus{};
+	FParticleEmitterPanel::FStructureRequest mPendingStructureRequest{};
+	bool mHasPendingStructureRequest{};
 	bool mPendingCameraSetup{ true };
 	bool mPendingPreviewRestart{};
 	bool mDirty{};

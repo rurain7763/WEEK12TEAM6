@@ -2,6 +2,7 @@
 #include "ParticleEditorTab.h"
 #include "ParticleEmitterPanel.h"
 #include "ParticleModuleDetailsPanel.h"
+#include "ParticleSystemEditSession.h"
 #include "Component/ParticleSystemComponent.h"
 #include "Core/PathUtils.h"
 #include "Editor/Preview/PreviewViewportPanel.h"
@@ -11,14 +12,9 @@
 #include "GameFramework/Actor/ParticleActor.h"
 #include "Particle/ParticleSystem.h"
 #include "Particle/ParticleEmitter.h"
-#include "Particle/ParticleLODLevel.h"
 #include "Particle/ParticleModule.h"
-#include "Particle/Modules/ParticleModuleRequired.h"
-#include "Particle/Modules/ParticleModuleSpawn.h"
-#include "Serialization/JsonArchive.h"
 
-#include <cstring>
-#include <limits>
+#include <algorithm>
 
 namespace {
 	constexpr float ParticlePreviewCameraDistance{ 10.0f };
@@ -37,22 +33,27 @@ namespace {
 
 FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 	: FPreviewEditorTab{ MakeParticleEditorTabSettings(InParticleSystem), InParticleSystem ? "Particle Preview##ParticleEditor:" + InParticleSystem->GetPath() : "Particle Preview##ParticleEditor" },
-	  mParticleSystem{ InParticleSystem } {
+	  mParticleSystem{ InParticleSystem },
+	  mEditSession{ MakeUnique<FParticleSystemEditSession>(InParticleSystem) } {
 	ViewportPanel->GetViewport()->SetGridVisible(false);
+	UParticleSystem* WorkingCopy{ mEditSession->GetWorkingCopy() };
 	const FString PanelSuffix{ "##ParticleEditor:" + (mParticleSystem ? mParticleSystem->GetPath() : FString{}) };
-	mEmitterPanel = AddPanel<FParticleEmitterPanel>(mParticleSystem, "Emitters" + PanelSuffix, [this](UObject* Object) {
+	mEmitterPanel = AddPanel<FParticleEmitterPanel>(WorkingCopy, "Emitters" + PanelSuffix, [this](UObject* Object) {
 		mDetailsPanel->SetTarget(Object);
 		mDetailsPanel->SetOpen(true);
 	}, [this]() {
 		DrawEditorToolbar();
+	}, [this](const FParticleEmitterPanel::FStructureRequest& Request) {
+		mPendingStructureRequest = Request;
+		mHasPendingStructureRequest = true;
 	});
 	mDetailsPanel = AddPanel<FParticleModuleDetailsPanel>("Module Details" + PanelSuffix, [this]() {
 		OnPropertiesChanged();
 	});
 	mDetailsPanel->SetTarget(mEmitterPanel->GetSelectedObject());
-	CaptureSavedProperties();
+	mStatus = mEditSession->GetError();
 
-	if (!mParticleSystem) {
+	if (!WorkingCopy) {
 		return;
 	}
 
@@ -64,7 +65,7 @@ FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 	mPreviewComponent = Cast<UParticleSystemComponent>(PreviewActor->FindComponentByClass(UParticleSystemComponent::StaticClass()));
 	if (mPreviewComponent) {
 		mPreviewComponent->SetWorldLocation(FVector::ZeroVector, false);
-		mPreviewComponent->SetTemplate(mParticleSystem);
+		mPreviewComponent->SetTemplate(WorkingCopy);
 		mPreviewComponent->BeginPlay();
 	}
 }
@@ -72,6 +73,7 @@ FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 FParticleEditorTab::~FParticleEditorTab() {
 	if (mPreviewComponent) {
 		mPreviewComponent->EndPlay();
+		mPreviewComponent->SetTemplate(nullptr);
 	}
 }
 
@@ -88,6 +90,7 @@ void FParticleEditorTab::TickPreview(float DeltaTime) {
 		*GetOpenFlag() = false;
 		return;
 	}
+	ApplyPendingStructureChange();
 
 	if (mPendingCameraSetup && ViewportPanel->GetViewport()->IsVisible()) {
 		InitializePreviewCamera();
@@ -133,8 +136,59 @@ void FParticleEditorTab::OnPropertiesChanged() {
 	mStatus.clear();
 }
 
+void FParticleEditorTab::ApplyPendingStructureChange() {
+	if (!mHasPendingStructureRequest) {
+		return;
+	}
+	mHasPendingStructureRequest = false;
+	UParticleSystem* Working{ mEditSession->GetWorkingCopy() };
+	UObject* PreviousSelection{ mEmitterPanel->GetSelectedObject() };
+	mEmitterPanel->SelectObject(nullptr);
+	if (mPreviewComponent) {
+		mPreviewComponent->EndPlay();
+		mPendingPreviewRestart = true;
+	}
+
+	UObject* Selection{ PreviousSelection };
+	bool Changed{};
+	try {
+		switch (mPendingStructureRequest.mAction) {
+		case FParticleEmitterPanel::EStructureAction::AddEmitter:
+			Selection = mEditSession->AddEmitter(mStatus);
+			Changed = Selection != nullptr;
+			break;
+		case FParticleEmitterPanel::EStructureAction::DeleteEmitter: {
+			const int32 Index{ Working ? Working->Emitters.Find(mPendingStructureRequest.mEmitter) : -1 };
+			Changed = mEditSession->DeleteEmitter(mPendingStructureRequest.mEmitter, mStatus);
+			if (Changed) {
+				Selection = Working->Emitters.IsEmpty() ? nullptr : Working->Emitters[static_cast<uint32>(std::min(Index, Working->Emitters.Num() - 1))];
+			}
+			break;
+		}
+		case FParticleEmitterPanel::EStructureAction::AddModule:
+			Selection = mEditSession->AddModule(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mModuleClass, mStatus);
+			Changed = Selection != nullptr;
+			break;
+		case FParticleEmitterPanel::EStructureAction::DeleteModule:
+			Changed = mEditSession->DeleteModule(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mModule, mStatus);
+			if (Changed) {
+				Selection = mPendingStructureRequest.mEmitter;
+			}
+			break;
+		}
+	} catch (const std::exception& Error) {
+		mStatus = "Could not update the particle system: " + FString{ Error.what() };
+	}
+
+	mPendingStructureRequest = {};
+	mEmitterPanel->SelectObject(Changed ? Selection : PreviousSelection);
+	if (Changed) {
+		OnPropertiesChanged();
+	}
+}
+
 void FParticleEditorTab::DrawEditorToolbar() {
-	ImGui::BeginDisabled(!mParticleSystem || GetEditingFilePath().empty());
+	ImGui::BeginDisabled(!mEditSession->GetWorkingCopy() || GetEditingFilePath().empty());
 	if (ImGui::Button("Save")) {
 		SaveAsset();
 	}
@@ -154,28 +208,10 @@ void FParticleEditorTab::DrawEditorToolbar() {
 }
 
 bool FParticleEditorTab::SaveAsset() {
-	if (!mParticleSystem || GetEditingFilePath().empty()) {
+	if (!mEditSession->Save(mStatus)) {
 		return false;
 	}
 
-	const std::filesystem::path Destination{ PathUtils::FromUtf8(GetEditingFilePath()) };
-	std::filesystem::path Temporary{ Destination };
-	Temporary += L".tmp";
-	std::error_code Error{};
-	for (int32 Index{ 1 }; std::filesystem::exists(Temporary, Error); ++Index) {
-		Temporary = Destination.wstring() + L".tmp" + std::to_wstring(Index);
-	}
-	if (Error) {
-		mStatus = "Could not prepare the particle system file for saving.";
-		return false;
-	}
-	if (!FJsonArchive::SaveParticleSystem(mParticleSystem, PathUtils::ToUtf8(Temporary)) || !MoveFileExW(Temporary.c_str(), Destination.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
-		std::filesystem::remove(Temporary, Error);
-		mStatus = "Could not save the particle system.";
-		return false;
-	}
-
-	CaptureSavedProperties();
 	mDirty = false;
 	mStatus = "Particle system saved.";
 	return true;
@@ -204,7 +240,6 @@ void FParticleEditorTab::DrawCloseConfirmation() {
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Discard")) {
-			RestoreSavedProperties();
 			mCloseApproved = true;
 			ImGui::CloseCurrentPopup();
 		}
@@ -217,56 +252,4 @@ void FParticleEditorTab::DrawCloseConfirmation() {
 		}
 		ImGui::EndPopup();
 	}
-}
-
-void FParticleEditorTab::CaptureObjectProperties(UObject* Object) {
-	if (!Object) {
-		return;
-	}
-
-	for (UClass* Class{ Object->GetClass() }; Class; Class = Class->Super) {
-		for (const FProperty& Property : Class->GetProperties()) {
-			if (!Property.HasAnyFlags(CPF_Edit) || Property.HasAnyFlags(CPF_EditConst) || Property.Type == EPropertyType::String || Property.Type == EPropertyType::Unknown || Property.Size > static_cast<std::size_t>(std::numeric_limits<int32>::max())) {
-				continue;
-			}
-
-			FPropertySnapshot Snapshot{};
-			Snapshot.mObject = Object;
-			Snapshot.mOffset = Property.Offset;
-			Snapshot.mValue.SetNum(static_cast<int32>(Property.Size));
-			std::memcpy(Snapshot.mValue.GetData(), reinterpret_cast<const uint8*>(Object) + Property.Offset, Property.Size);
-			mSavedProperties.Add(std::move(Snapshot));
-		}
-	}
-}
-
-void FParticleEditorTab::CaptureSavedProperties() {
-	mSavedProperties.Empty();
-	if (!mParticleSystem) {
-		return;
-	}
-
-	for (UParticleEmitter* Emitter : mParticleSystem->Emitters) {
-		if (!Emitter) {
-			continue;
-		}
-		CaptureObjectProperties(Emitter);
-		for (UParticleLODLevel* LOD : Emitter->LODLevels) {
-			if (!LOD) {
-				continue;
-			}
-			CaptureObjectProperties(LOD->RequiredModule);
-			CaptureObjectProperties(LOD->SpawnModule);
-			for (UParticleModule* Module : LOD->Modules) {
-				CaptureObjectProperties(Module);
-			}
-		}
-	}
-}
-
-void FParticleEditorTab::RestoreSavedProperties() {
-	for (const FPropertySnapshot& Snapshot : mSavedProperties) {
-		std::memcpy(reinterpret_cast<uint8*>(Snapshot.mObject) + Snapshot.mOffset, Snapshot.mValue.GetData(), static_cast<std::size_t>(Snapshot.mValue.Num()));
-	}
-	mDirty = false;
 }
