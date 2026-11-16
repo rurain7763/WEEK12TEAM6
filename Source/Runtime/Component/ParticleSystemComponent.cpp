@@ -34,8 +34,14 @@ void UParticleSystemComponent::BeginPlay()
 		EmitterInstances[i] = Emitter->CreateInstance(this);
 	}
 
-	// 첫 Tick에서 바로 카메라 거리를 검사한다.
+	if (!Template->LODDistances.IsValidIndex(CurrentLODLevel)) {
+		CurrentLODLevel = 0;
+	}
+	// 인스턴스 생성 전에 지정한 단계도 적용한다.
+	SetLODLevel(CurrentLODLevel);
 	mEmitterInstancesInitialized = true;
+
+	// Automatic은 첫 Tick에서 바로 카메라 거리를 검사한다.
 	LODDistanceCheckElapsed = Template->LODDistanceCheckTime;
 }
 
@@ -89,6 +95,15 @@ void UParticleSystemComponent::SetLODLevel(int32 InLODIndex)
 		return;
 	}
 
+	// 인스턴스 생성 전에도 에셋에 해당 단계가 있는지 확인한다.
+	for (UParticleEmitter* Emitter : Template->Emitters)
+	{
+		if (!Emitter || !Emitter->GetLODLevel(InLODIndex))
+		{
+			return;
+		}
+	}
+
 	// 일부 이미터만 전환되는 것을 막는다.
 	for (FParticleEmitterInstance* Instance : EmitterInstances)
 	{
@@ -99,6 +114,8 @@ void UParticleSystemComponent::SetLODLevel(int32 InLODIndex)
 		}
 	}
 
+	CurrentLODLevel = InLODIndex;
+
 	for (FParticleEmitterInstance* Instance : EmitterInstances)
 	{
 		if (Instance && Instance->CurrentLODLevelIndex != InLODIndex)
@@ -108,11 +125,91 @@ void UParticleSystemComponent::SetLODLevel(int32 InLODIndex)
 	}
 }
 
+int32 UParticleSystemComponent::GetLODLevel() const {
+	return CurrentLODLevel;
+}
+
+void UParticleSystemComponent::SetLODMethod(EParticleSystemLODMethod InLODMethod)
+{
+	if (bOverrideLODMethod && LODMethod == InLODMethod)
+	{
+		return;
+	}
+
+	bOverrideLODMethod = true;
+	LODMethod = InLODMethod;
+	LODDistanceCheckElapsed = Template ? Template->LODDistanceCheckTime : 0.f;
+}
+
+void UParticleSystemComponent::ClearLODMethodOverride()
+{
+	if (!bOverrideLODMethod)
+	{
+		return;
+	}
+
+	bOverrideLODMethod = false;
+	LODDistanceCheckElapsed = Template ? Template->LODDistanceCheckTime : 0.f;
+}
+
+EParticleSystemLODMethod UParticleSystemComponent::GetLODMethod() const
+{
+	if (bOverrideLODMethod)
+	{
+		return LODMethod;
+	}
+	return Template ? Template->LODMethod : EParticleSystemLODMethod::Automatic;
+}
+
+void UParticleSystemComponent::SetLODViewLocation(const FVector& InViewLocation)
+{
+	if (!bHasLODViewLocation)
+	{
+		LODDistanceCheckElapsed = Template ? Template->LODDistanceCheckTime : 0.f;
+	}
+	bHasLODViewLocation = true;
+	LODViewLocation = InViewLocation;
+}
+
+void UParticleSystemComponent::ClearLODViewLocation()
+{
+	if (!bHasLODViewLocation)
+	{
+		return;
+	}
+	bHasLODViewLocation = false;
+	LODDistanceCheckElapsed = Template ? Template->LODDistanceCheckTime : 0.f;
+}
+
+bool UParticleSystemComponent::GetLODViewLocation(FVector& OutViewLocation) const
+{
+	if (bHasLODViewLocation)
+	{
+		OutViewLocation = LODViewLocation;
+		return true;
+	}
+
+	UWorld* World = GetWorld();
+	APlayerController* PlayerController = World ? World->GetPlayerController() : nullptr;
+	if (!PlayerController || !PlayerController->GetPlayerCameraManager())
+	{
+		return false;
+	}
+	OutViewLocation = PlayerController->GetPlayerView().Location;
+	return true;
+}
+
 void UParticleSystemComponent::UpdateAutomaticLOD(float DeltaTime)
 {
-	if (!Template || Template->LODMethod != EParticleSystemLODMethod::Automatic ||
-		EmitterInstances.IsEmpty())
+	if (!Template || EmitterInstances.IsEmpty())
 	{
+		return;
+	}
+
+	if (GetLODMethod() != EParticleSystemLODMethod::Automatic)
+	{
+		// 에셋의 방식이 Automatic으로 바뀌어도 다음 Tick에 바로 검사한다.
+		LODDistanceCheckElapsed = Template->LODDistanceCheckTime;
 		return;
 	}
 
@@ -122,9 +219,8 @@ void UParticleSystemComponent::UpdateAutomaticLOD(float DeltaTime)
 		return;
 	}
 
-	UWorld* World = GetWorld();
-	APlayerController* PlayerController = World ? World->GetPlayerController() : nullptr;
-	if (!PlayerController || !PlayerController->GetPlayerCameraManager())
+	FVector CameraLocation;
+	if (!GetLODViewLocation(CameraLocation))
 	{
 		return;
 	}
@@ -133,7 +229,6 @@ void UParticleSystemComponent::UpdateAutomaticLOD(float DeltaTime)
 	// 로드 및 BeginPlay에서 모든 이미터의 단계 수가 일치하는지 검사한다.
 	const int32 LODCount = Template->LODDistances.Num();
 
-	const FVector CameraLocation = PlayerController->GetPlayerView().Location;
 	const float DistanceSquared = (CameraLocation - GetWorldLocation()).SizeSquared();
 	int32 DesiredLODIndex = 0;
 	for (int32 Index = 1; Index < LODCount; ++Index)
