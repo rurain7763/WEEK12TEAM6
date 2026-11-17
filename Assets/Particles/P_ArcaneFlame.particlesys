@@ -9,7 +9,7 @@
     "Emitters": [
       {
         "ClassName": "UParticleEmitter",
-        "MaxParticleCount": 32,
+        "MaxParticleCount": 64,
         "ParticleSize": 96,
         "LODLevels": [
           {
@@ -56,12 +56,12 @@
             },
             "SpawnModule": {
               "ClassName": "UParticleModuleSpawn",
-              "SpawnRate": 28
+              "SpawnRate": 80.0
             },
             "Modules": [
               {
                 "ClassName": "UParticleModuleLifeTime",
-                "LifeTime": 0.32
+                "LifeTime": 0.55
               },
               {
                 "ClassName": "UParticleModuleLocation",
@@ -120,7 +120,7 @@
                   "R": 0.62,
                   "G": 0.95,
                   "B": 1,
-                  "A": 0.65
+                  "A": 0.15
                 }
               },
               {
@@ -129,7 +129,7 @@
                   "R": 0.62,
                   "G": 0.95,
                   "B": 1,
-                  "A": 0.65
+                  "A": 0.15
                 },
                 "EndColor": {
                   "R": 0.05,
@@ -144,7 +144,7 @@
       },
       {
         "ClassName": "UParticleEmitter",
-        "MaxParticleCount": 64,
+        "MaxParticleCount": 96,
         "ParticleSize": 96,
         "LODLevels": [
           {
@@ -191,7 +191,7 @@
             },
             "SpawnModule": {
               "ClassName": "UParticleModuleSpawn",
-              "SpawnRate": 30
+              "SpawnRate": 60.0
             },
             "Modules": [
               {
@@ -255,7 +255,7 @@
                   "R": 0.1,
                   "G": 0.82,
                   "B": 1,
-                  "A": 0.46
+                  "A": 0.24
                 }
               },
               {
@@ -264,7 +264,7 @@
                   "R": 0.1,
                   "G": 0.82,
                   "B": 1,
-                  "A": 0.46
+                  "A": 0.24
                 },
                 "EndColor": {
                   "R": 0.12,
@@ -279,7 +279,7 @@
       },
       {
         "ClassName": "UParticleEmitter",
-        "MaxParticleCount": 48,
+        "MaxParticleCount": 64,
         "ParticleSize": 96,
         "LODLevels": [
           {
@@ -326,7 +326,7 @@
             },
             "SpawnModule": {
               "ClassName": "UParticleModuleSpawn",
-              "SpawnRate": 14
+              "SpawnRate": 28.0
             },
             "Modules": [
               {
@@ -390,7 +390,7 @@
                   "R": 0.18,
                   "G": 0.34,
                   "B": 1,
-                  "A": 0.19
+                  "A": 0.095
                 }
               },
               {
@@ -399,7 +399,7 @@
                   "R": 0.18,
                   "G": 0.34,
                   "B": 1,
-                  "A": 0.19
+                  "A": 0.095
                 },
                 "EndColor": {
                   "R": 0.48,

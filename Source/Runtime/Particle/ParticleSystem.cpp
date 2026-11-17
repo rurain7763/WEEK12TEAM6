@@ -1,16 +1,24 @@
 #include "EnginePCH.h"
 #include "ParticleSystem.h"
+#include "Containers/Set.h"
 #include "Particle/ParticleEmitter.h"
 #include "Particle/ParticleLODLevel.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
 #include "Serialization/StructuredArchiveHelpers.h"
 #include <cmath>
 
-void UParticleSystem::Serialize(FStructuredArchive::FRecord Record)
-{
+void UParticleSystem::Serialize(FStructuredArchive::FRecord Record) {
+	FArchive& Archive{ Record.GetUnderlyingArchive() };
+	if (Archive.IsSaving()) {
+		EnsureEmitterNames();
+	}
+
 	StructuredArchiveHelpers::SerializeArray(Record, "Emitters", Emitters);
 
-	FArchive& Archive = Record.GetUnderlyingArchive();
+	if (Archive.IsLoading()) {
+		EnsureEmitterNames();
+	}
+
 	// 기존 에셋에 새 필드가 없으면 기본값을 유지한다.
 	if (auto Slot = Record.TryEnterField("LODMethod", true))
 	{
@@ -50,6 +58,32 @@ void UParticleSystem::Serialize(FStructuredArchive::FRecord Record)
 		{
 			Archive.SetError();
 		}
+	}
+}
+
+void UParticleSystem::EnsureEmitterNames() {
+	TSet<FString> Names{};
+	for (const UParticleEmitter* Emitter : Emitters) {
+		if (Emitter && !Emitter->GetEmitterName().empty()) {
+			Names.Add(Emitter->GetEmitterName());
+		}
+	}
+
+	int32 Number{ 1 };
+	for (UParticleEmitter* Emitter : Emitters) {
+		if (!Emitter || !Emitter->GetEmitterName().empty()) {
+			continue;
+		}
+
+		FString Name{ "Emitter " + std::to_string(Number) };
+		while (Names.Contains(Name)) {
+			++Number;
+			Name = "Emitter " + std::to_string(Number);
+		}
+
+		Emitter->SetEmitterName(Name);
+		Names.Add(Name);
+		++Number;
 	}
 }
 

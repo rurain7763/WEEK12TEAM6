@@ -18,9 +18,6 @@ void UParticleModuleRequired::Serialize(FStructuredArchive::FRecord Record)
 		UMaterial* Loaded{ Archive.IsLoading() ? nullptr : Material };
 		UMaterial::SerializeMaterialReference(Slot.GetValue(), Loaded);
 		if (Archive.IsLoading()) {
-			if (Loaded && Loaded->GetPath().empty()) {
-				mMaterialInstance.reset(Loaded);
-			}
 			Material = Loaded;
 		}
 	}
