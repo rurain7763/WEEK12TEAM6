@@ -4,7 +4,7 @@
 #include "Particle/ParticleEmitterInstance.h"
 #include "Particle/ParticleLODLevel.h"
 #include "Serialization/StructuredArchiveHelpers.h"
-
+#include "Particle/Modules/ParticleModuleTypeDataBase.h"
 void UParticleEmitter::Serialize(FStructuredArchive::FRecord Record)
 {
 	Record << SA_VALUE("MaxParticleCount", MaxParticleCount);
@@ -20,12 +20,28 @@ UParticleLODLevel* UParticleEmitter::GetLODLevel(int32 LODLevel)
 void UParticleEmitter::CacheEmitterModuleInfo()
 {
 	ParticleSize = sizeof(FBaseParticle);
+	TypeDataOffset = 0;
+	UParticleLODLevel* LOD = GetLODLevel(0);
+	if (LOD && LOD->TypeDataModule)
+	{
+		TypeDataOffset = ParticleSize;
+		ParticleSize += LOD->TypeDataModule->RequiredBytes();
+	}
 }
 
 FParticleEmitterInstance* UParticleEmitter::CreateInstance(UParticleSystemComponent* Owner)
 {
-	FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
-	Instance->InitParameters(this, Owner);
+	UParticleLODLevel* LOD = GetLODLevel(0);
+	FParticleEmitterInstance* Instance;
+	if (LOD && LOD->TypeDataModule)
+	{
+		Instance = LOD->TypeDataModule->CreateInstance(this, Owner);
+	}
+	else
+	{
+		Instance= new FParticleEmitterInstance();
+		Instance->InitParameters(this, Owner);
+	}
 	Instance->Initialize();
 
 	return Instance;
