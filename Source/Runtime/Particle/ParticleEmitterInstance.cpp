@@ -6,6 +6,7 @@
 #include "Particle/Modules/ParticleModuleSpawn.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
+#include "Particle/Modules/ParticleModuleCollision.h"
 #include "Engine/PrimitiveSceneProxy.h"
 
 
@@ -225,18 +226,33 @@ void FParticleEmitterInstance::Tick_SpawnParticles(float DeltaTime)
 void FParticleEmitterInstance::Tick_MoveParticles(float DeltaTime)
 {
 	// 파티클 위치 업데이트
-	for (int32 i = 0; i < ActiveParticles; i++)
+	UParticleModuleCollision* Collision = CurrentLODLevel->CollisionModule;
+
+	// Kill 시 마지막 입자가 현재 자리로 오므로 뒤에서부터 순회
+	for (int32 i = ActiveParticles - 1; i >= 0; i--)
 	{
 		FBaseParticle* Particle = GetParticleFromPosition(i);
 
 		// 멈춘 입자는 이동하지 않음 (Collision 없는 LOD에서도 유지)
-		const FParticleCollisionPayload* CollisionPayload = GetCollisionPayload(Particle);
+		FParticleCollisionPayload* CollisionPayload = GetCollisionPayload(Particle);
 		if (CollisionPayload && (CollisionPayload->Flags & PCF_Freeze))
 		{
 			continue;
 		}
 
-		Particle->Location += Particle->Velocity * DeltaTime;
+		// 현재 LOD에 Collision이 있으면 이동 경로 충돌 검사 후 이동
+		if (Collision && CollisionPayload)
+		{
+			if (Collision->MoveParticle(*this, *Particle, *CollisionPayload, DeltaTime))
+			{
+				KillParticle(i);
+				continue;
+			}
+		}
+		else
+		{
+			Particle->Location += Particle->Velocity * DeltaTime;
+		}
 		Particle->Rotation += Particle->RotationRate * DeltaTime;
 	}
 }
