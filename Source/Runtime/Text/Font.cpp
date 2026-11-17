@@ -13,6 +13,12 @@ bool UFont::LoadFontAtlasJson(const FString& JsonPath)
 	json Root;
 	File >> Root;
 
+	// Assets의 모든 .json이 여기로 온다. 폰트 아틀라스가 아닌 파일은 건너뛴다
+	if (!Root.contains("atlas") || !Root.contains("metrics") || !Root.contains("glyphs"))
+	{
+		return false;
+	}
+
 	const auto& AtlasJson = Root["atlas"];
 	Width = AtlasJson["width"].get<float>();
 	Height = AtlasJson["height"].get<float>();

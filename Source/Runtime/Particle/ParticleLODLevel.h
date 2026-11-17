@@ -6,6 +6,7 @@
 class UParticleModule;
 class UParticleModuleSpawn;
 class UParticleModuleRequired;
+class UParticleModuleTypeDataBase;
 struct FParticleEmitterInstance;
 
 class UParticleLODLevel : public UObject
@@ -25,6 +26,7 @@ public:
 	TArray<UParticleModule*> Modules;
 	UParticleModuleSpawn* SpawnModule = nullptr;
 	UParticleModuleRequired* RequiredModule = nullptr;
+	UParticleModuleTypeDataBase* TypeDataModule = nullptr;
 
 private:
 	friend struct FParticleEmitterInstance;

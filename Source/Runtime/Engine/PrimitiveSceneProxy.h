@@ -4,9 +4,9 @@
 #include "Math/Color.h"
 #include "Render/MeshRenderData.h"
 #include "Render/Material.h"
+#include "Render/Buffer.h"
 #include <d3d11.h>
 #include <wrl/client.h>
-
 class FScene;
 class FConstantBuffer;
 class UPrimitiveComponent;
@@ -148,12 +148,26 @@ struct FParticleSpriteRenderData
     float Rotation;
     FSpriteMaterialParams MaterialParams;
 };
-
+enum class EDynamicEmitterType 
+{
+    Sprite,
+    Mesh,
+    Beam,
+    Ribbon,
+};
+struct FParticleStripRenderData
+{
+    TArray<FVector> Points;
+    float Width = 1.0f;
+    FLinearColor Color = FLinearColor::White;
+};
 struct FParticleEmitterRenderData
 {
     FMatrix SimulateToWorld;
     UMaterial* Material = nullptr;
     TArray<FParticleSpriteRenderData> Particles;
+    EDynamicEmitterType DynamicEmitterType = EDynamicEmitterType::Sprite;
+    TArray<FParticleStripRenderData> Strips;
 };
 
 class FParticleSystemSceneProxy : public FPrimitiveSceneProxy
@@ -174,5 +188,10 @@ private:
     TArray<FParticleEmitterRenderData> EmitterRenderDatas;
     UStaticMesh* QuadMesh = nullptr;
     FBox LocalBounds;
+
+    TUniquePtr<FVertexBuffer> StripVB;
+    TUniquePtr<FIndexBuffer> StripIB;
+    uint32 StripVertexCapacity = 0;
+    uint32 StripIndexCapacity = 0;
 };
 

@@ -6,6 +6,7 @@
 class UParticleEmitter;
 class UParticleLODLevel;
 class UParticleSystemComponent;
+class UParticleModuleTypeDataBase;
 struct FParticleEmitterRenderData;
 
 struct FParticleEmitterInstance
@@ -35,7 +36,8 @@ struct FParticleEmitterInstance
 	FMatrix SimulateToWorld;
 
 	FParticleEmitterInstance() = default;
-	~FParticleEmitterInstance();
+
+	virtual ~FParticleEmitterInstance();
 
 	// 복사 생성과 복사 대입 금지
 	FParticleEmitterInstance(const FParticleEmitterInstance& Other) = delete;
@@ -43,23 +45,32 @@ struct FParticleEmitterInstance
 
 	void InitParameters(UParticleEmitter* Emitter, UParticleSystemComponent* InOwner);
 
-	void Initialize();
+	virtual void Initialize();
 
 	inline FBaseParticle* GetParticleFromPosition(int32 Position) const
 	{
 		return (FBaseParticle*)&ParticleData[ParticleIndices[Position] * ParticleStride];
 	}
 
-	void SpawnParticles(int32 Count, const FVector& InitLocation);
-	void SpawnParticle(const FVector& InitLocation);
+	virtual void SpawnParticles(int32 Count, const FVector& InitLocation);
+	virtual void KillParticle(int32 Position);
+	virtual void Tick(float DeltaTime);
+	virtual void BuildRenderData(FParticleEmitterRenderData& RenderData) const;
 
-	void KillParticle(int32 Position);
-
+	virtual void SpawnParticle(const FVector& InitLocation);
 	void UpdateTransforms();
 
-	void Tick(float DeltaTime);
+	// Tick 단계 (UE의 Tick_* 하위 함수 대응). 자식 Instance가 순서를 바꿔 조립할 수 있게 나눔
+	void Tick_KillParticles(float DeltaTime);    // 수명 진행 + 죽은 파티클 제거
+	void Tick_ModuleUpdate(float DeltaTime);     // Update 모듈들
+	void Tick_ModulePostUpdate(float DeltaTime); // TypeData Update
+	void Tick_SpawnParticles(float DeltaTime);   // SpawnModule 비율로 생성
+	void Tick_MoveParticles(float DeltaTime);    // Velocity·RotationRate 적용
 
-	void BuildRenderData(FParticleEmitterRenderData& RenderData) const;
+	//TypeDataBase계열 변수
+	int32 TypeDataOffset = 0;
+	UParticleModuleTypeDataBase* TypeDataModule = nullptr;
+
 
 	void SetCurrentLODIndex(int32 InLODIndex);
 };

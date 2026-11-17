@@ -61,6 +61,7 @@ public:
 
 	virtual void Spawn(const FSpawnContext& Ctx) {}
 	virtual void Update(const FUpdateContext& Ctx) {}
+	virtual uint32 RequiredBytes() const { return 0; }
 
 protected:
 	friend class UParticleLODLevel;
