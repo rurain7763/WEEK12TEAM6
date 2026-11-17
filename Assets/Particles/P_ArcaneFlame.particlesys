@@ -1,0 +1,552 @@
+{
+  "Version": 1,
+  "ParticleSystem": {
+    "LODMethod": 1,
+    "LODDistances": [
+      0
+    ],
+    "LODDistanceCheckTime": 0.25,
+    "Emitters": [
+      {
+        "ClassName": "UParticleEmitter",
+        "MaxParticleCount": 32,
+        "ParticleSize": 96,
+        "LODLevels": [
+          {
+            "ClassName": "UParticleLODLevel",
+            "Level": 0,
+            "bEnable": true,
+            "RequiredModule": {
+              "ClassName": "UParticleModuleRequired",
+              "Material": "SpriteMaterial",
+              "bUseLocalSpace": true,
+              "MaterialInstance": {
+                "Base": "SpriteMaterial",
+                "Instance": {
+                  "Properties": {},
+                  "MaterialDomain": "Surface",
+                  "BaseColor": {
+                    "R": 1.0,
+                    "G": 1.0,
+                    "B": 1.0,
+                    "A": 1.0
+                  },
+                  "UVScrollSpeed": [
+                    0.0,
+                    0.0
+                  ],
+                  "Shininess": 32.0,
+                  "SpecularColor": {
+                    "R": 0.5,
+                    "G": 0.5,
+                    "B": 0.5,
+                    "A": 1.0
+                  },
+                  "bFlipNormalGreen": false,
+                  "bAffectBaseColor": true,
+                  "bAffectNormal": true,
+                  "DecalColorBlendMode": "Alpha",
+                  "SamplerState": "LinearClamp",
+                  "BlendState": "AlphaBlend",
+                  "Textures": [
+                    "Assets/Particles/ArcaneFlame/T_ArcaneWisp.png"
+                  ]
+                }
+              }
+            },
+            "SpawnModule": {
+              "ClassName": "UParticleModuleSpawn",
+              "SpawnRate": 28
+            },
+            "Modules": [
+              {
+                "ClassName": "UParticleModuleLifeTime",
+                "LifeTime": 0.32
+              },
+              {
+                "ClassName": "UParticleModuleLocation",
+                "StartLocation": {
+                  "X": 0,
+                  "Y": 0,
+                  "Z": 0
+                },
+                "bHasRandomValue": true,
+                "MinLocation": {
+                  "X": -0.07,
+                  "Y": -0.07,
+                  "Z": -0.08
+                },
+                "MaxLocation": {
+                  "X": 0.07,
+                  "Y": 0.07,
+                  "Z": 0.08
+                }
+              },
+              {
+                "ClassName": "UParticleModuleVelocity",
+                "StartVelocity": {
+                  "X": 0,
+                  "Y": 0,
+                  "Z": 0.18
+                },
+                "bHasRandomValue": false,
+                "MinVelocity": 0,
+                "MaxVelocity": 0
+              },
+              {
+                "ClassName": "UParticleModuleRotation",
+                "StartRotation": 0
+              },
+              {
+                "ClassName": "UParticleModuleRotationRate",
+                "StartRotationRate": 1.4
+              },
+              {
+                "ClassName": "UParticleModuleSize",
+                "StartSize": {
+                  "X": 0.8,
+                  "Y": 0.8,
+                  "Z": 0.8
+                }
+              },
+              {
+                "ClassName": "UParticleModuleSizeOfLifeTime",
+                "StartScale": 0.35,
+                "EndScale": 1
+              },
+              {
+                "ClassName": "UParticleModuleColor",
+                "StartColor": {
+                  "R": 0.62,
+                  "G": 0.95,
+                  "B": 1,
+                  "A": 0.65
+                }
+              },
+              {
+                "ClassName": "UParticleModuleColorOverLife",
+                "StartColor": {
+                  "R": 0.62,
+                  "G": 0.95,
+                  "B": 1,
+                  "A": 0.65
+                },
+                "EndColor": {
+                  "R": 0.05,
+                  "G": 0.42,
+                  "B": 1,
+                  "A": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ClassName": "UParticleEmitter",
+        "MaxParticleCount": 64,
+        "ParticleSize": 96,
+        "LODLevels": [
+          {
+            "ClassName": "UParticleLODLevel",
+            "Level": 0,
+            "bEnable": true,
+            "RequiredModule": {
+              "ClassName": "UParticleModuleRequired",
+              "Material": "SpriteMaterial",
+              "bUseLocalSpace": true,
+              "MaterialInstance": {
+                "Base": "SpriteMaterial",
+                "Instance": {
+                  "Properties": {},
+                  "MaterialDomain": "Surface",
+                  "BaseColor": {
+                    "R": 1.0,
+                    "G": 1.0,
+                    "B": 1.0,
+                    "A": 1.0
+                  },
+                  "UVScrollSpeed": [
+                    0.0,
+                    0.0
+                  ],
+                  "Shininess": 32.0,
+                  "SpecularColor": {
+                    "R": 0.5,
+                    "G": 0.5,
+                    "B": 0.5,
+                    "A": 1.0
+                  },
+                  "bFlipNormalGreen": false,
+                  "bAffectBaseColor": true,
+                  "bAffectNormal": true,
+                  "DecalColorBlendMode": "Alpha",
+                  "SamplerState": "LinearClamp",
+                  "BlendState": "AlphaBlend",
+                  "Textures": [
+                    "Assets/Particles/ArcaneFlame/T_ArcaneWisp.png"
+                  ]
+                }
+              }
+            },
+            "SpawnModule": {
+              "ClassName": "UParticleModuleSpawn",
+              "SpawnRate": 30
+            },
+            "Modules": [
+              {
+                "ClassName": "UParticleModuleLifeTime",
+                "LifeTime": 1.05
+              },
+              {
+                "ClassName": "UParticleModuleLocation",
+                "StartLocation": {
+                  "X": 0,
+                  "Y": 0,
+                  "Z": 0
+                },
+                "bHasRandomValue": true,
+                "MinLocation": {
+                  "X": -0.12,
+                  "Y": -0.12,
+                  "Z": -0.05
+                },
+                "MaxLocation": {
+                  "X": 0.12,
+                  "Y": 0.12,
+                  "Z": 0.08
+                }
+              },
+              {
+                "ClassName": "UParticleModuleVelocity",
+                "StartVelocity": {
+                  "X": 0,
+                  "Y": 0,
+                  "Z": 1.5
+                },
+                "bHasRandomValue": false,
+                "MinVelocity": 0,
+                "MaxVelocity": 0
+              },
+              {
+                "ClassName": "UParticleModuleRotation",
+                "StartRotation": 0
+              },
+              {
+                "ClassName": "UParticleModuleRotationRate",
+                "StartRotationRate": 0.38
+              },
+              {
+                "ClassName": "UParticleModuleSize",
+                "StartSize": {
+                  "X": 0.72,
+                  "Y": 0.72,
+                  "Z": 1.15
+                }
+              },
+              {
+                "ClassName": "UParticleModuleSizeOfLifeTime",
+                "StartScale": 0.58,
+                "EndScale": 1.22
+              },
+              {
+                "ClassName": "UParticleModuleColor",
+                "StartColor": {
+                  "R": 0.1,
+                  "G": 0.82,
+                  "B": 1,
+                  "A": 0.46
+                }
+              },
+              {
+                "ClassName": "UParticleModuleColorOverLife",
+                "StartColor": {
+                  "R": 0.1,
+                  "G": 0.82,
+                  "B": 1,
+                  "A": 0.46
+                },
+                "EndColor": {
+                  "R": 0.12,
+                  "G": 0.08,
+                  "B": 0.75,
+                  "A": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ClassName": "UParticleEmitter",
+        "MaxParticleCount": 48,
+        "ParticleSize": 96,
+        "LODLevels": [
+          {
+            "ClassName": "UParticleLODLevel",
+            "Level": 0,
+            "bEnable": true,
+            "RequiredModule": {
+              "ClassName": "UParticleModuleRequired",
+              "Material": "SpriteMaterial",
+              "bUseLocalSpace": true,
+              "MaterialInstance": {
+                "Base": "SpriteMaterial",
+                "Instance": {
+                  "Properties": {},
+                  "MaterialDomain": "Surface",
+                  "BaseColor": {
+                    "R": 1.0,
+                    "G": 1.0,
+                    "B": 1.0,
+                    "A": 1.0
+                  },
+                  "UVScrollSpeed": [
+                    0.0,
+                    0.0
+                  ],
+                  "Shininess": 32.0,
+                  "SpecularColor": {
+                    "R": 0.5,
+                    "G": 0.5,
+                    "B": 0.5,
+                    "A": 1.0
+                  },
+                  "bFlipNormalGreen": false,
+                  "bAffectBaseColor": true,
+                  "bAffectNormal": true,
+                  "DecalColorBlendMode": "Alpha",
+                  "SamplerState": "LinearClamp",
+                  "BlendState": "AlphaBlend",
+                  "Textures": [
+                    "Assets/Particles/ArcaneFlame/T_ArcaneWisp.png"
+                  ]
+                }
+              }
+            },
+            "SpawnModule": {
+              "ClassName": "UParticleModuleSpawn",
+              "SpawnRate": 14
+            },
+            "Modules": [
+              {
+                "ClassName": "UParticleModuleLifeTime",
+                "LifeTime": 1.45
+              },
+              {
+                "ClassName": "UParticleModuleLocation",
+                "StartLocation": {
+                  "X": 0,
+                  "Y": 0,
+                  "Z": 0
+                },
+                "bHasRandomValue": true,
+                "MinLocation": {
+                  "X": -0.22,
+                  "Y": -0.22,
+                  "Z": -0.03
+                },
+                "MaxLocation": {
+                  "X": 0.22,
+                  "Y": 0.22,
+                  "Z": 0.15
+                }
+              },
+              {
+                "ClassName": "UParticleModuleVelocity",
+                "StartVelocity": {
+                  "X": 0,
+                  "Y": 0,
+                  "Z": 1.3
+                },
+                "bHasRandomValue": false,
+                "MinVelocity": 0,
+                "MaxVelocity": 0
+              },
+              {
+                "ClassName": "UParticleModuleRotation",
+                "StartRotation": 0.45
+              },
+              {
+                "ClassName": "UParticleModuleRotationRate",
+                "StartRotationRate": -0.42
+              },
+              {
+                "ClassName": "UParticleModuleSize",
+                "StartSize": {
+                  "X": 0.92,
+                  "Y": 0.92,
+                  "Z": 1.35
+                }
+              },
+              {
+                "ClassName": "UParticleModuleSizeOfLifeTime",
+                "StartScale": 0.45,
+                "EndScale": 1.28
+              },
+              {
+                "ClassName": "UParticleModuleColor",
+                "StartColor": {
+                  "R": 0.18,
+                  "G": 0.34,
+                  "B": 1,
+                  "A": 0.19
+                }
+              },
+              {
+                "ClassName": "UParticleModuleColorOverLife",
+                "StartColor": {
+                  "R": 0.18,
+                  "G": 0.34,
+                  "B": 1,
+                  "A": 0.19
+                },
+                "EndColor": {
+                  "R": 0.48,
+                  "G": 0.03,
+                  "B": 0.8,
+                  "A": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ClassName": "UParticleEmitter",
+        "MaxParticleCount": 64,
+        "ParticleSize": 96,
+        "LODLevels": [
+          {
+            "ClassName": "UParticleLODLevel",
+            "Level": 0,
+            "bEnable": true,
+            "RequiredModule": {
+              "ClassName": "UParticleModuleRequired",
+              "Material": "SpriteMaterial",
+              "bUseLocalSpace": true,
+              "MaterialInstance": {
+                "Base": "SpriteMaterial",
+                "Instance": {
+                  "Properties": {},
+                  "MaterialDomain": "Surface",
+                  "BaseColor": {
+                    "R": 1.0,
+                    "G": 1.0,
+                    "B": 1.0,
+                    "A": 1.0
+                  },
+                  "UVScrollSpeed": [
+                    0.0,
+                    0.0
+                  ],
+                  "Shininess": 32.0,
+                  "SpecularColor": {
+                    "R": 0.5,
+                    "G": 0.5,
+                    "B": 0.5,
+                    "A": 1.0
+                  },
+                  "bFlipNormalGreen": false,
+                  "bAffectBaseColor": true,
+                  "bAffectNormal": true,
+                  "DecalColorBlendMode": "Alpha",
+                  "SamplerState": "LinearClamp",
+                  "BlendState": "AlphaBlend",
+                  "Textures": [
+                    "Assets/Particles/ArcaneFlame/T_ArcaneWisp.png"
+                  ]
+                }
+              }
+            },
+            "SpawnModule": {
+              "ClassName": "UParticleModuleSpawn",
+              "SpawnRate": 20
+            },
+            "Modules": [
+              {
+                "ClassName": "UParticleModuleLifeTime",
+                "LifeTime": 1.8
+              },
+              {
+                "ClassName": "UParticleModuleLocation",
+                "StartLocation": {
+                  "X": 0,
+                  "Y": 0,
+                  "Z": 0
+                },
+                "bHasRandomValue": true,
+                "MinLocation": {
+                  "X": -0.12,
+                  "Y": -0.12,
+                  "Z": 0.05
+                },
+                "MaxLocation": {
+                  "X": 0.12,
+                  "Y": 0.12,
+                  "Z": 0.42
+                }
+              },
+              {
+                "ClassName": "UParticleModuleVelocity",
+                "StartVelocity": {
+                  "X": 0,
+                  "Y": 0,
+                  "Z": 0
+                },
+                "bHasRandomValue": true,
+                "MinVelocity": 0.3,
+                "MaxVelocity": 1.25
+              },
+              {
+                "ClassName": "UParticleModuleRotation",
+                "StartRotation": 0.6
+              },
+              {
+                "ClassName": "UParticleModuleRotationRate",
+                "StartRotationRate": 2.4
+              },
+              {
+                "ClassName": "UParticleModuleSize",
+                "StartSize": {
+                  "X": 0.14,
+                  "Y": 0.14,
+                  "Z": 0.23
+                }
+              },
+              {
+                "ClassName": "UParticleModuleSizeOfLifeTime",
+                "StartScale": 1,
+                "EndScale": 0.1
+              },
+              {
+                "ClassName": "UParticleModuleColor",
+                "StartColor": {
+                  "R": 0.45,
+                  "G": 1,
+                  "B": 1,
+                  "A": 0.9
+                }
+              },
+              {
+                "ClassName": "UParticleModuleColorOverLife",
+                "StartColor": {
+                  "R": 0.45,
+                  "G": 1,
+                  "B": 1,
+                  "A": 0.9
+                },
+                "EndColor": {
+                  "R": 0.18,
+                  "G": 0.18,
+                  "B": 0.85,
+                  "A": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

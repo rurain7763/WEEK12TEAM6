@@ -9,6 +9,20 @@
 #include "Sequence/LevelSequence.h"
 #include "Sequence/MovieScene.h"
 #include "Serialization/JsonArchive.h"
+#include "Particle/ParticleSystem.h"
+#include "Particle/ParticleEmitter.h"
+#include "Particle/ParticleLODLevel.h"
+#include "Particle/Modules/ParticleModuleRequired.h"
+#include "Particle/Modules/ParticleModuleSpawn.h"
+#include "Particle/Modules/ParticleModuleLifeTime.h"
+#include "Particle/Modules/ParticleModuleLocation.h"
+#include "Particle/Modules/ParticleModuleVelocity.h"
+#include "Particle/Modules/ParticleModuleSize.h"
+#include "Particle/Modules/ParticleModuleColor.h"
+#include "Render/Material.h"
+#include "UObject/UObjectIterator.h"
+
+#include <algorithm>
 
 bool FContentDrawerPanel::Init()
 {
@@ -21,10 +35,14 @@ void FContentDrawerPanel::Tick(float DeltaTime)
 {
 }
 
+void FContentDrawerPanel::SetOpenParticleSystemBinding(std::function<void(const FString&)> InOpenParticleSystem) {
+	mOpenParticleSystem = std::move(InOpenParticleSystem);
+}
+
 void FContentDrawerPanel::OnRender()
 {
-	ImGui::Begin("Content Drawer");
-	std::error_code Error;
+	ImGui::Begin(GetPanelName());
+	std::error_code Error{};
 
 	if (!fs::is_directory(CurrentPath, Error))
 	{
@@ -75,6 +93,7 @@ void FContentDrawerPanel::OnRender()
 		float panelWidth = ImGui::GetContentRegionAvail().x;
 		int ColumnCount = static_cast<int>(panelWidth / cellSize);
 		if (ColumnCount < 1) ColumnCount = 1;
+		DrawMaterialAssets(ColumnCount, thumbnailSize);
 
 		// 테이블 기반 그리드 시작
 		if (ImGui::BeginTable("AssetGridTable", ColumnCount))
@@ -185,6 +204,9 @@ void FContentDrawerPanel::OnRender()
 					{
 						OpenBlendSpace(PathString);
 					}
+					else if (_wcsicmp(Path.extension().c_str(), L".particlesys") == 0 && mOpenParticleSystem) {
+						mOpenParticleSystem(PathString);
+					}
 				}
 				// 파일 이름 표시
 				ImGui::TextWrapped("%s", FilenameString.c_str());
@@ -203,6 +225,9 @@ void FContentDrawerPanel::OnRender()
 				}
 				if (ImGui::MenuItem("AnimGraph")) CreateAnimGraphFile();
 				if (ImGui::MenuItem("BlendSpace1D")) CreateBlendSpaceFile();
+				if (ImGui::MenuItem("Particle System")) {
+					CreateParticleSystemFile();
+				}
 				ImGui::EndMenu();
 			}
 			ImGui::EndPopup();
@@ -210,6 +235,87 @@ void FContentDrawerPanel::OnRender()
 	}
 	ImGui::EndChild();
 	ImGui::End();
+}
+
+void FContentDrawerPanel::DrawMaterialAssets(int32 ColumnCount, float ThumbnailSize) {
+	if (!ImGui::CollapsingHeader("Materials")) {
+		return;
+	}
+	TArray<UMaterial*> Materials{};
+	for (TObjectIterator<UMaterial> It{}; It; ++It) {
+		UMaterial* Material{ *It };
+		if (!Material->GetPath().empty() && UAssetManager::GetAssetByPath<UMaterial>(Material->GetPath()) == Material) {
+			Materials.Add(Material);
+		}
+	}
+	std::sort(Materials.begin(), Materials.end(), [](const UMaterial* First, const UMaterial* Second) {
+		return First->GetPath() < Second->GetPath();
+	});
+	if (ImGui::BeginTable("MaterialAssets", ColumnCount)) {
+		for (UMaterial* Material : Materials) {
+			ImGui::TableNextColumn();
+			ImGui::PushID(Material);
+			ImGui::Button("Material", ImVec2{ ThumbnailSize, ThumbnailSize });
+			if (ImGui::BeginDragDropSource()) {
+				ImGui::SetDragDropPayload(EditorDragDrop::Material, &Material, sizeof(Material));
+				ImGui::TextUnformatted(Material->GetPath().c_str());
+				ImGui::EndDragDropSource();
+			}
+			ImGui::SetItemTooltip("%s", Material->GetPath().c_str());
+			const FString Name{ PathUtils::ToUtf8(PathUtils::FromUtf8(Material->GetPath()).filename()) };
+			ImGui::TextWrapped("%s", Name.c_str());
+			ImGui::PopID();
+		}
+		ImGui::EndTable();
+	}
+	ImGui::Separator();
+}
+
+void FContentDrawerPanel::CreateParticleSystemFile() {
+	CreateAssetError.clear();
+	try {
+		std::filesystem::path Path{ CurrentPath / "NewParticleSystem.particlesys" };
+		for (int32 Index{ 1 }; std::filesystem::exists(Path); ++Index) {
+			Path = CurrentPath / ("NewParticleSystem_" + std::to_string(Index) + ".particlesys");
+		}
+
+		TUniquePtr<UParticleSystem> System{ NewObject<UParticleSystem>() };
+		TUniquePtr<UParticleEmitter> Emitter{ NewObject<UParticleEmitter>(System.get()) };
+		TUniquePtr<UParticleLODLevel> LOD{ NewObject<UParticleLODLevel>(Emitter.get()) };
+		TUniquePtr<UParticleModuleRequired> Required{ NewObject<UParticleModuleRequired>(LOD.get()) };
+		TUniquePtr<UParticleModuleSpawn> Spawn{ NewObject<UParticleModuleSpawn>(LOD.get()) };
+		TUniquePtr<UParticleModuleLifeTime> Lifetime{ NewObject<UParticleModuleLifeTime>(LOD.get()) };
+		TUniquePtr<UParticleModuleLocation> Location{ NewObject<UParticleModuleLocation>(LOD.get()) };
+		TUniquePtr<UParticleModuleVelocity> Velocity{ NewObject<UParticleModuleVelocity>(LOD.get()) };
+		TUniquePtr<UParticleModuleSize> Size{ NewObject<UParticleModuleSize>(LOD.get()) };
+		TUniquePtr<UParticleModuleColor> Color{ NewObject<UParticleModuleColor>(LOD.get()) };
+
+		Required->SetMaterial(UAssetManager::GetAssetByPath<UMaterial>("SpriteMaterial"));
+		LOD->RequiredModule = Required.get();
+		LOD->SpawnModule = Spawn.get();
+		LOD->Modules.Add(Lifetime.get());
+		LOD->Modules.Add(Location.get());
+		LOD->Modules.Add(Velocity.get());
+		LOD->Modules.Add(Size.get());
+		LOD->Modules.Add(Color.get());
+		Emitter->LODLevels.Add(LOD.get());
+		Emitter->CacheEmitterModuleInfo();
+		System->Emitters.Add(Emitter.get());
+
+		const FString AssetPath{ PathUtils::ToUtf8(Path) };
+		if (!FJsonArchive::SaveParticleSystem(System.get(), AssetPath)) {
+			std::error_code Error{};
+			std::filesystem::remove(Path, Error);
+			CreateAssetError = "Could not create the particle system file.";
+			return;
+		}
+
+		if (mOpenParticleSystem) {
+			mOpenParticleSystem(AssetPath);
+		}
+	} catch (const std::exception& Error) {
+		CreateAssetError = "Create failed: " + FString{ Error.what() };
+	}
 }
 
 void FContentDrawerPanel::CreateBlendSpaceFile()

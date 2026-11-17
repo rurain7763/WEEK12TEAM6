@@ -3,6 +3,9 @@
 #include "Editor/AnimationEditor/AnimationEditorTab.h"
 #include "Editor/AnimationEditor/AnimGraphEditor.h"
 #include "Editor/AnimationEditor/BlendSpaceEditor.h"
+#include "Editor/ParticleEditor/ParticleEditorTab.h"
+#include "Asset/AssetManager.h"
+#include "Particle/ParticleSystem.h"
 #include "Core/PathUtils.h"
 
 
@@ -13,9 +16,29 @@ bool FEditorUI::Init(bool bInUseDockSpace, bool bInPassthruCentralNode)
 
 
 	Tabs.Add(MakeUnique<FLevelEditorTab>());
+	mActiveTab = Tabs[0].get();
 	Toolbar = MakeUnique<FLevelEditorToolbar>();
 
 	return true;
+}
+
+bool FEditorUI::IsLevelEditorActive() const {
+	return !Tabs.IsEmpty() && mActiveTab == Tabs[0].get();
+}
+
+void FEditorUI::RemoveTab(int32 Index) {
+	if (Index <= 0 || Index >= Tabs.Num()) {
+		return;
+	}
+	if (mActiveTab == Tabs[Index].get()) {
+		mActiveTab = Tabs[0].get();
+		mActiveTab->RequestFocus();
+	}
+	Tabs.RemoveAt(Index);
+}
+
+void FEditorUI::RequestOpenParticleSystem(const FString& Path) {
+	mPendingParticleSystemPath = Path;
 }
 
 void FEditorUI::Tick(float DeltaTime)
@@ -65,6 +88,17 @@ void FEditorUI::Tick(float DeltaTime)
 		else
 		{
 			AddTab<FAnimationEditorTab>()->RequestFocus();
+		}
+	}
+
+	if (!mPendingParticleSystemPath.empty()) {
+		const FString Path{ mPendingParticleSystemPath };
+		mPendingParticleSystemPath.clear();
+
+		if (UParticleSystem* ParticleSystem{ UAssetManager::Get().LoadParticleSystem(Path) }) {
+			OpenParticleEditor(ParticleSystem);
+		} else {
+			HTR_LOG(Error, "Failed to open particle system: {}", Path);
 		}
 	}
 
@@ -176,8 +210,10 @@ void FEditorUI::DrawTabBar(ImGuiDockNodeFlags DockSpaceFlags)
 		//그리기
 		const bool bSelected = ImGui::BeginTabItem(Tab->GetTitle(), Tab->GetOpenFlag(), ItemFlags);
 		Tab->SubmitDockSpace(bSelected, DockSpaceFlags);
-		if (bSelected)
+		if (bSelected) {
+			mActiveTab = Tab.get();
 			ImGui::EndTabItem();
+		}
 	}
 	ImGui::EndTabBar();
 }
@@ -206,17 +242,10 @@ void FEditorUI::DrawMainMenuBar()
 		if (ImGui::BeginMenu("Window"))
 		{
 			if (ImGui::MenuItem("Animation Editor...")) bPendingOpenAnimationEditor = true;
-			ImGui::Separator();
-			// 레벨 탭 패널은 예전처럼 바로 보이고, 나머지 탭은 하위 메뉴로 묶는다
-			DrawPanelMenuItems(*Tabs[0]);
 
-			for (int32 Index = 1; Index < Tabs.Num(); ++Index)
-			{
-				if (ImGui::BeginMenu(Tabs[Index]->GetTitle()))
-				{
-					DrawPanelMenuItems(*Tabs[Index]);
-					ImGui::EndMenu();
-				}
+			ImGui::Separator();
+			if (mActiveTab) {
+				DrawPanelMenuItems(*mActiveTab);
 			}
 			ImGui::EndMenu();
 		}
@@ -224,6 +253,27 @@ void FEditorUI::DrawMainMenuBar()
 		ImGui::EndMainMenuBar();
 	}
 	ImGui::PopStyleVar(2);
+}
+
+void FEditorUI::OpenParticleEditor(UParticleSystem* ParticleSystem) {
+	if (!ParticleSystem) {
+		return;
+	}
+	for (const TUniquePtr<FEditorTab>& Tab : Tabs) {
+		const bool MatchesAsset{ Tab->GetEditingAsset() == ParticleSystem };
+		if (!Tab->IsOpen() || !MatchesAsset) {
+			continue;
+		}
+
+		for (const TUniquePtr<IEditorPanel>& Panel : Tab->GetPanels()) {
+			Panel->SetOpen(true);
+		}
+
+		Tab->RequestFocus();
+		return;
+	}
+
+	AddTab<FParticleEditorTab>(ParticleSystem)->RequestFocus();
 }
 
 void FEditorUI::DrawPanelMenuItems(const FEditorTab& Tab)

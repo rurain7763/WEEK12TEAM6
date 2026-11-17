@@ -26,3 +26,11 @@ void UParticleModuleColorOverLife::Serialize(FStructuredArchive::FRecord Record)
 	Record << SA_VALUE("StartColor", StartColor);
 	Record << SA_VALUE("EndColor", EndColor);
 }
+
+void UParticleModuleColorOverLife::SetStartColor(const FLinearColor& Color) {
+	StartColor = Color;
+}
+
+void UParticleModuleColorOverLife::SetEndColor(const FLinearColor& Color) {
+	EndColor = Color;
+}

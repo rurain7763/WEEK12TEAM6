@@ -16,6 +16,10 @@ void UParticleLODLevel::Serialize(FStructuredArchive::FRecord Record)
 
 }
 
+void UParticleLODLevel::SetLevel(int32 InLevel) {
+	Level = InLevel;
+}
+
 void UParticleLODLevel::BuildModuleLists()
 {
 	SpawnModules.Reset();

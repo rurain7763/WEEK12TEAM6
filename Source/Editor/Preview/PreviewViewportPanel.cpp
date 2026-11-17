@@ -71,6 +71,11 @@ void FPreviewViewportPanel::OnRender()
 		return;
 	}
 
+	bool GridVisible{ Viewport->IsGridVisible() };
+	if (ImGui::Checkbox("Grid", &GridVisible)) {
+		Viewport->SetGridVisible(GridVisible);
+	}
+
 	DrawToolbar();
 	bHovered = false;
 	const ImVec2 Avail = ImGui::GetContentRegionAvail();

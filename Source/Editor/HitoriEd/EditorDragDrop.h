@@ -18,4 +18,7 @@ namespace EditorDragDrop
 	inline constexpr const char* Sequence = "ASSET_SEQUENCE_PATH";
 
 	inline constexpr const char* Component = "COMPONENT";
+	inline constexpr const char* Material{ "ASSET_MATERIAL" };
+	inline constexpr const char* ParticleModule{ "PARTICLE_MODULE" };
+	inline constexpr const char* ParticleEmitter{ "PARTICLE_EMITTER" };
 }

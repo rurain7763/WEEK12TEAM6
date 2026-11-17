@@ -25,10 +25,14 @@ public:
 	void EndPlay() override;
 
 	void SetTemplate(UParticleSystem* InSystem);
+	UParticleSystem* GetTemplate() const;
+
+	void ReinitializeEmitterInstances();
+
 	// Template 지정 후 호출한다. Automatic에서는 다음 거리 검사 때 다시 선택될 수 있다.
 	void SetLODLevel(int32 InLODIndex);
 	// 초기화 전에는 인스턴스 생성 시 적용할 단계를 반환한다.
-	int32 GetLODLevel() const { return CurrentLODLevel; }
+	int32 GetLODLevel() const;
 
 	// 이 PSC의 선택 방식만 재정의한다. 해제하면 에셋의 LODMethod를 따른다.
 	void SetLODMethod(EParticleSystemLODMethod InLODMethod);
@@ -51,6 +55,7 @@ private:
 	void UpdateAutomaticLOD(float DeltaTime);
 	bool GetLODViewLocation(FVector& OutViewLocation) const;
 
+private:
 	UParticleSystem* Template = nullptr;
 	int32 CurrentLODLevel = 0;
 	bool bOverrideLODMethod = false;
@@ -59,5 +64,6 @@ private:
 	FVector LODViewLocation;
 
 	TArray<FParticleEmitterInstance*> EmitterInstances;
+	bool mEmitterInstancesInitialized{};
 	float LODDistanceCheckElapsed = 0.f;
 };

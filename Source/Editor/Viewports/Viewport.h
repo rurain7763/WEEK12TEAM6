@@ -55,6 +55,9 @@ public:
     void SetViewRenderMode(const FViewRenderMode& Value) { ViewRenderMode = Value; }
     FViewRenderMode GetViewRenderMode() const { return ViewRenderMode; }
 
+    void SetGridVisible(bool Visible);
+    bool IsGridVisible() const;
+
     // 활성 Client의 카메라. Client가 없으면 기본값이다.
     const FViewCamera& GetCamera() const;
     // 직교 View의 논리 위치는 유지하고 렌더·컬링·피킹용 깊이 범위만 확장한 카메라.
@@ -90,5 +93,6 @@ private:
     FVector2 OutputSize{};
     FSceneRenderTargets Targets;
     FViewRenderMode ViewRenderMode{};
+    bool mGridVisible{ true };
     mutable FPreparedView Prepared{};
 };

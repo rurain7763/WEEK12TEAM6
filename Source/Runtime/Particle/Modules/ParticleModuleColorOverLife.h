@@ -3,26 +3,23 @@
 #include "Particle/ParticleModule.h"
 #include "Particle/ParticleTypes.h"
 
-class UParticleModuleColorOverLife : public UParticleModule
-{
+class UParticleModuleColorOverLife : public UParticleModule {
 	DECLARE_CLASS(UParticleModuleColorOverLife, UParticleModule)
+
+	REFLECT_START(ThisClass)
+		PROPERTY(StartColor)
+		PROPERTY(EndColor)
+	REFLECT_END()
+
+public:
+	UParticleModuleColorOverLife();
 
 public:
 	void Serialize(FStructuredArchive::FRecord Record) override;
+	void Update(const FUpdateContext& Context) override;
 
-	UParticleModuleColorOverLife();
-
-	void Update(const FUpdateContext& Ctx) override;
-
-	inline void SetStartColor(const FLinearColor& InColor)
-	{
-		StartColor = InColor;
-	}
-
-	inline void SetEndColor(const FLinearColor& InColor)
-	{
-		EndColor = InColor;
-	}
+	void SetStartColor(const FLinearColor& Color);
+	void SetEndColor(const FLinearColor& Color);
 
 private:
 	FLinearColor StartColor = FLinearColor::White;
