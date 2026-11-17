@@ -12,13 +12,14 @@ enum class EParticleSystemLODMethod : uint8
 	DirectSet
 };
 
-class UParticleSystem : public UAsset
-{
+class UParticleSystem : public UAsset {
 	DECLARE_CLASS(UParticleSystem, UAsset)
 
 public:
 	virtual void Serialize(FStructuredArchive::FRecord Record);
 	bool ValidateLODLevels() const;
+
+	void EnsureEmitterNames();
 
 public:
 	TArray<UParticleEmitter*> Emitters;

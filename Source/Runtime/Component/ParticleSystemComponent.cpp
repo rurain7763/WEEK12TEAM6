@@ -34,12 +34,12 @@ void UParticleSystemComponent::BeginPlay()
 		EmitterInstances[i] = Emitter->CreateInstance(this);
 	}
 
-	if (!Template->LODDistances.IsValidIndex(CurrentLODLevel))
-	{
+	if (!Template->LODDistances.IsValidIndex(CurrentLODLevel)) {
 		CurrentLODLevel = 0;
 	}
 	// 인스턴스 생성 전에 지정한 단계도 적용한다.
 	SetLODLevel(CurrentLODLevel);
+	mEmitterInstancesInitialized = true;
 
 	// Automatic은 첫 Tick에서 바로 카메라 거리를 검사한다.
 	LODDistanceCheckElapsed = Template->LODDistanceCheckTime;
@@ -66,7 +66,26 @@ void UParticleSystemComponent::EndPlay()
 
 void UParticleSystemComponent::SetTemplate(UParticleSystem* InSystem)
 {
+	if (Template == InSystem) {
+		return;
+	}
+
 	Template = InSystem;
+	ReinitializeEmitterInstances();
+}
+
+UParticleSystem* UParticleSystemComponent::GetTemplate() const {
+	return Template;
+}
+
+void UParticleSystemComponent::ReinitializeEmitterInstances() {
+	if (!mEmitterInstancesInitialized) {
+		return;
+	}
+
+	ClearEmitterInstances();
+	BeginPlay();
+	UpdateDynamicData();
 }
 
 void UParticleSystemComponent::SetLODLevel(int32 InLODIndex)
@@ -104,6 +123,10 @@ void UParticleSystemComponent::SetLODLevel(int32 InLODIndex)
 			Instance->SetCurrentLODIndex(InLODIndex);
 		}
 	}
+}
+
+int32 UParticleSystemComponent::GetLODLevel() const {
+	return CurrentLODLevel;
 }
 
 void UParticleSystemComponent::SetLODMethod(EParticleSystemLODMethod InLODMethod)
@@ -227,6 +250,7 @@ void UParticleSystemComponent::ClearEmitterInstances()
 		delete EmitterInstances[i];
 	}
 	EmitterInstances.Reset();
+	mEmitterInstancesInitialized = false;
 	LODDistanceCheckElapsed = 0.f;
 }
 

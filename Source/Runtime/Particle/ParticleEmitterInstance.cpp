@@ -145,9 +145,9 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
 {
 	Tick_KillParticles(DeltaTime);
 	UpdateTransforms();
+	Tick_SpawnParticles(DeltaTime);
 	Tick_ModuleUpdate(DeltaTime);
 	Tick_ModulePostUpdate(DeltaTime);
-	Tick_SpawnParticles(DeltaTime);
 	Tick_MoveParticles(DeltaTime);
 }
 

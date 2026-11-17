@@ -3,17 +3,18 @@
 #include "Particle/ParticleModule.h"
 #include "Particle/ParticleTypes.h"
 
-class UParticleModuleSpawn : public UParticleModule
-{
+class UParticleModuleSpawn : public UParticleModule {
 	DECLARE_CLASS(UParticleModuleSpawn, UParticleModule)
+
+	REFLECT_START(ThisClass)
+		PROPERTY(SpawnRate)
+	REFLECT_END()
 
 public:
 	void Serialize(FStructuredArchive::FRecord Record) override;
+	void PostEditChangeProperty(const FProperty& Property) override;
 
-	inline float GetSpawnRate() const
-	{
-		return SpawnRate;
-	}
+	float GetSpawnRate() const;
 
 private:
 	float SpawnRate = 100;

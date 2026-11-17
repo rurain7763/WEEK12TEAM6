@@ -30,19 +30,25 @@ public:
 		OpenBlendSpace = std::move(Binding);
 	}
 
+	void SetOpenParticleSystemBinding(std::function<void(const FString&)> InOpenParticleSystem);
+
 private:
 	void CreateBlendSpaceFile();
 	// 현재 폴더를 Assets > A > B 형태로 그린다. 조각을 누르면 그 폴더로 이동한다.
 	void DrawPathBar();
 	void CreateLevelSequenceFile();
 	void CreateAnimGraphFile();
+	void CreateParticleSystemFile();
+	void DrawMaterialAssets(int32 ColumnCount, float ThumbnailSize);
 
+private:
 	fs::path AssetRootPath = "Assets";
 	fs::path CurrentPath = "Assets";
 	FString CreateAssetError;
 	std::function<void(const FString&)> OpenLevelSequence;
 	std::function<void(const FString&)> OpenAnimGraph;
 	std::function<void(const FString&)> OpenBlendSpace;
+	std::function<void(const FString&)> mOpenParticleSystem{};
 
 	UTexture2D* FolderIcon = nullptr;
 	UTexture2D* FileIcon = nullptr;

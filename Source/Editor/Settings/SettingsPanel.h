@@ -19,7 +19,6 @@ struct FEditorSettings
 	bool bDrawDecals = true;
 	bool bDrawBoundingBox = false;
 	bool bShowUUID = false;
-	bool bDrawGrid = true;
 	bool bExponentialHeightFog = true;
 	bool bVisualizeTileLightCount = false;
 	bool bVisualizeCascades = false;
@@ -70,6 +69,7 @@ struct FEditorSettings
     int32 ViewPreset[4]{-1,-1,-1,-1};
     // 키가 없으면 FViewRenderMode 기본값(Lit)을 쓴다.
     FViewRenderMode ViewRenderMode[4]{};
+    bool mViewGridVisible[4]{ true, true, true, true };
     // View별 카메라 Transform은 Quaternion 그대로 저장해 재실행 후 같은 시점을 복원한다.
     // 구형 editor.ini에 키가 없으면 Saved가 false로 남아 Adapter의 초기 Transform을 유지한다.
     FVector ViewLocation[4]{};

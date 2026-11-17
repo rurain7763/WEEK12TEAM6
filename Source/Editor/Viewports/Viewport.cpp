@@ -9,6 +9,14 @@
 
 using namespace ViewportCameraMath;
 
+void FViewport::SetGridVisible(bool Visible) {
+    mGridVisible = Visible;
+}
+
+bool FViewport::IsGridVisible() const {
+    return mGridVisible;
+}
+
 // 예전 패널 Slot과 같이 최소 1픽셀, 소수는 버린 정수 크기로 만든다.
 void FViewport::EnsureRenderTargets()
 {

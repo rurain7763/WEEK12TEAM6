@@ -28,4 +28,16 @@ void UParticleModuleLocation::Spawn(const FSpawnContext& Ctx)
 void UParticleModuleLocation::Serialize(FStructuredArchive::FRecord Record)
 {
 	Record << SA_VALUE("StartLocation", StartLocation);
+
+	if (TOptional<FStructuredArchive::FSlot> Slot{ Record.TryEnterField("bHasRandomValue", true) }) {
+		Slot.GetValue() << bHasRandomValue;
+	}
+
+	if (TOptional<FStructuredArchive::FSlot> Slot{ Record.TryEnterField("MinLocation", true) }) {
+		Slot.GetValue() << MinLocation;
+	}
+
+	if (TOptional<FStructuredArchive::FSlot> Slot{ Record.TryEnterField("MaxLocation", true) }) {
+		Slot.GetValue() << MaxLocation;
+	}
 }
