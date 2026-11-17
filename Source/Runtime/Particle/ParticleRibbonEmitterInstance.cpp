@@ -3,6 +3,7 @@
 #include "Particle/ParticleTypes.h"
 #include "Engine/PrimitiveSceneProxy.h"
 #include "Particle/ParticleLODLevel.h"
+#include "Particle/ParticleEmitter.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
 
 void FParticleRibbonEmitterInstance::SpawnParticle(const FVector& InitLocation)
@@ -49,13 +50,10 @@ void FParticleRibbonEmitterInstance::KillParticle(int32 Position)
 	FParticleEmitterInstance::KillParticle(Position);
 }
 
-void FParticleRibbonEmitterInstance::BuildRenderData(FParticleEmitterRenderData& RenderData) const
-{
-	RenderData.Particles.Reset();
-	RenderData.Strips.Reset();
+void FParticleRibbonEmitterInstance::BuildRenderData(FParticleEmitterRenderData& RenderData) const {
+	RenderData = FParticleEmitterRenderData{};
 
-	if (!CurrentLODLevel || !CurrentLODLevel->RequiredModule)
-	{
+	if (!EmitterTemplate || !EmitterTemplate->IsEnabled() || !CurrentLODLevel || !CurrentLODLevel->RequiredModule) {
 		return;
 	}
 

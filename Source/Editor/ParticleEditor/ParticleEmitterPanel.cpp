@@ -8,6 +8,7 @@
 #include "Particle/ParticleModule.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
 #include "Particle/Modules/ParticleModuleSpawn.h"
+#include "Particle/Modules/ParticleModuleTypeDataBase.h"
 
 #include <algorithm>
 #include <cctype>
@@ -27,12 +28,14 @@ namespace {
 	}
 }
 
-FParticleEmitterPanel::FParticleEmitterPanel(UParticleSystem* ParticleSystem, FString PanelName, FSelectionCallback SelectionCallback, FToolbarCallback ToolbarCallback, FStructureCallback StructureCallback)
+FParticleEmitterPanel::FParticleEmitterPanel(UParticleSystem* ParticleSystem, FString PanelName, FSelectionCallback SelectionCallback, FToolbarCallback ToolbarCallback, FStructureCallback StructureCallback, FChangeCallback ChangeCallback)
 	: mParticleSystem{ ParticleSystem },
 	  mPanelName{ std::move(PanelName) },
 	  mSelectionCallback{ std::move(SelectionCallback) },
 	  mToolbarCallback{ std::move(ToolbarCallback) },
-	  mStructureCallback{ std::move(StructureCallback) } {
+	  mStructureCallback{ std::move(StructureCallback) },
+	  mChangeCallback{ std::move(ChangeCallback) } {
+	mSelectedObject = mParticleSystem;
 	if (mParticleSystem && !mParticleSystem->Emitters.IsEmpty()) {
 		mSelectedObject = mParticleSystem->Emitters[0];
 	}
@@ -90,7 +93,7 @@ void FParticleEmitterPanel::DrawModule(UParticleEmitter* Emitter, UParticleModul
 			mStructureCallback(FStructureRequest{ EStructureAction::DeleteModule, Emitter, nullptr, Module });
 		}
 		if (!CanDelete) {
-			ImGui::SetItemTooltip("Required and Spawn modules must remain in the emitter.");
+			ImGui::SetItemTooltip("This module uses a fixed slot and cannot be deleted here.");
 		}
 		ImGui::EndPopup();
 	}
@@ -165,9 +168,11 @@ void FParticleEmitterPanel::DrawEmitter(int32 EmitterIndex, float Height) {
 	UParticleEmitter* Emitter{ mParticleSystem->Emitters[EmitterIndex] };
 	ImGui::PushID(Emitter);
 	if (ImGui::BeginChild("Emitter", ImVec2{ 230.0f, Height }, ImGuiChildFlags_Borders)) {
-		const FString Label{ "Emitter " + std::to_string(EmitterIndex + 1) };
+		const FString Label{ Emitter ? Emitter->GetEmitterName() : "Missing emitter" };
+		const float ToggleWidth{ ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Off").x };
+		const float HeaderWidth{ std::max(1.0f, ImGui::GetContentRegionAvail().x - ToggleWidth - ImGui::GetStyle().ItemSpacing.x) };
 		ImGui::BeginDisabled(Emitter == nullptr);
-		if (ImGui::Selectable(Label.c_str(), Emitter && mSelectedObject == Emitter, ImGuiSelectableFlags_None, ImVec2{ 0.0f, 32.0f })) {
+		if (ImGui::Selectable(Label.c_str(), Emitter && mSelectedObject == Emitter, ImGuiSelectableFlags_None, ImVec2{ HeaderWidth, 32.0f })) {
 			SelectObject(Emitter);
 		}
 		ImGui::EndDisabled();
@@ -177,11 +182,27 @@ void FParticleEmitterPanel::DrawEmitter(int32 EmitterIndex, float Height) {
 			DrawEmitterContextMenu(Emitter);
 			ImGui::EndPopup();
 		}
+		ImGui::SameLine();
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + std::max(0.0f, (32.0f - ImGui::GetFrameHeight()) * 0.5f));
+		bool Enabled{ Emitter && Emitter->IsEnabled() };
+		ImGui::BeginDisabled(Emitter == nullptr);
+		if (ImGui::Checkbox(Enabled ? "On###EmitterEnabled" : "Off###EmitterEnabled", &Enabled)) {
+			Emitter->SetEnabled(Enabled);
+			if (mChangeCallback) {
+				mChangeCallback();
+			}
+		}
+		ImGui::EndDisabled();
 		ImGui::TextDisabled("LOD 0");
 		ImGui::Separator();
 
 		UParticleLODLevel* LOD{ Emitter ? Emitter->GetLODLevel(0) : nullptr };
 		if (LOD) {
+			if (LOD->TypeDataModule) {
+				const FString TypeDataLabel{ GetModuleLabel(LOD->TypeDataModule->GetClass()) };
+				DrawModule(Emitter, LOD->TypeDataModule, TypeDataLabel.c_str(), ImVec4{ 0.35f, 0.18f, 0.45f, 1.0f });
+			}
+
 			DrawModule(Emitter, LOD->RequiredModule, "Required", ImVec4{ 0.45f, 0.24f, 0.10f, 1.0f });
 			DrawModule(Emitter, LOD->SpawnModule, "Spawn", ImVec4{ 0.15f, 0.34f, 0.17f, 1.0f });
 			ImGui::Separator();
@@ -195,6 +216,7 @@ void FParticleEmitterPanel::DrawEmitter(int32 EmitterIndex, float Height) {
 		} else {
 			ImGui::TextDisabled("No LOD 0");
 		}
+		HandleBackgroundClick();
 		if (ImGui::BeginPopupContextWindow("EmitterBackgroundContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_NoOpenOverExistingPopup)) {
 			DrawEmitterContextMenu(Emitter);
 			ImGui::EndPopup();
@@ -248,6 +270,12 @@ void FParticleEmitterPanel::DrawEmitterDropTarget(UParticleEmitter* Emitter, int
 	ImGui::EndDragDropTarget();
 }
 
+void FParticleEmitterPanel::HandleBackgroundClick() {
+	if (mParticleSystem && mSelectedObject != mParticleSystem && ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemHovered() && !ImGui::IsAnyItemActive() && !ImGui::GetDragDropPayload()) {
+		SelectObject(mParticleSystem);
+	}
+}
+
 void FParticleEmitterPanel::HandleDeleteShortcut() {
 	if (!mParticleSystem || !mStructureCallback || !ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) || ImGui::GetIO().WantTextInput || ImGui::IsAnyItemActive() || ImGui::GetDragDropPayload() || ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel) || !ImGui::IsKeyPressed(ImGuiKey_Delete, false)) {
 		return;
@@ -291,6 +319,7 @@ void FParticleEmitterPanel::OnRender() {
 					}
 					DrawEmitter(Index, Height);
 				}
+				HandleBackgroundClick();
 				if (ImGui::BeginPopupContextWindow("EmitterCanvasContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_NoOpenOverExistingPopup)) {
 					if (ImGui::MenuItem("Add Emitter", nullptr, false, static_cast<bool>(mStructureCallback))) {
 						mStructureCallback(FStructureRequest{ EStructureAction::AddEmitter });

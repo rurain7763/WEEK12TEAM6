@@ -31,6 +31,7 @@ public:
 	using FSelectionCallback = std::function<void(UObject*)>;
 	using FToolbarCallback = std::function<void()>;
 	using FStructureCallback = std::function<void(const FStructureRequest&)>;
+	using FChangeCallback = std::function<void()>;
 
 private:
 	struct FEmitterDragPayload {
@@ -44,7 +45,7 @@ private:
 	};
 
 public:
-	FParticleEmitterPanel(UParticleSystem* ParticleSystem, FString PanelName, FSelectionCallback SelectionCallback, FToolbarCallback ToolbarCallback, FStructureCallback StructureCallback);
+	FParticleEmitterPanel(UParticleSystem* ParticleSystem, FString PanelName, FSelectionCallback SelectionCallback, FToolbarCallback ToolbarCallback, FStructureCallback StructureCallback, FChangeCallback ChangeCallback = {});
 
 public:
 	bool Init() override;
@@ -63,6 +64,7 @@ private:
 	void DrawEmitterDropTarget(UParticleEmitter* Emitter, int32 EmitterIndex);
 	void DrawAddModuleMenu(UParticleEmitter* Emitter);
 	void DrawEmitterContextMenu(UParticleEmitter* Emitter);
+	void HandleBackgroundClick();
 	void HandleDeleteShortcut();
 
 private:
@@ -72,4 +74,5 @@ private:
 	FSelectionCallback mSelectionCallback{};
 	FToolbarCallback mToolbarCallback{};
 	FStructureCallback mStructureCallback{};
+	FChangeCallback mChangeCallback{};
 };

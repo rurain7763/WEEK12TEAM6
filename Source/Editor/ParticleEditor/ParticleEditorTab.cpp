@@ -15,9 +15,11 @@
 #include "Particle/ParticleModule.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace {
 	constexpr float ParticlePreviewCameraDistance{ 10.0f };
+	constexpr float ParticlePreviewMotionAngularSpeed{ 1.0f };
 
 	FEditorTabSettings MakeParticleEditorTabSettings(UParticleSystem* ParticleSystem) {
 		FEditorTabSettings Settings{ "Particle Editor", "ParticleEditorDock", true, true };
@@ -32,7 +34,7 @@ namespace {
 }
 
 FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
-	: FPreviewEditorTab{ MakeParticleEditorTabSettings(InParticleSystem), InParticleSystem ? "Particle Preview##ParticleEditor:" + InParticleSystem->GetPath() : "Particle Preview##ParticleEditor" },
+	: FPreviewEditorTab{ MakeParticleEditorTabSettings(InParticleSystem), InParticleSystem ? "Particle Preview##ParticleEditor:" + InParticleSystem->GetPath() : "Particle Preview##ParticleEditor", false },
 	  mParticleSystem{ InParticleSystem },
 	  mEditSession{ MakeUnique<FParticleSystemEditSession>(InParticleSystem) } {
 	ViewportPanel->GetViewport()->SetGridVisible(false);
@@ -46,6 +48,9 @@ FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 	}, [this](const FParticleEmitterPanel::FStructureRequest& Request) {
 		mPendingStructureRequest = Request;
 		mHasPendingStructureRequest = true;
+	}, [this]() {
+		mDirty = true;
+		mStatus.clear();
 	});
 	mDetailsPanel = AddPanel<FParticleModuleDetailsPanel>("Module Details" + PanelSuffix, [this]() {
 		OnPropertiesChanged();
@@ -101,6 +106,7 @@ void FParticleEditorTab::TickPreview(float DeltaTime) {
 			RestartPreview();
 		}
 
+		UpdatePreviewMotion(DeltaTime);
 		mPreviewComponent->TickComponent(DeltaTime);
 	}
 }
@@ -114,6 +120,16 @@ void FParticleEditorTab::InitializePreviewCamera() {
 	mPendingCameraSetup = false;
 }
 
+void FParticleEditorTab::UpdatePreviewMotion(float DeltaTime) {
+	FVector Location{ FVector::ZeroVector };
+	if (mMotionEnabled) {
+		const float ElapsedTime{ std::isfinite(DeltaTime) ? std::max(0.0f, DeltaTime) : 0.0f };
+		mMotionAngle = std::fmod(mMotionAngle + ElapsedTime * ParticlePreviewMotionAngularSpeed, 2.0f * ViewportCameraMath::Pi);
+		Location = FVector{ std::cos(mMotionAngle) * mMotionRadius, std::sin(mMotionAngle) * mMotionRadius, 0.0f };
+	}
+	mPreviewComponent->SetWorldLocation(Location, false);
+}
+
 void FParticleEditorTab::BuildDefaultLayout(ImGuiID DockSpaceRoot) {
 	ImGuiID EmitterNode{ DockSpaceRoot };
 	ImGuiID PreviewNode{ ImGui::DockBuilderSplitNode(EmitterNode, ImGuiDir_Left, 0.35f, nullptr, &EmitterNode) };
@@ -125,9 +141,25 @@ void FParticleEditorTab::BuildDefaultLayout(ImGuiID DockSpaceRoot) {
 
 void FParticleEditorTab::RestartPreview() {
 	mPreviewComponent->EndPlay();
+	mMotionAngle = 0.0f;
+	UpdatePreviewMotion(0.0f);
 	mPreviewComponent->BeginPlay();
 	mPreviewComponent->UpdateDynamicData();
 	mPendingPreviewRestart = false;
+}
+
+void FParticleEditorTab::DrawPreviewToolbar() {
+	ImGui::BeginDisabled(mPreviewComponent == nullptr);
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Motion", &mMotionEnabled)) {
+		mPendingPreviewRestart = true;
+	}
+	ImGui::SetNextItemWidth(100.0f);
+	if (ImGui::DragFloat("Motion Radius", &mMotionRadius, 0.05f, 0.0f, 1000.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+		mMotionRadius = std::isfinite(mMotionRadius) ? std::clamp(mMotionRadius, 0.0f, 1000.0f) : 0.0f;
+		mPendingPreviewRestart = true;
+	}
+	ImGui::EndDisabled();
 }
 
 void FParticleEditorTab::OnPropertiesChanged() {

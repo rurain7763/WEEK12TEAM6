@@ -8,6 +8,10 @@
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
 
 void UParticleEmitter::Serialize(FStructuredArchive::FRecord Record) {
+	if (TOptional<FStructuredArchive::FSlot> Slot{ Record.TryEnterField("bEnabled", true) }) {
+		Slot.GetValue() << mEnabled;
+	}
+
 	if (TOptional<FStructuredArchive::FSlot> Slot{ Record.TryEnterField("EmitterName", true) }) {
 		Slot.GetValue() << mEmitterName;
 	}
@@ -23,6 +27,14 @@ const FString& UParticleEmitter::GetEmitterName() const {
 
 void UParticleEmitter::SetEmitterName(const FString& Name) {
 	mEmitterName = Name;
+}
+
+bool UParticleEmitter::IsEnabled() const {
+	return mEnabled;
+}
+
+void UParticleEmitter::SetEnabled(bool Enabled) {
+	mEnabled = Enabled;
 }
 
 UParticleLODLevel* UParticleEmitter::GetLODLevel(int32 LODLevel)
