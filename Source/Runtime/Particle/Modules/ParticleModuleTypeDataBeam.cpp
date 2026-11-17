@@ -4,6 +4,9 @@
 #include "Particle/ParticleBeamEmitterInstance.h"
 #include "Serialization/MathSerialization.h"
 
+#include <algorithm>
+#include <cmath>
+
 UParticleModuleTypeDataBeam::UParticleModuleTypeDataBeam()
 {
 }
@@ -14,6 +17,13 @@ void UParticleModuleTypeDataBeam::Serialize(FStructuredArchive::FRecord Record)
 	Record << SA_VALUE("MaxBeamCount", MaxBeamCount);
 	Record << SA_VALUE("bAlwaysOn", bAlwaysOn);
 	Record << SA_VALUE("Distance", Distance);
+}
+
+void UParticleModuleTypeDataBeam::PostEditChangeProperty(const FProperty& Property) {
+	Super::PostEditChangeProperty(Property);
+	InterpolationPoints = std::clamp(InterpolationPoints, 1, 1024);
+	MaxBeamCount = std::clamp(MaxBeamCount, 1, 65535);
+	Distance = std::isfinite(Distance) ? std::max(0.0f, Distance) : 0.0f;
 }
 
 uint32 UParticleModuleTypeDataBeam::RequiredBytes() const
