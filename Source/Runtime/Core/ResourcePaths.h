@@ -16,6 +16,8 @@ namespace ResourcePaths
 	constexpr const char* DefaultSkyPanorama = "Resources/SkySphere/Sky.png";
 	constexpr const char* DefaultSpriteTexture = "Resources/SubUV/StarParticle.png";
 	constexpr const char* DefaultParticleTexture = "Resources/Textures/OrientParticle.png";
+	// Beam·Ribbon 띠용: 가로(u)로는 같고 세로(v) 가운데가 밝은 그라데이션
+	constexpr const char* DefaultBeamTexture = "Resources/Textures/BeamGlow.png";
 
 	// 라이트 빌보드 아이콘
 	constexpr const char* DirectionalLightIcon = "Resources/Icons/S_LightDirectional.png";

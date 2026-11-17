@@ -46,6 +46,7 @@ public:
 	void CreateDefaultMaterial();
 	void CreateParticleMaterial();
 	void CreateSpriteMaterial();
+	void CreateBeamMaterial();
 	void CreateDecalMaterial();
 
 	template <typename T>

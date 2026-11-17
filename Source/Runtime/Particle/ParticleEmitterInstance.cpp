@@ -5,6 +5,7 @@
 #include "Component/ParticleSystemComponent.h"
 #include "Particle/Modules/ParticleModuleSpawn.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
+#include "Particle/Modules/ParticleModuleTypeDataBase.h"
 #include "Engine/PrimitiveSceneProxy.h"
 
 
@@ -49,6 +50,8 @@ void FParticleEmitterInstance::Initialize()
 	}
 
 	EmitterTemplate->CacheEmitterModuleInfo();
+	TypeDataModule = CurrentLODLevel->TypeDataModule;
+	TypeDataOffset = EmitterTemplate->TypeDataOffset;
 
 	ParticleStride = EmitterTemplate->ParticleSize;
 	MaxActiveParticles = EmitterTemplate->MaxParticleCount;
@@ -99,7 +102,8 @@ void FParticleEmitterInstance::SpawnParticle(const FVector& InitLocation)
 	{
 		Module->Spawn(Context);
 	}
-		
+	if (TypeDataModule) { Context.Offset = TypeDataOffset; TypeDataModule->Spawn(Context); }
+
 	ActiveParticles++;
 }
 
@@ -139,6 +143,16 @@ void FParticleEmitterInstance::UpdateTransforms()
 
 void FParticleEmitterInstance::Tick(float DeltaTime)
 {
+	Tick_KillParticles(DeltaTime);
+	UpdateTransforms();
+	Tick_ModuleUpdate(DeltaTime);
+	Tick_ModulePostUpdate(DeltaTime);
+	Tick_SpawnParticles(DeltaTime);
+	Tick_MoveParticles(DeltaTime);
+}
+
+void FParticleEmitterInstance::Tick_KillParticles(float DeltaTime)
+{
 	// 파티클 수명 관리
 	for (int32 i = ActiveParticles - 1; i > -1; i--)
 	{
@@ -150,9 +164,10 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
 			KillParticle(i);
 		}
 	}
+}
 
-	UpdateTransforms();
-
+void FParticleEmitterInstance::Tick_ModuleUpdate(float DeltaTime)
+{
 	// 모듈 업데이트
 	UParticleModule::FUpdateContext Context;
 	Context.Offset = 0;
@@ -163,7 +178,25 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
 	{
 		Module->Update(Context);
 	}
+}
 
+void FParticleEmitterInstance::Tick_ModulePostUpdate(float DeltaTime)
+{
+	if (!TypeDataModule)
+	{
+		return;
+	}
+
+	UParticleModule::FUpdateContext Context;
+	Context.Offset = TypeDataOffset;
+	Context.Emitter = this;
+	Context.DeltaTime = DeltaTime;
+
+	TypeDataModule->Update(Context);
+}
+
+void FParticleEmitterInstance::Tick_SpawnParticles(float DeltaTime)
+{
 	// 비활성 LOD는 생성량을 누적하지 않는다. 기존 입자의 갱신과 수명 처리는 유지한다.
 	if (CurrentLODLevel->IsEnabled() && CurrentLODLevel->SpawnModule)
 	{
@@ -179,7 +212,10 @@ void FParticleEmitterInstance::Tick(float DeltaTime)
 		// NOTE: 이번 프레임에 요청이 되었으나 생성이 되지 못한 파티클에 대해서는 무시한다. (나중에 수정할지도...?)
 		SpawnFraction -= RequiredSpawnCount;
 	}
+}
 
+void FParticleEmitterInstance::Tick_MoveParticles(float DeltaTime)
+{
 	// 파티클 위치 업데이트
 	for (int32 i = 0; i < ActiveParticles; i++)
 	{

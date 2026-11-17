@@ -28,4 +28,5 @@ private:
 
 	int32 MaxParticleCount = 1000;
 	int32 ParticleSize = 0;
+	int32 TypeDataOffset = 0;
 };

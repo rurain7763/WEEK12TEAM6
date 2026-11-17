@@ -213,6 +213,7 @@ void UAssetManager::Init(const FAssetLoadProgress& OnProgress)
 	Get().CreateDefaultMeshes();
 	Get().CreateParticleMaterial();
 	Get().CreateSpriteMaterial();
+	Get().CreateBeamMaterial();
 	Get().CreateDecalMaterial();
 	Get().ScanAssets("Assets", OnProgress);
 }
@@ -454,6 +455,32 @@ void UAssetManager::CreateSpriteMaterial()
 	SpriteMat->ParamLayout = EMaterialParamLayout::Sprite;
 	SpriteMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FSpriteMaterialParams));
 	RegisterAsset("SpriteMaterial", SpriteMat);
+}
+
+// Beam·Ribbon 띠용. SpriteMaterial과 같은 셰이더·블렌드, 텍스처만 띠용 그라데이션
+void UAssetManager::CreateBeamMaterial()
+{
+	UMaterial* BeamMat = NewObject<UMaterial>();
+	BeamMat->Shader = FRenderResourceManager::GetShaderProgram("Resources/Shader/SpriteShader.hlsl");
+	BeamMat->Textures.Add(LoadTexture(ResourcePaths::DefaultBeamTexture));
+	BeamMat->BlendState = EBlendState::AlphaBlend;
+	BeamMat->DepthStencilState = EDepthStencilState::ReadOnly;
+	BeamMat->ParamLayout = EMaterialParamLayout::Sprite;
+	BeamMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FSpriteMaterialParams));
+	RegisterAsset("BeamMaterial", BeamMat);
+
+	// Register textured variants before particle assets resolve their material names.
+	const auto CreateStripMaterial = [this, BeamMat](const FString& Name, const FString& TexturePath)
+	{
+		if (UTexture2D* Texture = LoadTexture(TexturePath))
+		{
+			UMaterial* Material = UMaterial::CreateInstance(BeamMat);
+			Material->Textures[0] = Texture;
+			RegisterAsset(Name, Material);
+		}
+	};
+	CreateStripMaterial("RibbonFlowMaterial", "Assets/Textures/Particles/RibbonFlow.png");
+	CreateStripMaterial("BeamArcMaterial", "Assets/Textures/Particles/BeamArc.png");
 }
 
 void UAssetManager::CreateDecalMaterial()

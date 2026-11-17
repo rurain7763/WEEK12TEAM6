@@ -99,6 +99,9 @@
 #include "Particle/Modules/ParticleModuleSize.h"
 #include "Particle/Modules/ParticleModuleSizeOfLifeTime.h"
 #include "Particle/Modules/ParticleModuleSpawn.h"
+#include "Particle/Modules/ParticleModuleTypeDataBase.h"
+#include "Particle/Modules/ParticleModuleTypeDataBeam.h"
+#include "Particle/Modules/ParticleModuleTypeDataRibbon.h"
 #include "Particle/Modules/ParticleModuleVelocity.h"
 #include "Particle/ParticleEmitter.h"
 #include "Particle/ParticleLODLevel.h"
@@ -244,6 +247,9 @@ void RegisterUClasses()
 	UParticleModuleSize::StaticClass();
 	UParticleModuleSizeOfLifeTime::StaticClass();
 	UParticleModuleSpawn::StaticClass();
+	UParticleModuleTypeDataBase::StaticClass();
+	UParticleModuleTypeDataBeam::StaticClass();
+	UParticleModuleTypeDataRibbon::StaticClass();
 	UParticleModuleVelocity::StaticClass();
 	UParticleEmitter::StaticClass();
 	UParticleLODLevel::StaticClass();

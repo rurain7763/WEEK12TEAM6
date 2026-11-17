@@ -375,6 +375,97 @@ FParticleSystemSceneProxy::~FParticleSystemSceneProxy()
 
 void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, const FViewBasis& View)
 {
+    // Strip(Beam,Ribbon) 처리
+    uint32 NumStripVertices = 0;
+    uint32 NumStripIndices = 0;
+    for (const FParticleEmitterRenderData& Emitter : EmitterRenderDatas)
+    {
+        if ((Emitter.DynamicEmitterType != EDynamicEmitterType::Beam && Emitter.DynamicEmitterType != EDynamicEmitterType::Ribbon) || !Emitter.Material) continue;
+
+        for (const FParticleStripRenderData& Strip : Emitter.Strips)
+        {
+            const uint32 N = Strip.Points.Num();
+            if (N < 2) continue;
+            NumStripVertices += N * 2; // 점하나 -> 위아래정점2개
+            NumStripIndices += (N - 1) * 6; //칸하나 -> 삼각형2개 -> 인덱스 6개
+        }
+    }
+    //크기부족일때 재할당
+    if (NumStripVertices > StripVertexCapacity)
+    {
+        StripVB = RenderCommand::CreateDynamicVertexBuffer(NumStripVertices * sizeof(FParticleVertex), sizeof(FParticleVertex));
+        StripVertexCapacity = NumStripVertices;
+    }
+    if (NumStripIndices > StripIndexCapacity)
+    {
+        StripIB = RenderCommand::CreateDynamicIndexBuffer(NumStripIndices);
+        StripIndexCapacity = NumStripIndices;
+    }
+    // Beam을 삼각형화 해서 띠 모양으로 정점변환단계
+    if (NumStripVertices > 0)
+    {
+        FParticleVertex* V = static_cast<FParticleVertex*>(RenderCommand::MapWriteDiscard(StripVB.get()));
+        uint32* I = static_cast<uint32*>(RenderCommand::MapWriteDiscard(StripIB.get()));
+        uint32 VertexCursor = 0;   // 지금까지 쓴 정점 수
+        uint32 IndexCursor = 0;   // 지금까지 쓴 인덱스 수
+
+        for (const FParticleEmitterRenderData& Emitter : EmitterRenderDatas)
+        {
+            if ((Emitter.DynamicEmitterType != EDynamicEmitterType::Beam && Emitter.DynamicEmitterType != EDynamicEmitterType::Ribbon) || !Emitter.Material) continue;
+
+            for (const FParticleStripRenderData& Strip : Emitter.Strips)
+            {
+                const TArray<FVector>& P = Strip.Points;
+                const uint32 N = P.Num();
+                if (N < 2) continue;
+
+                const uint32 Base = VertexCursor;   // 이 띠의 첫 정점 번호
+                const uint32 FirstIndex = IndexCursor;    // 이 띠의 첫 인덱스 위치 (4-4에서 씀)
+
+                // (가) 정점: 점마다 위·아래 2개
+                for (uint32 i = 0; i < N; ++i)
+                {
+                    FVector Dir = (i + 1 < N) ? P[i + 1] - P[i] : P[i] - P[i - 1];
+                    FVector Side = FVector::Cross(Dir, View.Location - P[i]);
+                    if (Side.SizeSquared() < 1e-8f) Side = FVector::Cross(Dir, FVector(0, 0, 1));
+                    if (Side.SizeSquared() < 1e-8f) Side = FVector::Cross(Dir, FVector(0, 1, 0));
+                    Side = Side.Normalized() * (Strip.Width * 0.5f);
+                    const float U = static_cast<float>(i) / (N - 1);
+
+                    FParticleVertex& Top = V[Base + 2 * i];
+                    FParticleVertex& Bot = V[Base + 2 * i + 1];
+                    Top = FParticleVertex();  Top.Position = P[i] + Side;  Top.UV = FVector2(U, 0.f);
+                    Bot = FParticleVertex();  Bot.Position = P[i] - Side;  Bot.UV = FVector2(U, 1.f);
+                }
+
+                // (나) 인덱스: 칸마다 삼각형 2개
+                for (uint32 i = 0; i + 1 < N; ++i)
+                {
+                    const uint32 A = Base + 2 * i;
+                    I[IndexCursor++] = A;      I[IndexCursor++] = A + 2;  I[IndexCursor++] = A + 1;
+                    I[IndexCursor++] = A + 1;  I[IndexCursor++] = A + 2;  I[IndexCursor++] = A + 3;
+                }
+                VertexCursor += N * 2;
+
+                FRenderPacket& Packet = RenderQueue.AddDefaulted_GetRef();
+                Packet.Proxy = this;
+                Packet.Geometry.VertexBuffers[0] = StripVB.get();
+                Packet.Geometry.VertexBufferCount = 1;
+                Packet.Geometry.IndexBuffer = StripIB.get();
+                Packet.Geometry.StartIndex = FirstIndex;                 // 이 띠의 첫 인덱스
+                Packet.Geometry.IndexCount = IndexCursor - FirstIndex;   // 이 띠의 인덱스 수 (60)
+                Packet.Material = Emitter.Material;
+                Packet.ColorMultiplier = Strip.Color;
+                // Packet.Model은 비워 둠 → 렌더러가 단위 행렬 사용 (정점이 이미 월드 좌표)
+                Packet.CameraDistanceSquared = (View.Location - P[N / 2]).SizeSquared();
+            }
+        }
+
+        RenderCommand::Unmap(StripVB.get());
+        RenderCommand::Unmap(StripIB.get());
+    }
+
+    // 일반 Spirte Particle Render 
     if (!QuadMesh)
     {
         return;
@@ -390,6 +481,10 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
         if (!Emitter.Material)
         {
             continue;
+        }
+        if (Emitter.DynamicEmitterType == EDynamicEmitterType::Beam || Emitter.DynamicEmitterType == EDynamicEmitterType::Ribbon)
+        {
+        continue;
         }
 
         for (int32 ParticleIndex = 0; ParticleIndex < Emitter.Particles.Num(); ++ParticleIndex)
@@ -456,6 +551,19 @@ void FParticleSystemSceneProxy::SetDynamicData(const TArray<FParticleEmitterRend
 
             bNoParticle = false;
         }
+
+        //띠루프 추가
+        for (const FParticleStripRenderData& Strip : DstEmitterRenderData.Strips)
+        {
+            const FVector Pad(Strip.Width);
+            for (const FVector& P : Strip.Points)
+            {
+                LocalBounds.Expand(P + Pad);
+                LocalBounds.Expand(P - Pad);
+            }
+            if (Strip.Points.Num() > 0) bNoParticle = false;
+        }
+
     }
 
     if (bNoParticle)
