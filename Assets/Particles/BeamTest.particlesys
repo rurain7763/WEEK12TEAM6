@@ -1,50 +1,50 @@
 {
-    "Version": 1,
     "ParticleSystem": {
-        "LODMethod": 0,
-        "LODDistances": [
-            0
-        ],
-        "LODDistanceCheckTime": 0.25,
         "Emitters": [
             {
                 "ClassName": "UParticleEmitter",
-                "MaxParticleCount": 100,
-                "ParticleSize": 0,
                 "LODLevels": [
                     {
                         "ClassName": "UParticleLODLevel",
                         "Level": 0,
-                        "bEnable": true,
                         "Modules": [
                             {
                                 "ClassName": "UParticleModuleSize",
                                 "StartSize": {
-                                    "X": 0.4,
-                                    "Y": 0.4,
-                                    "Z": 0.4
+                                    "X": 1.899999976158142,
+                                    "Y": 22.700000762939453,
+                                    "Z": -6.0
                                 }
                             }
                         ],
-                        "SpawnModule": {
-                            "ClassName": "UParticleModuleSpawn",
-                            "SpawnRate": 100
-                        },
                         "RequiredModule": {
                             "ClassName": "UParticleModuleRequired",
-                            "bUseLocalSpace": true,
-                            "Material": "BeamMaterial"
+                            "Material": "BeamMaterial",
+                            "bUseLocalSpace": true
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 100.0
                         },
                         "TypeDataModule": {
                             "ClassName": "UParticleModuleTypeDataBeam",
+                            "Distance": 8.0,
                             "InterpolationPoints": 10,
                             "MaxBeamCount": 1,
-                            "bAlwaysOn": true,
-                            "Distance": 8
-                        }
+                            "bAlwaysOn": true
+                        },
+                        "bEnable": true
                     }
-                ]
+                ],
+                "MaxParticleCount": 100,
+                "ParticleSize": 308
             }
-        ]
-    }
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "LODDistances": [
+            0.0
+        ],
+        "LODMethod": 0
+    },
+    "Version": 1
 }
