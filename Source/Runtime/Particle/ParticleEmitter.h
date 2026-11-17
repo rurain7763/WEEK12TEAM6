@@ -7,8 +7,7 @@ class UParticleLODLevel;
 class UParticleSystemComponent;
 struct FParticleEmitterInstance;
 
-class UParticleEmitter : public UObject
-{
+class UParticleEmitter : public UObject {
 	DECLARE_CLASS(UParticleEmitter, UObject)
 
 public:
@@ -22,6 +21,9 @@ public:
 
 	virtual void Serialize(FStructuredArchive::FRecord Record) override;
 
+	const FString& GetEmitterName() const;
+	void SetEmitterName(const FString& Name);
+
 	FParticleEmitterInstance* CreateInstance(UParticleSystemComponent* Owner);
 
 	UParticleLODLevel* GetLODLevel(int32 LODLevel);
@@ -33,6 +35,8 @@ public:
 
 private:
 	friend struct FParticleEmitterInstance;
+
+	FString mEmitterName{};
 
 	int32 MaxParticleCount = 1000;
 	int32 ParticleSize = 0;
