@@ -18,6 +18,6 @@ class UParticleModuleEventGenerator : public UParticleModuleEventBase
 public:
 	void Serialize(FStructuredArchive::FRecord Record) override;
 
-	// 복수 보고 규칙. 실행 시 이미터의 CollisionCount 하나를 공유.
+	// 복수 보고 규칙. 실행 시 이미터의 CollisionTrackingCount 하나를 공유.
 	TArray<FParticleEventGeneratorInfo> Events = { FParticleEventGeneratorInfo{} };
 };

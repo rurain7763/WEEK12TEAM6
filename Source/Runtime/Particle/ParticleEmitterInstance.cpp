@@ -52,6 +52,8 @@ void FParticleEmitterInstance::Initialize()
 	EmitterTemplate->CacheEmitterModuleInfo();
 	TypeDataModule = CurrentLODLevel->TypeDataModule;
 	TypeDataOffset = EmitterTemplate->TypeDataOffset;
+	CollisionPayloadOffset = EmitterTemplate->CollisionPayloadOffset;
+	EventPayload = FParticleEventInstancePayload();
 
 	ParticleStride = EmitterTemplate->ParticleSize;
 	MaxActiveParticles = EmitterTemplate->MaxParticleCount;
@@ -89,6 +91,12 @@ void FParticleEmitterInstance::SpawnParticle(const FVector& InitLocation)
 	// 활성 영역 바로 다음에 있는 첫 빈 슬롯을 가져옴
 	FBaseParticle* Particle = GetParticleFromPosition(ActiveParticles);
 	*Particle = FBaseParticle();
+
+	// 재사용 슬롯에 남은 이전 입자의 충돌 상태 제거
+	if (FParticleCollisionPayload* CollisionPayload = GetCollisionPayload(Particle))
+	{
+		*CollisionPayload = FParticleCollisionPayload();
+	}
 
 	Particle->Location = InitLocation;
 
@@ -220,6 +228,14 @@ void FParticleEmitterInstance::Tick_MoveParticles(float DeltaTime)
 	for (int32 i = 0; i < ActiveParticles; i++)
 	{
 		FBaseParticle* Particle = GetParticleFromPosition(i);
+
+		// 멈춘 입자는 이동하지 않음 (Collision 없는 LOD에서도 유지)
+		const FParticleCollisionPayload* CollisionPayload = GetCollisionPayload(Particle);
+		if (CollisionPayload && (CollisionPayload->Flags & PCF_Freeze))
+		{
+			continue;
+		}
+
 		Particle->Location += Particle->Velocity * DeltaTime;
 		Particle->Rotation += Particle->RotationRate * DeltaTime;
 	}

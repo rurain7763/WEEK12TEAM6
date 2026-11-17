@@ -71,6 +71,18 @@ struct FParticleEmitterInstance
 	int32 TypeDataOffset = 0;
 	UParticleModuleTypeDataBase* TypeDataModule = nullptr;
 
+	// Collision payload 시작 위치 (없으면 -1)
+	int32 CollisionPayloadOffset = -1;
+
+	// 이미터 전체 충돌 횟수 (EventGenerator Frequency 계산용)
+	FParticleEventInstancePayload EventPayload;
+
+	inline FParticleCollisionPayload* GetCollisionPayload(FBaseParticle* Particle) const
+	{
+		if (CollisionPayloadOffset < 0) return nullptr;
+		return (FParticleCollisionPayload*)((uint8*)Particle + CollisionPayloadOffset);
+	}
+
 
 	void SetCurrentLODIndex(int32 InLODIndex);
 };

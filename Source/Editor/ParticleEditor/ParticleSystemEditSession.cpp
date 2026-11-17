@@ -18,6 +18,8 @@
 #include "Particle/Modules/ParticleModuleRotationRate.h"
 #include "Particle/Modules/ParticleModuleSizeOfLifeTime.h"
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
+#include "Particle/Modules/ParticleModuleCollision.h"
+#include "Particle/Modules/ParticleModuleEventGenerator.h"
 #include "Serialization/JsonArchive.h"
 #include "UObject/UObjectIterator.h"
 #include "Render/Material.h"
@@ -85,7 +87,7 @@ void FParticleSystemEditSession::DestroyEmitter(UParticleEmitter* Emitter) {
 }
 
 const TArray<UClass*>& FParticleSystemEditSession::GetAddableModuleClasses() {
-	static const TArray<UClass*> Classes{ UParticleModuleLifeTime::StaticClass(), UParticleModuleLocation::StaticClass(), UParticleModuleVelocity::StaticClass(), UParticleModuleSize::StaticClass(), UParticleModuleColor::StaticClass(), UParticleModuleRotation::StaticClass(), UParticleModuleRotationRate::StaticClass(), UParticleModuleSizeOfLifeTime::StaticClass(), UParticleModuleColorOverLife::StaticClass() };
+	static const TArray<UClass*> Classes{ UParticleModuleLifeTime::StaticClass(), UParticleModuleLocation::StaticClass(), UParticleModuleVelocity::StaticClass(), UParticleModuleSize::StaticClass(), UParticleModuleColor::StaticClass(), UParticleModuleRotation::StaticClass(), UParticleModuleRotationRate::StaticClass(), UParticleModuleSizeOfLifeTime::StaticClass(), UParticleModuleColorOverLife::StaticClass(), UParticleModuleCollision::StaticClass(), UParticleModuleEventGenerator::StaticClass() };
 	return Classes;
 }
 

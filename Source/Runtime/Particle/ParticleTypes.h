@@ -7,7 +7,7 @@
 
 class UPrimitiveComponent;
 
-// 충돌 횟수가 MaxCollisions에 도달한 입자의 처리. 이번 범위는 Kill/Freeze 2종.
+// MaxCollisions 도달 시 입자 처리 방식
 enum class EParticleCollisionComplete : int32
 {
 	Kill,
@@ -20,8 +20,7 @@ enum EParticleCollisionFlags : uint32
 	PCF_Freeze = 1u << 0
 };
 
-// 입자별 충돌 상태. 0으로 지운 상태가 곧 초기 상태다.
-// 횟수는 올려 세고, 충돌 시점에 현재 LOD의 MaxCollisions와 비교한다.
+// 입자별 충돌 상태. 0으로 초기화, 횟수는 올려 셈
 struct FParticleCollisionPayload
 {
 	int32 CollisionCount = 0;
@@ -31,7 +30,7 @@ struct FParticleCollisionPayload
 // 이미터 인스턴스별 누적 카운터. 개별 입자의 payload와 분리.
 struct FParticleEventInstancePayload
 {
-	uint32 CollisionCount = 0;
+	uint32 CollisionTrackingCount = 0;
 };
 
 // 충돌 당시 값의 복사본. 입자 메모리의 주소는 저장하지 않음.
