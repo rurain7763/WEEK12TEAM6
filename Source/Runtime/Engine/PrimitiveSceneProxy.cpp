@@ -380,7 +380,7 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
     uint32 NumStripIndices = 0;
     for (const FParticleEmitterRenderData& Emitter : EmitterRenderDatas)
     {
-        if (Emitter.DynamicEmitterType != EDynamicEmitterType::Beam || !Emitter.Material) continue;
+        if ((Emitter.DynamicEmitterType != EDynamicEmitterType::Beam && Emitter.DynamicEmitterType != EDynamicEmitterType::Ribbon) || !Emitter.Material) continue;
 
         for (const FParticleStripRenderData& Strip : Emitter.Strips)
         {
@@ -411,7 +411,7 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
 
         for (const FParticleEmitterRenderData& Emitter : EmitterRenderDatas)
         {
-            if (Emitter.DynamicEmitterType != EDynamicEmitterType::Beam || !Emitter.Material) continue;
+            if ((Emitter.DynamicEmitterType != EDynamicEmitterType::Beam && Emitter.DynamicEmitterType != EDynamicEmitterType::Ribbon) || !Emitter.Material) continue;
 
             for (const FParticleStripRenderData& Strip : Emitter.Strips)
             {
@@ -482,7 +482,7 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
         {
             continue;
         }
-        if (Emitter.DynamicEmitterType == EDynamicEmitterType::Beam)
+        if (Emitter.DynamicEmitterType == EDynamicEmitterType::Beam || Emitter.DynamicEmitterType == EDynamicEmitterType::Ribbon)
         {
         continue;
         }

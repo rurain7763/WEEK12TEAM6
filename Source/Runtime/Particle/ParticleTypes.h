@@ -53,6 +53,6 @@ struct FBeamTypeDataPayload
 
 struct FRibbonTypeDataPayload
 {
-	int32 PrevSlot = -1;
 	int32 NextSlot = -1;
+	int32 PrevSlot = -1;
 };

@@ -468,6 +468,19 @@ void UAssetManager::CreateBeamMaterial()
 	BeamMat->ParamLayout = EMaterialParamLayout::Sprite;
 	BeamMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FSpriteMaterialParams));
 	RegisterAsset("BeamMaterial", BeamMat);
+
+	// Register textured variants before particle assets resolve their material names.
+	const auto CreateStripMaterial = [this, BeamMat](const FString& Name, const FString& TexturePath)
+	{
+		if (UTexture2D* Texture = LoadTexture(TexturePath))
+		{
+			UMaterial* Material = UMaterial::CreateInstance(BeamMat);
+			Material->Textures[0] = Texture;
+			RegisterAsset(Name, Material);
+		}
+	};
+	CreateStripMaterial("RibbonFlowMaterial", "Assets/Textures/Particles/RibbonFlow.png");
+	CreateStripMaterial("BeamArcMaterial", "Assets/Textures/Particles/BeamArc.png");
 }
 
 void UAssetManager::CreateDecalMaterial()
