@@ -2,6 +2,269 @@
 #include "PhysicsInterface.h"
 #include <algorithm>
 
+namespace
+{
+	double DotDouble(const FVector& A, const FVector& B)
+	{
+		return double(A.X) * B.X + double(A.Y) * B.Y + double(A.Z) * B.Z;
+	}
+
+	// A*t*t + 2*B*t + C = 0. 고속 선분에서 판별식의 정밀도 유지.
+	bool SolveLineQuadratic(double A, double B, double C, double& Enter, double& Exit)
+	{
+		const double Discriminant = B * B - A * C;
+		if (A == 0.0 || Discriminant < 0.0)
+		{
+			return false;
+		}
+
+		// 부호가 같은 항을 더해 가까운 두 값의 뺄셈 오차 완화
+		const double Root = std::sqrt(Discriminant);
+		const double Q = -B - std::copysign(Root, B);
+		Enter = Q == 0.0 ? 0.0 : Q / A;
+		Exit = Q == 0.0 ? 0.0 : C / Q;
+		if (Enter > Exit)
+		{
+			std::swap(Enter, Exit);
+		}
+
+		return true;
+	}
+}
+
+bool FPhysicsInterface::LineTraceTest(const FVector& Start, const FVector& Delta, const FCollisionShape& Shape,
+	const FVector& ShapeLocation, const FRotator& ShapeRotation, FHitResult& OutHit)
+{
+	OutHit = FHitResult();
+	OutHit.FaceIndex = -1;
+	OutHit.PenetrationDepth = 0.f;
+	OutHit.TraceStart = Start;
+	OutHit.TraceEnd = Start + Delta;
+
+	// 형상 크기는 월드 스케일이 반영된 값. 위치와 회전만 로컬로 변환
+	const FQuat Rotation = ShapeRotation.Quaternion();
+	const FQuat InverseRotation = Rotation.UnitInverse();
+	const FVector LocalStart = InverseRotation.RotateVector(Start - ShapeLocation);
+	const FVector LocalDelta = InverseRotation.RotateVector(Delta);
+
+	bool bHit = false;
+	switch (Shape.ShapeType)
+	{
+	case ECollisionShape::Box:
+		bHit = LineBox(LocalStart, LocalDelta, Shape.BoxExtent, OutHit);
+		break;
+	case ECollisionShape::Sphere:
+		bHit = LineSphere(LocalStart, LocalDelta, Shape.SphereRadius, OutHit);
+		break;
+	case ECollisionShape::Capsule:
+		bHit = LineCapsule(LocalStart, LocalDelta, Shape.CapsuleRadius, Shape.CapsuleHalfHeight, OutHit);
+		break;
+	default:
+		break;
+	}
+	if (!bHit)
+	{
+		return false;
+	}
+
+	// 교차 결과를 월드 좌표로 반환
+	OutHit.bBlockingHit = true;
+	OutHit.Location = Start + Delta * OutHit.Time;
+	OutHit.ImpactPoint = OutHit.Location;
+	OutHit.Normal = Rotation.RotateVector(OutHit.Normal).GetSafeNormal();
+	OutHit.ImpactNormal = OutHit.Normal;
+	OutHit.Distance = Delta.Size() * OutHit.Time;
+	return true;
+}
+
+bool FPhysicsInterface::LineBox(const FVector& Start, const FVector& Delta, const FVector& Extent, FHitResult& OutHit)
+{
+	if (Extent.X < 0.f || Extent.Y < 0.f || Extent.Z < 0.f)
+	{
+		return false;
+	}
+
+	// 시작점이 내부라면 가장 가까운 면의 법선과 침투 깊이 사용
+	if (std::fabs(Start.X) <= Extent.X && std::fabs(Start.Y) <= Extent.Y && std::fabs(Start.Z) <= Extent.Z)
+	{
+		int32 Axis = 0;
+		for (int32 i = 1; i < 3; ++i)
+		{
+			if (Extent[i] - std::fabs(Start[i]) < Extent[Axis] - std::fabs(Start[Axis]))
+			{
+				Axis = i;
+			}
+		}
+
+		OutHit.Time = 0.f;
+		OutHit.Normal = FVector::ZeroVector;
+		OutHit.Normal[Axis] = Start[Axis] < 0.f ? -1.f : 1.f;
+		OutHit.PenetrationDepth = Extent[Axis] - std::fabs(Start[Axis]);
+		OutHit.bStartPentrating = OutHit.PenetrationDepth > 0.f;
+		return true;
+	}
+
+	// 세 축의 슬래브 안에 머무르는 시간 구간의 교집합
+	double Enter = 0.0;
+	double Exit = 1.0;
+	FVector Normal = FVector::ZeroVector;
+	for (int32 Axis = 0; Axis < 3; ++Axis)
+	{
+		if (Delta[Axis] == 0.f)
+		{
+			if (std::fabs(Start[Axis]) > Extent[Axis])
+			{
+				return false;
+			}
+
+			continue;
+		}
+
+		double NearTime = (-double(Extent[Axis]) - Start[Axis]) / Delta[Axis];
+		double FarTime = (double(Extent[Axis]) - Start[Axis]) / Delta[Axis];
+		if (NearTime > FarTime)
+		{
+			std::swap(NearTime, FarTime);
+		}
+
+		if (NearTime > Enter)
+		{
+			Enter = NearTime;
+			Normal = FVector::ZeroVector;
+			Normal[Axis] = Delta[Axis] > 0.f ? -1.f : 1.f;
+		}
+
+		Exit = std::min(Exit, FarTime);
+		if (Enter > Exit)
+		{
+			return false;
+		}
+	}
+
+	OutHit.Time = static_cast<float>(Enter);
+	OutHit.Normal = Normal;
+	return true;
+}
+
+bool FPhysicsInterface::LineSphere(const FVector& Start, const FVector& Delta, float Radius, FHitResult& OutHit)
+{
+	if (Radius < 0.f)
+	{
+		return false;
+	}
+
+	const double DistanceSquared = DotDouble(Start, Start);
+	const double C = DistanceSquared - double(Radius) * Radius;
+	if (C <= 0.0)
+	{
+		OutHit.Time = 0.f;
+		OutHit.Normal = Start.GetSafeNormal(FLT_MIN, FVector::UpVector);
+		OutHit.PenetrationDepth = Radius - static_cast<float>(std::sqrt(DistanceSquared));
+		OutHit.bStartPentrating = C < 0.0;
+		return true;
+	}
+
+	// 선분과 구 표면의 교차 중 이동 구간 안의 진입점 선택
+	double Enter;
+	double Exit;
+	if (!SolveLineQuadratic(DotDouble(Delta, Delta), DotDouble(Start, Delta), C, Enter, Exit)
+		|| Enter < 0.0 || Enter > 1.0)
+	{
+		return false;
+	}
+
+	OutHit.Time = static_cast<float>(Enter);
+	const FVector Position(
+		static_cast<float>(Start.X + double(Delta.X) * Enter),
+		static_cast<float>(Start.Y + double(Delta.Y) * Enter),
+		static_cast<float>(Start.Z + double(Delta.Z) * Enter));
+	OutHit.Normal = Position.GetSafeNormal(FLT_MIN, (-Delta).GetSafeNormal(FLT_MIN, FVector::UpVector));
+	return true;
+}
+
+bool FPhysicsInterface::LineCapsule(const FVector& Start, const FVector& Delta, float Radius, float HalfHeight, FHitResult& OutHit)
+{
+	if (Radius < 0.f || HalfHeight < 0.f)
+	{
+		return false;
+	}
+
+	const float HalfSegment = std::max(HalfHeight - Radius, 0.f);
+	if (HalfSegment == 0.f)
+	{
+		return LineSphere(Start, Delta, Radius, OutHit);
+	}
+
+	// 캡슐 중심 선분까지의 거리로 내부 여부 판정
+	const FVector Closest(0.f, 0.f, FMath::Clamp(Start.Z, -HalfSegment, HalfSegment));
+	const FVector Offset = Start - Closest;
+	const double DistanceSquared = DotDouble(Offset, Offset);
+	if (DistanceSquared <= double(Radius) * Radius)
+	{
+		OutHit.Time = 0.f;
+		OutHit.Normal = Offset.GetSafeNormal(FLT_MIN, FVector::ForwardVector);
+		OutHit.PenetrationDepth = Radius - static_cast<float>(std::sqrt(DistanceSquared));
+		OutHit.bStartPentrating = OutHit.PenetrationDepth > 0.f;
+		return true;
+	}
+
+	double BestTime = 1.0;
+	bool bFound = false;
+
+	// 원통 옆면 교차 중 몸통 높이 안에 있는 후보 선택
+	double Enter;
+	double Exit;
+	const double A = double(Delta.X) * Delta.X + double(Delta.Y) * Delta.Y;
+	const double B = double(Start.X) * Delta.X + double(Start.Y) * Delta.Y;
+	const double C = double(Start.X) * Start.X + double(Start.Y) * Start.Y - double(Radius) * Radius;
+	if (SolveLineQuadratic(A, B, C, Enter, Exit))
+	{
+		for (double Time : { Enter, Exit })
+		{
+			const double Z = Start.Z + double(Delta.Z) * Time;
+			if (Time < 0.0 || Time > BestTime || Z < -HalfSegment || Z > HalfSegment)
+			{
+				continue;
+			}
+
+			const FVector Radial(
+				static_cast<float>(Start.X + double(Delta.X) * Time),
+				static_cast<float>(Start.Y + double(Delta.Y) * Time), 0.f);
+			OutHit.Normal = Radial.GetSafeNormal(FLT_MIN, (-Delta).GetSafeNormal(FLT_MIN, FVector::ForwardVector));
+			BestTime = Time;
+			bFound = true;
+		}
+	}
+
+	// 양 끝 구에서는 몸통 바깥쪽 반구에 해당하는 교차만 사용
+	for (float Sign : { -1.f, 1.f })
+	{
+		FHitResult CapHit;
+		const FVector CapCenter(0.f, 0.f, Sign * HalfSegment);
+		if (!LineSphere(Start - CapCenter, Delta, Radius, CapHit))
+		{
+			continue;
+		}
+
+		const float Z = Start.Z + Delta.Z * CapHit.Time;
+		if (CapHit.Time > BestTime || Sign * Z < HalfSegment)
+		{
+			continue;
+		}
+
+		BestTime = CapHit.Time;
+		OutHit.Normal = CapHit.Normal;
+		bFound = true;
+	}
+
+	if (bFound)
+	{
+		OutHit.Time = static_cast<float>(BestTime);
+	}
+
+	return bFound;
+}
+
 bool FPhysicsInterface::OverlapTest(const FCollisionShape& ShapeA, const FVector& PosA, const FRotator& RotA, 
 									const FCollisionShape& ShapeB, const FVector& PosB, const FRotator& RotB)
 {
