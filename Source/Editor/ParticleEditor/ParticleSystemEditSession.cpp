@@ -18,6 +18,7 @@
 #include "Particle/Modules/ParticleModuleRotationRate.h"
 #include "Particle/Modules/ParticleModuleSizeOfLifeTime.h"
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
+#include "Particle/Modules/ParticleModuleTypeDataBase.h"
 #include "Serialization/JsonArchive.h"
 #include "UObject/UObjectIterator.h"
 #include "Render/Material.h"
@@ -79,6 +80,7 @@ void FParticleSystemEditSession::DestroyEmitter(UParticleEmitter* Emitter) {
 		}
 		delete LOD->RequiredModule;
 		delete LOD->SpawnModule;
+		delete LOD->TypeDataModule;
 		delete LOD;
 	}
 	delete Emitter;
@@ -118,6 +120,7 @@ UParticleEmitter* FParticleSystemEditSession::AddEmitter(FString& Error) {
 	}
 	Emitter->CacheEmitterModuleInfo();
 	mWorkingCopy->Emitters.Add(Emitter.get());
+	mWorkingCopy->EnsureEmitterNames();
 	return Emitter.release();
 }
 
