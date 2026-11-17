@@ -1,3 +1,11 @@
+PathEnv = os.getenv("PATH")
+
+if os.pathsearch("symstore.exe", PathEnv) == nil then
+    error("symstore.exe was not found in PATH. Install Debugging Tools for Windows, add its directory to PATH, and run Premake again.")
+end
+
+SymStoreFolderPath = [[\\DESKTOP-45SMRRK\SymbolServer\Symbols]]
+
 workspace "Hitori"
     architecture "x64"
     startproject "HitoriEditor"
@@ -273,6 +281,13 @@ project "HitoriEditor"
         "bcrypt",
         "Dbghelp.lib",
         "Ole32.lib",
+    }
+
+    postbuildcommands
+    {
+        'python %[%{!wks.location}/Setup/IndexSources.py] %[%{!cfg.targetdir}/%{cfg.buildtarget.basename}.pdb]' ..
+        ' && symstore.exe add /o /f %[%{!cfg.targetdir}/%{cfg.buildtarget.basename}.pdb] /s %[%{SymStoreFolderPath}] /t HitoriEngine' ..
+        ' && symstore.exe add /o /f %[%{!cfg.targetdir}/%{cfg.buildtarget.basename}.exe] /s %[%{SymStoreFolderPath}] /t HitoriEngine'
     }
 
     -- Debug 계열: Debug용 라이브러리 폴더
