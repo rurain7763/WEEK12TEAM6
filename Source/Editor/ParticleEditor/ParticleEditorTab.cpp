@@ -165,6 +165,12 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 			}
 			break;
 		}
+		case FParticleEmitterPanel::EStructureAction::MoveEmitter:
+			Changed = mEditSession->MoveEmitter(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mTargetIndex, mStatus);
+			if (Changed) {
+				Selection = mPendingStructureRequest.mEmitter;
+			}
+			break;
 		case FParticleEmitterPanel::EStructureAction::AddModule:
 			Selection = mEditSession->AddModule(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mModuleClass, mStatus);
 			Changed = Selection != nullptr;
@@ -173,6 +179,12 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 			Changed = mEditSession->DeleteModule(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mModule, mStatus);
 			if (Changed) {
 				Selection = mPendingStructureRequest.mEmitter;
+			}
+			break;
+		case FParticleEmitterPanel::EStructureAction::MoveModule:
+			Changed = mEditSession->MoveModule(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mModule, mPendingStructureRequest.mTargetIndex, mStatus);
+			if (Changed) {
+				Selection = mPendingStructureRequest.mModule;
 			}
 			break;
 		}

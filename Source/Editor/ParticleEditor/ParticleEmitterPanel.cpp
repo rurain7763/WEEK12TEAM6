@@ -1,6 +1,7 @@
 #include "EnginePCH.h"
 #include "ParticleEmitterPanel.h"
 #include "ParticleSystemEditSession.h"
+#include "Editor/HitoriEd/EditorDragDrop.h"
 #include "Particle/ParticleSystem.h"
 #include "Particle/ParticleEmitter.h"
 #include "Particle/ParticleLODLevel.h"
@@ -77,6 +78,7 @@ void FParticleEmitterPanel::DrawModule(UParticleEmitter* Emitter, UParticleModul
 	}
 	ImGui::PopStyleColor(3);
 	ImGui::EndDisabled();
+	DrawModuleDragDrop(Emitter, Module, Label);
 	if (ImGui::BeginPopupContextItem("ModuleContext")) {
 		if (mSelectedObject != Module) {
 			SelectObject(Module);
@@ -84,7 +86,7 @@ void FParticleEmitterPanel::DrawModule(UParticleEmitter* Emitter, UParticleModul
 		DrawAddModuleMenu(Emitter);
 		UParticleLODLevel* LOD{ Emitter ? Emitter->GetLODLevel(0) : nullptr };
 		const bool CanDelete{ mStructureCallback && LOD && Module && LOD->Modules.Find(Module) >= 0 };
-		if (ImGui::MenuItem("Delete Module", nullptr, false, CanDelete)) {
+		if (ImGui::MenuItem("Delete Module", "Delete", false, CanDelete)) {
 			mStructureCallback(FStructureRequest{ EStructureAction::DeleteModule, Emitter, nullptr, Module });
 		}
 		if (!CanDelete) {
@@ -93,6 +95,44 @@ void FParticleEmitterPanel::DrawModule(UParticleEmitter* Emitter, UParticleModul
 		ImGui::EndPopup();
 	}
 	ImGui::PopID();
+}
+
+void FParticleEmitterPanel::DrawModuleDragDrop(UParticleEmitter* Emitter, UParticleModule* Module, const char* Label) {
+	UParticleLODLevel* LOD{ Emitter ? Emitter->GetLODLevel(0) : nullptr };
+	const int32 ModuleIndex{ LOD && Module ? LOD->Modules.Find(Module) : -1 };
+	if (ModuleIndex < 0 || !mStructureCallback) {
+		return;
+	}
+	const ImVec2 Min{ ImGui::GetItemRectMin() };
+	const ImVec2 Max{ ImGui::GetItemRectMax() };
+	if (ImGui::BeginDragDropSource()) {
+		const FModuleDragPayload Payload{ Emitter, Module };
+		ImGui::SetDragDropPayload(EditorDragDrop::ParticleModule, &Payload, sizeof(Payload));
+		ImGui::TextUnformatted(Label);
+		ImGui::EndDragDropSource();
+	}
+	if (ImGui::BeginDragDropTarget()) {
+		const ImGuiPayload* ActivePayload{ ImGui::GetDragDropPayload() };
+		if (ActivePayload && ActivePayload->IsDataType(EditorDragDrop::ParticleModule) && ActivePayload->DataSize == sizeof(FModuleDragPayload)) {
+			const FModuleDragPayload& Dragged{ *static_cast<const FModuleDragPayload*>(ActivePayload->Data) };
+			const int32 SourceIndex{ Dragged.mEmitter == Emitter ? LOD->Modules.Find(Dragged.mModule) : -1 };
+			if (SourceIndex >= 0) {
+				const bool InsertAfter{ ImGui::GetMousePos().y >= (Min.y + Max.y) * 0.5f };
+				const int32 InsertionIndex{ ModuleIndex + (InsertAfter ? 1 : 0) };
+				const int32 TargetIndex{ InsertionIndex - (SourceIndex < InsertionIndex ? 1 : 0) };
+				if (const ImGuiPayload* Accepted{ ImGui::AcceptDragDropPayload(EditorDragDrop::ParticleModule, ImGuiDragDropFlags_AcceptBeforeDelivery | ImGuiDragDropFlags_AcceptNoDrawDefaultRect) }) {
+					if (Accepted->IsPreview() && SourceIndex != TargetIndex) {
+						const float LineY{ InsertAfter ? Max.y : Min.y };
+						ImGui::GetWindowDrawList()->AddLine(ImVec2{ Min.x, LineY }, ImVec2{ Max.x, LineY }, ImGui::GetColorU32(ImGuiCol_DragDropTarget), 3.0f);
+					}
+					if (Accepted->IsDelivery() && SourceIndex != TargetIndex) {
+						mStructureCallback(FStructureRequest{ EStructureAction::MoveModule, Emitter, nullptr, Dragged.mModule, TargetIndex });
+					}
+				}
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
 }
 
 void FParticleEmitterPanel::DrawAddModuleMenu(UParticleEmitter* Emitter) {
@@ -116,14 +156,14 @@ void FParticleEmitterPanel::DrawEmitterContextMenu(UParticleEmitter* Emitter) {
 	if (ImGui::MenuItem("Add Emitter", nullptr, false, mParticleSystem && mStructureCallback)) {
 		mStructureCallback(FStructureRequest{ EStructureAction::AddEmitter });
 	}
-	if (ImGui::MenuItem("Delete Emitter", nullptr, false, Emitter && mStructureCallback)) {
+	if (ImGui::MenuItem("Delete Emitter", "Delete", false, Emitter && mStructureCallback)) {
 		mStructureCallback(FStructureRequest{ EStructureAction::DeleteEmitter, Emitter });
 	}
 }
 
 void FParticleEmitterPanel::DrawEmitter(int32 EmitterIndex, float Height) {
 	UParticleEmitter* Emitter{ mParticleSystem->Emitters[EmitterIndex] };
-	ImGui::PushID(EmitterIndex);
+	ImGui::PushID(Emitter);
 	if (ImGui::BeginChild("Emitter", ImVec2{ 230.0f, Height }, ImGuiChildFlags_Borders)) {
 		const FString Label{ "Emitter " + std::to_string(EmitterIndex + 1) };
 		ImGui::BeginDisabled(Emitter == nullptr);
@@ -131,6 +171,8 @@ void FParticleEmitterPanel::DrawEmitter(int32 EmitterIndex, float Height) {
 			SelectObject(Emitter);
 		}
 		ImGui::EndDisabled();
+		ImGui::SetItemTooltip("Drag to reorder emitters. Select and press Delete to remove.");
+		DrawEmitterDragSource(Emitter, Label.c_str());
 		if (ImGui::BeginPopupContextItem("EmitterContext")) {
 			DrawEmitterContextMenu(Emitter);
 			ImGui::EndPopup();
@@ -159,7 +201,74 @@ void FParticleEmitterPanel::DrawEmitter(int32 EmitterIndex, float Height) {
 		}
 	}
 	ImGui::EndChild();
+	DrawEmitterDropTarget(Emitter, EmitterIndex);
 	ImGui::PopID();
+}
+
+void FParticleEmitterPanel::DrawEmitterDragSource(UParticleEmitter* Emitter, const char* Label) {
+	if (!Emitter || !mStructureCallback) {
+		return;
+	}
+	if (ImGui::BeginDragDropSource()) {
+		if (mSelectedObject != Emitter) {
+			SelectObject(Emitter);
+		}
+		const FEmitterDragPayload Payload{ mParticleSystem, Emitter };
+		ImGui::SetDragDropPayload(EditorDragDrop::ParticleEmitter, &Payload, sizeof(Payload));
+		ImGui::TextUnformatted(Label);
+		ImGui::EndDragDropSource();
+	}
+}
+
+void FParticleEmitterPanel::DrawEmitterDropTarget(UParticleEmitter* Emitter, int32 EmitterIndex) {
+	if (!Emitter || !mStructureCallback || !ImGui::BeginDragDropTarget()) {
+		return;
+	}
+	const ImGuiPayload* ActivePayload{ ImGui::GetDragDropPayload() };
+	if (ActivePayload && ActivePayload->IsDataType(EditorDragDrop::ParticleEmitter) && ActivePayload->DataSize == sizeof(FEmitterDragPayload)) {
+		const FEmitterDragPayload& Dragged{ *static_cast<const FEmitterDragPayload*>(ActivePayload->Data) };
+		const int32 SourceIndex{ Dragged.mParticleSystem == mParticleSystem ? mParticleSystem->Emitters.Find(Dragged.mEmitter) : -1 };
+		if (SourceIndex >= 0) {
+			const ImVec2 Min{ ImGui::GetItemRectMin() };
+			const ImVec2 Max{ ImGui::GetItemRectMax() };
+			const bool InsertAfter{ ImGui::GetMousePos().x >= (Min.x + Max.x) * 0.5f };
+			const int32 InsertionIndex{ EmitterIndex + (InsertAfter ? 1 : 0) };
+			const int32 TargetIndex{ InsertionIndex - (SourceIndex < InsertionIndex ? 1 : 0) };
+			if (const ImGuiPayload* Accepted{ ImGui::AcceptDragDropPayload(EditorDragDrop::ParticleEmitter, ImGuiDragDropFlags_AcceptBeforeDelivery | ImGuiDragDropFlags_AcceptNoDrawDefaultRect) }) {
+				if (Accepted->IsPreview() && SourceIndex != TargetIndex) {
+					const float LineX{ InsertAfter ? Max.x : Min.x };
+					ImGui::GetForegroundDrawList(ImGui::GetWindowViewport())->AddLine(ImVec2{ LineX, Min.y }, ImVec2{ LineX, Max.y }, ImGui::GetColorU32(ImGuiCol_DragDropTarget), 3.0f);
+				}
+				if (Accepted->IsDelivery() && SourceIndex != TargetIndex) {
+					mStructureCallback(FStructureRequest{ EStructureAction::MoveEmitter, Dragged.mEmitter, nullptr, nullptr, TargetIndex });
+				}
+			}
+		}
+	}
+	ImGui::EndDragDropTarget();
+}
+
+void FParticleEmitterPanel::HandleDeleteShortcut() {
+	if (!mParticleSystem || !mStructureCallback || !ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) || ImGui::GetIO().WantTextInput || ImGui::IsAnyItemActive() || ImGui::GetDragDropPayload() || ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel) || !ImGui::IsKeyPressed(ImGuiKey_Delete, false)) {
+		return;
+	}
+	if (UParticleEmitter* Emitter{ Cast<UParticleEmitter>(mSelectedObject) }) {
+		if (mParticleSystem->Emitters.Find(Emitter) >= 0) {
+			mStructureCallback(FStructureRequest{ EStructureAction::DeleteEmitter, Emitter });
+		}
+		return;
+	}
+	UParticleModule* Module{ Cast<UParticleModule>(mSelectedObject) };
+	if (!Module) {
+		return;
+	}
+	for (UParticleEmitter* Emitter : mParticleSystem->Emitters) {
+		UParticleLODLevel* LOD{ Emitter ? Emitter->GetLODLevel(0) : nullptr };
+		if (LOD && LOD->Modules.Find(Module) >= 0) {
+			mStructureCallback(FStructureRequest{ EStructureAction::DeleteModule, Emitter, nullptr, Module });
+			return;
+		}
+	}
 }
 
 void FParticleEmitterPanel::OnRender() {
@@ -191,6 +300,7 @@ void FParticleEmitterPanel::OnRender() {
 			}
 			ImGui::EndChild();
 		}
+		HandleDeleteShortcut();
 	}
 	ImGui::End();
 }

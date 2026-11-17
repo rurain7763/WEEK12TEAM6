@@ -26,6 +26,7 @@
 #include "Asset/AssetManager.h"
 #include "Sequence/LevelSequenceActor.h"
 #include "Render/Material.h"
+#include "Particle/Modules/ParticleModuleRequired.h"
 #include "Render/Texture2D.h"
 #include "Text/Font.h"
 #include "UObject/UObjectIterator.h"
@@ -1092,6 +1093,63 @@ namespace
 		}
 	}
 
+	bool IsParticleMaterialAsset(const UMaterial* Material) {
+		return Material && Material->MaterialDomain == EMaterialDomain::Surface && !Material->GetPath().empty() && UAssetManager::GetAssetByPath<UMaterial>(Material->GetPath()) == Material;
+	}
+
+	bool DrawParticleMaterialSlot(UParticleModuleRequired* Required) {
+		UMaterial* Current{ Required->GetMaterial() };
+		UMaterial* Selected{ Current };
+		FString Preview{ Current ? Current->GetPath() : "None" };
+		if (Current && Preview.empty()) {
+			const UMaterial* Base{ Current->GetBaseAsset() };
+			Preview = Base ? Base->GetPath() + " (Instance)" : "Material Instance";
+		}
+		if (ImGui::BeginCombo("##Material", Preview.c_str())) {
+			if (ImGui::Selectable("None", Current == nullptr)) {
+				Selected = nullptr;
+			}
+			TArray<UMaterial*> Materials{};
+			for (TObjectIterator<UMaterial> It{}; It; ++It) {
+				if (IsParticleMaterialAsset(*It)) {
+					Materials.Add(*It);
+				}
+			}
+			std::sort(Materials.begin(), Materials.end(), [](const UMaterial* First, const UMaterial* Second) {
+				return First->GetPath() < Second->GetPath();
+			});
+			for (UMaterial* Material : Materials) {
+				ImGui::PushID(Material);
+				const FString Name{ PathUtils::ToUtf8(PathUtils::FromUtf8(Material->GetPath()).filename()) };
+				if (ImGui::Selectable(Name.c_str(), Current == Material)) {
+					Selected = Material;
+				}
+				ImGui::SetItemTooltip("%s", Material->GetPath().c_str());
+				if (Current == Material) {
+					ImGui::SetItemDefaultFocus();
+				}
+				ImGui::PopID();
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::SetItemTooltip("Choose a material or drop one from the Content Drawer.");
+		if (ImGui::BeginDragDropTarget()) {
+			const ImGuiPayload* ActivePayload{ ImGui::GetDragDropPayload() };
+			if (ActivePayload && ActivePayload->IsDataType(EditorDragDrop::Material) && ActivePayload->DataSize == sizeof(UMaterial*)) {
+				UMaterial* Material{ *static_cast<UMaterial* const*>(ActivePayload->Data) };
+				if (IsParticleMaterialAsset(Material) && ImGui::AcceptDragDropPayload(EditorDragDrop::Material)) {
+					Selected = Material;
+				}
+			}
+			ImGui::EndDragDropTarget();
+		}
+		if (Selected == Current) {
+			return false;
+		}
+		Required->SetMaterial(Selected);
+		return true;
+	}
+
 	// UClass에 등록된 프로퍼티를 타입에 맞는 위젯으로 그린다
 	bool DrawProperty(UObject* Object, const FProperty& Property, ImFont* CustomFont, float LabelWidth)
 	{
@@ -1239,8 +1297,11 @@ namespace
 
 			if (Property.Class == UMaterial::StaticClass())
 			{
-				bChanged = DrawTextureSlot(reinterpret_cast<UMaterial**>(ObjPtr), 0);
-				
+				if (UParticleModuleRequired* Required{ Cast<UParticleModuleRequired>(Object) }) {
+					bChanged = DrawParticleMaterialSlot(Required);
+				} else {
+					bChanged = DrawTextureSlot(reinterpret_cast<UMaterial**>(ObjPtr), 0);
+				}
 			}
 			else if (Property.Class == UTexture2D::StaticClass())
 			{

@@ -20,7 +20,9 @@
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
 #include "Serialization/JsonArchive.h"
 #include "UObject/UObjectIterator.h"
+#include "Render/Material.h"
 
+#include <algorithm>
 #include <utility>
 
 FParticleSystemEditSession::FParticleSystemEditSession(UParticleSystem* Original)
@@ -132,6 +134,25 @@ bool FParticleSystemEditSession::DeleteEmitter(UParticleEmitter* Emitter, FStrin
 	return true;
 }
 
+bool FParticleSystemEditSession::MoveEmitter(UParticleEmitter* Emitter, int32 TargetIndex, FString& Error) {
+	Error.clear();
+	const int32 SourceIndex{ mWorkingCopy && Emitter ? mWorkingCopy->Emitters.Find(Emitter) : -1 };
+	if (SourceIndex < 0 || TargetIndex < 0 || TargetIndex >= mWorkingCopy->Emitters.Num()) {
+		Error = "Only emitters in this particle system can be reordered.";
+		return false;
+	}
+	if (SourceIndex == TargetIndex) {
+		return false;
+	}
+
+	if (SourceIndex < TargetIndex) {
+		std::rotate(mWorkingCopy->Emitters.begin() + SourceIndex, mWorkingCopy->Emitters.begin() + SourceIndex + 1, mWorkingCopy->Emitters.begin() + TargetIndex + 1);
+	} else {
+		std::rotate(mWorkingCopy->Emitters.begin() + TargetIndex, mWorkingCopy->Emitters.begin() + SourceIndex, mWorkingCopy->Emitters.begin() + SourceIndex + 1);
+	}
+	return true;
+}
+
 UParticleLODLevel* FParticleSystemEditSession::GetEditableLOD(UParticleEmitter* Emitter, FString& Error) const {
 	if (!mWorkingCopy || !Emitter || mWorkingCopy->Emitters.Find(Emitter) < 0 || !Emitter->GetLODLevel(0)) {
 		Error = "Select an emitter in this particle system to edit its modules.";
@@ -175,6 +196,51 @@ bool FParticleSystemEditSession::DeleteModule(UParticleEmitter* Emitter, UPartic
 	LOD->Modules.RemoveAt(static_cast<uint32>(Index));
 	LOD->BuildModuleLists();
 	delete Module;
+	return true;
+}
+
+bool FParticleSystemEditSession::MoveModule(UParticleEmitter* Emitter, UParticleModule* Module, int32 TargetIndex, FString& Error) {
+	Error.clear();
+	UParticleLODLevel* LOD{ GetEditableLOD(Emitter, Error) };
+	if (!LOD) {
+		return false;
+	}
+	const int32 SourceIndex{ Module ? LOD->Modules.Find(Module) : -1 };
+	if (SourceIndex < 0 || TargetIndex < 0 || TargetIndex >= LOD->Modules.Num()) {
+		Error = "Only modules in this emitter's module stack can be reordered.";
+		return false;
+	}
+	if (SourceIndex == TargetIndex) {
+		return false;
+	}
+
+	if (SourceIndex < TargetIndex) {
+		std::rotate(LOD->Modules.begin() + SourceIndex, LOD->Modules.begin() + SourceIndex + 1, LOD->Modules.begin() + TargetIndex + 1);
+	} else {
+		std::rotate(LOD->Modules.begin() + TargetIndex, LOD->Modules.begin() + SourceIndex, LOD->Modules.begin() + SourceIndex + 1);
+	}
+	LOD->BuildModuleLists();
+	return true;
+}
+
+bool FParticleSystemEditSession::SetEmitterMaterial(UParticleEmitter* Emitter, UMaterial* Material, FString& Error) {
+	Error.clear();
+	UParticleLODLevel* LOD{ GetEditableLOD(Emitter, Error) };
+	if (!LOD || !LOD->RequiredModule) {
+		if (LOD) {
+			Error = "The emitter has no Required module to assign a material.";
+		}
+		return false;
+	}
+	if (Material && (Material->MaterialDomain != EMaterialDomain::Surface || Material->GetPath().empty() || UAssetManager::GetAssetByPath<UMaterial>(Material->GetPath()) != Material)) {
+		Error = "Choose a registered surface material asset for this emitter.";
+		return false;
+	}
+	if (LOD->RequiredModule->GetMaterial() == Material) {
+		return false;
+	}
+
+	LOD->RequiredModule->SetMaterial(Material);
 	return true;
 }
 

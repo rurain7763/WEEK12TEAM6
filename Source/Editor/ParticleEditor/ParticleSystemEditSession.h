@@ -9,6 +9,7 @@ class UParticleEmitter;
 class UParticleLODLevel;
 class UParticleModule;
 class UClass;
+class UMaterial;
 
 class FParticleSystemEditSession {
 private:
@@ -26,8 +27,11 @@ public:
 
 	UParticleEmitter* AddEmitter(FString& Error);
 	bool DeleteEmitter(UParticleEmitter* Emitter, FString& Error);
+	bool MoveEmitter(UParticleEmitter* Emitter, int32 TargetIndex, FString& Error);
 	UParticleModule* AddModule(UParticleEmitter* Emitter, UClass* ModuleClass, FString& Error);
 	bool DeleteModule(UParticleEmitter* Emitter, UParticleModule* Module, FString& Error);
+	bool MoveModule(UParticleEmitter* Emitter, UParticleModule* Module, int32 TargetIndex, FString& Error);
+	bool SetEmitterMaterial(UParticleEmitter* Emitter, UMaterial* Material, FString& Error);
 
 	static const TArray<UClass*>& GetAddableModuleClasses();
 

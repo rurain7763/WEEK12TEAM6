@@ -16,9 +16,25 @@ bool FEditorUI::Init(bool bInUseDockSpace, bool bInPassthruCentralNode)
 
 
 	Tabs.Add(MakeUnique<FLevelEditorTab>());
+	mActiveTab = Tabs[0].get();
 	Toolbar = MakeUnique<FLevelEditorToolbar>();
 
 	return true;
+}
+
+bool FEditorUI::IsLevelEditorActive() const {
+	return !Tabs.IsEmpty() && mActiveTab == Tabs[0].get();
+}
+
+void FEditorUI::RemoveTab(int32 Index) {
+	if (Index <= 0 || Index >= Tabs.Num()) {
+		return;
+	}
+	if (mActiveTab == Tabs[Index].get()) {
+		mActiveTab = Tabs[0].get();
+		mActiveTab->RequestFocus();
+	}
+	Tabs.RemoveAt(Index);
 }
 
 void FEditorUI::RequestOpenParticleSystem(const FString& Path) {
@@ -73,11 +89,6 @@ void FEditorUI::Tick(float DeltaTime)
 		{
 			AddTab<FAnimationEditorTab>()->RequestFocus();
 		}
-	}
-
-	if (mPendingOpenParticleEditor) {
-		mPendingOpenParticleEditor = false;
-		OpenParticleEditor();
 	}
 
 	if (!mPendingParticleSystemPath.empty()) {
@@ -199,8 +210,10 @@ void FEditorUI::DrawTabBar(ImGuiDockNodeFlags DockSpaceFlags)
 		//그리기
 		const bool bSelected = ImGui::BeginTabItem(Tab->GetTitle(), Tab->GetOpenFlag(), ItemFlags);
 		Tab->SubmitDockSpace(bSelected, DockSpaceFlags);
-		if (bSelected)
+		if (bSelected) {
+			mActiveTab = Tab.get();
 			ImGui::EndTabItem();
+		}
 	}
 	ImGui::EndTabBar();
 }
@@ -229,21 +242,10 @@ void FEditorUI::DrawMainMenuBar()
 		if (ImGui::BeginMenu("Window"))
 		{
 			if (ImGui::MenuItem("Animation Editor...")) bPendingOpenAnimationEditor = true;
-			if (ImGui::MenuItem("Particle Editor...")) {
-				mPendingOpenParticleEditor = true;
-			}
 
 			ImGui::Separator();
-			// 레벨 탭 패널은 예전처럼 바로 보이고, 나머지 탭은 하위 메뉴로 묶는다
-			DrawPanelMenuItems(*Tabs[0]);
-
-			for (int32 Index = 1; Index < Tabs.Num(); ++Index)
-			{
-				if (ImGui::BeginMenu(Tabs[Index]->GetTitle()))
-				{
-					DrawPanelMenuItems(*Tabs[Index]);
-					ImGui::EndMenu();
-				}
+			if (mActiveTab) {
+				DrawPanelMenuItems(*mActiveTab);
 			}
 			ImGui::EndMenu();
 		}
@@ -254,8 +256,11 @@ void FEditorUI::DrawMainMenuBar()
 }
 
 void FEditorUI::OpenParticleEditor(UParticleSystem* ParticleSystem) {
+	if (!ParticleSystem) {
+		return;
+	}
 	for (const TUniquePtr<FEditorTab>& Tab : Tabs) {
-		const bool MatchesAsset{ ParticleSystem ? Tab->GetEditingAsset() == ParticleSystem : FString{ Tab->GetTitle() } == "Particle Editor" };
+		const bool MatchesAsset{ Tab->GetEditingAsset() == ParticleSystem };
 		if (!Tab->IsOpen() || !MatchesAsset) {
 			continue;
 		}

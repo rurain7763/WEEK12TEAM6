@@ -24,4 +24,5 @@ public:
 private:
 	bool bUseLocalSpace = true;
 	UMaterial* Material = nullptr;
+	TUniquePtr<UMaterial> mMaterialInstance{};
 };

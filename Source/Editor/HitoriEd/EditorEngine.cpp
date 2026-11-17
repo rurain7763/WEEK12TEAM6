@@ -389,7 +389,7 @@ void UEditorEngine::BeginFrame(const float DeltaTime)
 {
 	FStatOverlay::Tick(DeltaTime);
 
-	if (!ImGui::GetIO().WantTextInput && FInputSystem::IsKeyPressed(EKeyCode::Delete))
+	if (EditorUI->IsLevelEditorActive() && !ImGui::GetIO().WantTextInput && FInputSystem::IsKeyPressed(EKeyCode::Delete))
 		DeleteSelectedActors();
 
 	EditorCommandUI::ProcessShortcuts({ &Save, &Copy, &Paste, &Duplicate, &FocusSelection, &CycleGizmoMode });

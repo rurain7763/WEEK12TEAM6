@@ -14,8 +14,10 @@ public:
 	enum class EStructureAction {
 		AddEmitter,
 		DeleteEmitter,
+		MoveEmitter,
 		AddModule,
-		DeleteModule
+		DeleteModule,
+		MoveModule
 	};
 
 	struct FStructureRequest {
@@ -23,11 +25,23 @@ public:
 		UParticleEmitter* mEmitter{};
 		UClass* mModuleClass{};
 		UParticleModule* mModule{};
+		int32 mTargetIndex{ -1 };
 	};
 
 	using FSelectionCallback = std::function<void(UObject*)>;
 	using FToolbarCallback = std::function<void()>;
 	using FStructureCallback = std::function<void(const FStructureRequest&)>;
+
+private:
+	struct FEmitterDragPayload {
+		UParticleSystem* mParticleSystem{};
+		UParticleEmitter* mEmitter{};
+	};
+
+	struct FModuleDragPayload {
+		UParticleEmitter* mEmitter{};
+		UParticleModule* mModule{};
+	};
 
 public:
 	FParticleEmitterPanel(UParticleSystem* ParticleSystem, FString PanelName, FSelectionCallback SelectionCallback, FToolbarCallback ToolbarCallback, FStructureCallback StructureCallback);
@@ -43,9 +57,13 @@ public:
 
 private:
 	void DrawModule(UParticleEmitter* Emitter, UParticleModule* Module, const char* Label, const ImVec4& Color);
+	void DrawModuleDragDrop(UParticleEmitter* Emitter, UParticleModule* Module, const char* Label);
 	void DrawEmitter(int32 EmitterIndex, float Height);
+	void DrawEmitterDragSource(UParticleEmitter* Emitter, const char* Label);
+	void DrawEmitterDropTarget(UParticleEmitter* Emitter, int32 EmitterIndex);
 	void DrawAddModuleMenu(UParticleEmitter* Emitter);
 	void DrawEmitterContextMenu(UParticleEmitter* Emitter);
+	void HandleDeleteShortcut();
 
 private:
 	UParticleSystem* mParticleSystem{};
