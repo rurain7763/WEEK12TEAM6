@@ -88,6 +88,8 @@
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Particle/Modules/ParticleModuleColor.h"
+#include "Particle/Modules/ParticleModuleAccelerationBase.h"
+#include "Particle/Modules/ParticleModuleAccelerationConstant.h"
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
 #include "Particle/Modules/ParticleModuleLifeTime.h"
 #include "Particle/Modules/ParticleModuleLocation.h"
@@ -230,6 +232,8 @@ void RegisterUClasses()
 	USpringArmComponent::StaticClass();
 
 	// Particle
+	UParticleModuleAccelerationBase::StaticClass();
+	UParticleModuleAccelerationConstant::StaticClass();
 	UParticleModuleColor::StaticClass();
 	UParticleModuleColorOverLife::StaticClass();
 	UParticleModuleLifeTime::StaticClass();
