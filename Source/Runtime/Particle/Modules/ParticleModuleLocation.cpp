@@ -11,7 +11,17 @@ UParticleModuleLocation::UParticleModuleLocation()
 
 void UParticleModuleLocation::Spawn(const FSpawnContext& Ctx)
 {
-	FVector LocationOffset = Ctx.Emitter->EmitterToSimulate.TransformVector(StartLocation);
+	FVector LocationOffset = FVector::ZeroVector;
+	if (bHasRandomValue)
+	{
+		FVector RndLocation = FVector(FRandomStream::FRandRange(MinLocation.X, MaxLocation.X), FRandomStream::FRandRange(MinLocation.Y, MaxLocation.Y), FRandomStream::FRandRange(MinLocation.Z, MaxLocation.Z));
+		LocationOffset = Ctx.Emitter->EmitterToSimulate.TransformVector(RndLocation);
+	}
+	else
+	{
+		LocationOffset = Ctx.Emitter->EmitterToSimulate.TransformVector(StartLocation);
+	}
+
 	Ctx.Particle->Location += LocationOffset;
 }
 

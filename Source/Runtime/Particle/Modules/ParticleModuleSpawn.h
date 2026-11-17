@@ -16,5 +16,5 @@ public:
 	}
 
 private:
-	float SpawnRate = 10;
+	float SpawnRate = 100;
 };

@@ -1,0 +1,50 @@
+{
+    "Version": 1,
+    "ParticleSystem": {
+        "LODMethod": 0,
+        "LODDistances": [
+            0
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "MaxParticleCount": 100,
+                "ParticleSize": 0,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.4,
+                                    "Y": 0.4,
+                                    "Z": 0.4
+                                }
+                            }
+                        ],
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 100
+                        },
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "bUseLocalSpace": true,
+                            "Material": "BeamMaterial"
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataBeam",
+                            "InterpolationPoints": 10,
+                            "MaxBeamCount": 1,
+                            "bAlwaysOn": true,
+                            "Distance": 8
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -6,6 +6,7 @@
 class UParticleModule;
 class UParticleModuleSpawn;
 class UParticleModuleRequired;
+class UParticleModuleTypeDataBase;
 struct FParticleEmitterInstance;
 
 class UParticleLODLevel : public UObject
@@ -17,10 +18,14 @@ public:
 
 	void BuildModuleLists();
 
+	int32 GetLevel() const { return Level; }
+	bool IsEnabled() const { return bEnable; }
+
 public:
 	TArray<UParticleModule*> Modules;
 	UParticleModuleSpawn* SpawnModule = nullptr;
 	UParticleModuleRequired* RequiredModule = nullptr;
+	UParticleModuleTypeDataBase* TypeDataModule = nullptr;
 
 private:
 	friend class FParticleEmitterInstance;

@@ -20,3 +20,39 @@ struct FBaseParticle
 	FLinearColor BaseColor = FLinearColor::White;
 	FLinearColor Color = FLinearColor::White;
 };
+struct FBeamTypeDataPayload
+{
+	// Beam 시작
+	FVector		SourcePoint; //Beam 시작점
+	FVector		SourceTangent; //Beam 각도
+	float		SourceStrength; // 곡선 계산시 강도
+
+	// Beam 끝
+	FVector		TargetPoint; 
+	FVector		TargetTangent;
+	float		TargetStrength;
+
+	/** Target lock, extreme max, Number of noise points				*/
+	int32		Lock_Max_NumNoisePoints;
+	
+	/** Number of segments to render (steps)							*/
+	int32		InterpolationSteps;
+
+	/** Direction to step in											*/
+	FVector		Direction;
+	/** StepSize (for each segment to be rendered)						*/
+	float		StepSize;
+	/** Number of segments to render (steps)							*/
+	int32		Steps;
+	/** The 'extra' amount to travel (partial segment)					*/
+	float		TravelRatio;
+
+	/** The number of triangles to render for this beam					*/
+	int32		TriangleCount;
+};
+
+struct FRibbonTypeDataPayload
+{
+	int32 PrevSlot = -1;
+	int32 NextSlot = -1;
+};
