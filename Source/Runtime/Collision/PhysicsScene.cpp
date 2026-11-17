@@ -217,7 +217,7 @@ bool FPhysicsScene::SweepSingleByShape(const UWorld& World, const FCollisionShap
 			}
 
 			//이번에 Temp 결과가 더 가깝다
-			if (Temp.Time < Best.Time)
+			if (!bFound || Temp.Time < Best.Time)
 			{
 				Best = Temp;
 				Best.HitComponent = Comp;

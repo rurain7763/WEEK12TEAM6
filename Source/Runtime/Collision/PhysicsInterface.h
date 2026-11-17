@@ -34,6 +34,9 @@ private:
     static bool LineSphere(const FVector& Start, const FVector& Delta, float Radius, FHitResult& OutHit);
     static bool LineCapsule(const FVector& Start, const FVector& Delta, float Radius, float HalfHeight, FHitResult& OutHit);
 
+    static bool SweepBoxBox(const FCollisionShape& ShapeA, const FVector& Start, const FVector& Delta, const FRotator& RotA,
+                            const FCollisionShape& ShapeB, const FVector& PosB, const FRotator& RotB, FHitResult& OutHit);
+
     static bool SphereSphere(const FVector& CenterA, float RadiusA,
                              const FVector& CenterB, float RadiusB);
 

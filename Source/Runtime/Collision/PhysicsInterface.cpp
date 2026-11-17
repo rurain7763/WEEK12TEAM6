@@ -319,12 +319,134 @@ bool FPhysicsInterface::OverlapTest(const FCollisionShape& ShapeA, const FVector
 bool FPhysicsInterface::SweepTest(const FCollisionShape& ShapeA, const FVector& Start, const FVector& Delta, const FRotator& RotA, 
 								  const FCollisionShape& ShapeB, const FVector& PosB, const FRotator& RotB, FHitResult& OutHit)
 {
+	if (ShapeA.ShapeType == ECollisionShape::Box && ShapeB.ShapeType == ECollisionShape::Box)
+	{
+		return SweepBoxBox(ShapeA, Start, Delta, RotA, ShapeB, PosB, RotB, OutHit);
+	}
 	//Sphere vs Sphere
 	if (ShapeA.ShapeType == ECollisionShape::Sphere && ShapeB.ShapeType == ECollisionShape::Sphere)
 	{
 		return SweepSphereSphere(Start, Delta, ShapeA.SphereRadius, PosB, ShapeB.SphereRadius, OutHit);
 	}
 	return SweepByBisection(ShapeA, Start, Delta, RotA, ShapeB, PosB, RotB, OutHit);
+}
+
+bool FPhysicsInterface::SweepBoxBox(const FCollisionShape& ShapeA, const FVector& Start, const FVector& Delta, const FRotator& RotA,
+	const FCollisionShape& ShapeB, const FVector& PosB, const FRotator& RotB, FHitResult& OutHit)
+{
+	OutHit = FHitResult();
+	OutHit.FaceIndex = -1;
+	OutHit.PenetrationDepth = 0.f;
+	OutHit.TraceStart = Start;
+	OutHit.TraceEnd = Start + Delta;
+	if (Delta.SizeSquared() == 0.f)
+	{
+		return false;
+	}
+
+	// 기존 Sweep과 동일하게 초기 겹침에서 빠져나가는 이동은 허용
+	FVector Normal;
+	float Depth;
+	if (ComputePenetration(ShapeA, Start, RotA, ShapeB, PosB, RotB, Normal, Depth))
+	{
+		if (Normal.Dot(Delta) >= 0.f)
+		{
+			return false;
+		}
+
+		OutHit.Time = 0.f;
+		OutHit.bStartPentrating = true;
+		OutHit.Normal = Normal;
+		OutHit.PenetrationDepth = Depth;
+	}
+	else
+	{
+		// 회전이 고정된 두 Box의 분리축마다 겹치는 시간 구간을 교차한다.
+		FVector AxesA[3];
+		FVector AxesB[3];
+		GetBoxAxes(RotA, AxesA);
+		GetBoxAxes(RotB, AxesB);
+
+		FVector Axes[15];
+		for (int32 i = 0; i < 3; ++i)
+		{
+			Axes[i] = AxesA[i];
+			Axes[i + 3] = AxesB[i];
+			for (int32 j = 0; j < 3; ++j)
+			{
+				Axes[6 + i * 3 + j] = AxesA[i].Cross(AxesB[j]);
+			}
+		}
+
+		double Enter = 0.0;
+		double Exit = 1.0;
+		Normal = FVector::ZeroVector;
+		const FVector Offset = Start - PosB;
+		for (const FVector& Axis : Axes)
+		{
+			if (Axis.SizeSquared() < SMALL_NUMBER)
+			{
+				continue;
+			}
+
+			const FVector L = Axis.GetSafeNormal();
+			double Radius = 0.0;
+			for (int32 i = 0; i < 3; ++i)
+			{
+				Radius += std::fabs(DotDouble(L, AxesA[i])) * ShapeA.BoxExtent[i];
+				Radius += std::fabs(DotDouble(L, AxesB[i])) * ShapeB.BoxExtent[i];
+			}
+
+			const double Position = DotDouble(Offset, L);
+			const double Speed = DotDouble(Delta, L);
+			if (Speed == 0.0)
+			{
+				if (std::fabs(Position) > Radius)
+				{
+					return false;
+				}
+
+				continue;
+			}
+
+			double NearTime = (-Radius - Position) / Speed;
+			double FarTime = (Radius - Position) / Speed;
+			if (NearTime > FarTime)
+			{
+				std::swap(NearTime, FarTime);
+			}
+
+			if (NearTime >= Enter)
+			{
+				Enter = NearTime;
+				Normal = Speed > 0.0 ? L * -1.f : L;
+			}
+
+			Exit = std::min(Exit, FarTime);
+			if (Enter > Exit)
+			{
+				return false;
+			}
+		}
+
+		// 시작 순간에만 닿고 곧바로 이탈하는 모서리 접촉은 이동을 막지 않는다.
+		if (Exit <= 0.0 || Normal.SizeSquared() == 0.f)
+		{
+			return false;
+		}
+
+		OutHit.Time = static_cast<float>(Enter);
+		OutHit.Normal = Normal;
+	}
+
+	FVector TargetAxes[3];
+	GetBoxAxes(RotB, TargetAxes);
+	OutHit.bBlockingHit = true;
+	OutHit.Location = Start + Delta * OutHit.Time;
+	OutHit.ImpactPoint = ClosestPointOnBox(OutHit.Location, PosB, TargetAxes, ShapeB.BoxExtent);
+	OutHit.ImpactNormal = OutHit.Normal;
+	OutHit.Distance = Delta.Size() * OutHit.Time;
+	return true;
 }
 
 bool FPhysicsInterface::SweepByBisection(const FCollisionShape& ShapeA, const FVector& Start, const FVector& Delta, const FRotator& RotA, const FCollisionShape& ShapeB, const FVector& PosB, const FRotator& RotB, FHitResult& OutHit)
