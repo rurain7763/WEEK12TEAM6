@@ -46,6 +46,7 @@ private:
 	bool mMotionEnabled{};
 	float mMotionRadius{ 3.0f };
 	float mMotionAngle{};
+	double mPreviewTime{};
 	bool mDirty{};
 	bool mCloseRequested{};
 	bool mCloseApproved{};

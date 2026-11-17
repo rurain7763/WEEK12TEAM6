@@ -38,6 +38,7 @@ FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 	  mParticleSystem{ InParticleSystem },
 	  mEditSession{ MakeUnique<FParticleSystemEditSession>(InParticleSystem) } {
 	ViewportPanel->GetViewport()->SetGridVisible(false);
+	ViewportPanel->SetGridControlVisible(false);
 	UParticleSystem* WorkingCopy{ mEditSession->GetWorkingCopy() };
 	const FString PanelSuffix{ "##ParticleEditor:" + (mParticleSystem ? mParticleSystem->GetPath() : FString{}) };
 	mEmitterPanel = AddPanel<FParticleEmitterPanel>(WorkingCopy, "Emitters" + PanelSuffix, [this](UObject* Object) {
@@ -71,6 +72,7 @@ FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 	if (mPreviewComponent) {
 		mPreviewComponent->SetWorldLocation(FVector::ZeroVector, false);
 		mPreviewComponent->SetTemplate(WorkingCopy);
+		mPreviewComponent->SetLODMethod(EParticleSystemLODMethod::DirectSet);
 		mPreviewComponent->BeginPlay();
 	}
 }
@@ -106,8 +108,10 @@ void FParticleEditorTab::TickPreview(float DeltaTime) {
 			RestartPreview();
 		}
 
-		UpdatePreviewMotion(DeltaTime);
-		mPreviewComponent->TickComponent(DeltaTime);
+		const float PreviewDelta{ std::isfinite(DeltaTime) ? std::max(0.0f, DeltaTime) : 0.0f };
+		UpdatePreviewMotion(PreviewDelta);
+		mPreviewComponent->TickComponent(PreviewDelta);
+		mPreviewTime += PreviewDelta;
 	}
 }
 
@@ -142,24 +146,56 @@ void FParticleEditorTab::BuildDefaultLayout(ImGuiID DockSpaceRoot) {
 void FParticleEditorTab::RestartPreview() {
 	mPreviewComponent->EndPlay();
 	mMotionAngle = 0.0f;
+	mPreviewTime = 0.0;
 	UpdatePreviewMotion(0.0f);
+	mPreviewComponent->SetLODLevel(mEditSession->GetSelectedLODIndex());
 	mPreviewComponent->BeginPlay();
 	mPreviewComponent->UpdateDynamicData();
 	mPendingPreviewRestart = false;
 }
 
 void FParticleEditorTab::DrawPreviewToolbar() {
-	ImGui::BeginDisabled(mPreviewComponent == nullptr);
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, ImGui::GetFrameHeight() * 0.5f);
+	if (ImGui::Button("View")) {
+		ImGui::OpenPopup("ParticlePreviewView");
+	}
 	ImGui::SameLine();
-	if (ImGui::Checkbox("Motion", &mMotionEnabled)) {
-		mPendingPreviewRestart = true;
+	if (ImGui::Button("Time")) {
+		ImGui::OpenPopup("ParticlePreviewTime");
 	}
-	ImGui::SetNextItemWidth(100.0f);
-	if (ImGui::DragFloat("Motion Radius", &mMotionRadius, 0.05f, 0.0f, 1000.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
-		mMotionRadius = std::isfinite(mMotionRadius) ? std::clamp(mMotionRadius, 0.0f, 1000.0f) : 0.0f;
-		mPendingPreviewRestart = true;
+	ImGui::PopStyleVar();
+
+	if (ImGui::BeginPopup("ParticlePreviewView", ImGuiWindowFlags_NoMove)) {
+		bool GridVisible{ ViewportPanel->GetViewport()->IsGridVisible() };
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+		if (ImGui::Checkbox("Grid", &GridVisible)) {
+			ViewportPanel->GetViewport()->SetGridVisible(GridVisible);
+		}
+		ImGui::PopStyleVar();
+		ImGui::SameLine();
+		ImGui::TextUnformatted(GridVisible ? "On" : "Off");
+		ImGui::EndPopup();
 	}
-	ImGui::EndDisabled();
+
+	if (ImGui::BeginPopup("ParticlePreviewTime", ImGuiWindowFlags_NoMove)) {
+		ImGui::BeginDisabled(mPreviewComponent == nullptr);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+		if (ImGui::Checkbox("Motion", &mMotionEnabled)) {
+			mPendingPreviewRestart = true;
+		}
+		ImGui::PopStyleVar();
+		ImGui::SameLine();
+		ImGui::TextUnformatted(mMotionEnabled ? "On" : "Off");
+		ImGui::SetNextItemWidth(100.0f);
+		if (ImGui::DragFloat("Motion Radius", &mMotionRadius, 0.05f, 0.0f, 1000.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+			mMotionRadius = std::isfinite(mMotionRadius) ? std::clamp(mMotionRadius, 0.0f, 1000.0f) : 0.0f;
+			mPendingPreviewRestart = true;
+		}
+		ImGui::Separator();
+		ImGui::Text("Time: %.2f s", mPreviewTime);
+		ImGui::EndDisabled();
+		ImGui::EndPopup();
+	}
 }
 
 void FParticleEditorTab::OnPropertiesChanged() {
@@ -173,8 +209,18 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 		return;
 	}
 	mHasPendingStructureRequest = false;
+	if (mPendingStructureRequest.mAction == FParticleEmitterPanel::EStructureAction::SelectLOD) {
+		if (mEditSession->SelectLOD(mPendingStructureRequest.mTargetIndex)) {
+			mEmitterPanel->SetSelectedLODIndex(mEditSession->GetSelectedLODIndex());
+			mPendingPreviewRestart = true;
+		}
+		mPendingStructureRequest = {};
+		return;
+	}
+
 	UParticleSystem* Working{ mEditSession->GetWorkingCopy() };
 	UObject* PreviousSelection{ mEmitterPanel->GetSelectedObject() };
+	UParticleEmitter* PreviousEmitter{ mEmitterPanel->GetSelectedEmitter() };
 	mEmitterPanel->SelectObject(nullptr);
 	if (mPreviewComponent) {
 		mPreviewComponent->EndPlay();
@@ -219,12 +265,27 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 				Selection = mPendingStructureRequest.mModule;
 			}
 			break;
+		case FParticleEmitterPanel::EStructureAction::AddLOD:
+			Changed = mEditSession->AddLOD(mPendingStructureRequest.mTargetIndex, mStatus);
+			Selection = PreviousEmitter ? static_cast<UObject*>(PreviousEmitter) : Working;
+			break;
+		case FParticleEmitterPanel::EStructureAction::DeleteLOD:
+			Changed = mEditSession->DeleteLOD(mStatus);
+			Selection = PreviousEmitter ? static_cast<UObject*>(PreviousEmitter) : Working;
+			break;
+		case FParticleEmitterPanel::EStructureAction::RegenerateLODs:
+			Changed = mEditSession->RegenerateLODs(mStatus);
+			Selection = PreviousEmitter ? static_cast<UObject*>(PreviousEmitter) : Working;
+			break;
+		case FParticleEmitterPanel::EStructureAction::SelectLOD:
+			break;
 		}
 	} catch (const std::exception& Error) {
 		mStatus = "Could not update the particle system: " + FString{ Error.what() };
 	}
 
 	mPendingStructureRequest = {};
+	mEmitterPanel->SetSelectedLODIndex(mEditSession->GetSelectedLODIndex());
 	mEmitterPanel->SelectObject(Changed ? Selection : PreviousSelection);
 	if (Changed) {
 		OnPropertiesChanged();

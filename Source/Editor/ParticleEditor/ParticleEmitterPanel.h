@@ -17,7 +17,11 @@ public:
 		MoveEmitter,
 		AddModule,
 		DeleteModule,
-		MoveModule
+		MoveModule,
+		SelectLOD,
+		AddLOD,
+		DeleteLOD,
+		RegenerateLODs
 	};
 
 	struct FStructureRequest {
@@ -54,9 +58,13 @@ public:
 	const char* GetPanelName() const override;
 
 	UObject* GetSelectedObject() const;
+	UParticleEmitter* GetSelectedEmitter() const;
 	void SelectObject(UObject* Object);
+	void SetSelectedLODIndex(int32 LODIndex);
 
 private:
+	void DrawLODToolbar();
+	void DrawLODButton(const char* Label, const char* Tooltip, EStructureAction Action, int32 TargetIndex, bool Enabled);
 	void DrawModule(UParticleEmitter* Emitter, UParticleModule* Module, const char* Label, const ImVec4& Color);
 	void DrawModuleDragDrop(UParticleEmitter* Emitter, UParticleModule* Module, const char* Label);
 	void DrawEmitter(int32 EmitterIndex, float Height);
@@ -75,4 +83,5 @@ private:
 	FToolbarCallback mToolbarCallback{};
 	FStructureCallback mStructureCallback{};
 	FChangeCallback mChangeCallback{};
+	int32 mSelectedLODIndex{};
 };
