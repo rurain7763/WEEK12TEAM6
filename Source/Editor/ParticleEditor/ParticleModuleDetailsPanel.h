@@ -8,7 +8,7 @@ class UParticleSystem;
 
 class FParticleModuleDetailsPanel : public IEditorPanel {
 public:
-	using FChangeCallback = std::function<void()>;
+	using FChangeCallback = std::function<void(bool RestartPreview)>;
 
 public:
 	FParticleModuleDetailsPanel(FString PanelName, FChangeCallback ChangeCallback);
@@ -19,7 +19,7 @@ public:
 	void OnRender() override;
 	const char* GetPanelName() const override;
 
-	void SetTarget(UObject* Object);
+	void SetTarget(UObject* Object, int32 LODIndex = 0);
 
 private:
 	static bool DrawParticleSystemProperties(UParticleSystem* ParticleSystem);
@@ -27,5 +27,6 @@ private:
 private:
 	FString mPanelName{};
 	UObject* mTarget{};
+	int32 mLODIndex{};
 	FChangeCallback mChangeCallback{};
 };

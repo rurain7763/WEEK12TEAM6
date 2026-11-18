@@ -34,6 +34,7 @@
 #include "Core/EngineLog.h"
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include "Component/LightComponent.h"
 #include "Engine/LightSceneProxy.h"
 #include "Core/PathUtils.h"
@@ -712,383 +713,262 @@ namespace
 		return Override;
 	}
 
+	void BeginMaterialPropertyRow(const char* Label) {
+		ImGui::TableNextRow();
+		ImGui::TableSetColumnIndex(0);
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted(Label);
+		ImGui::TableSetColumnIndex(1);
+		ImGui::SetNextItemWidth(-1.0f);
+	}
+
+	UTexture2D* DrawMaterialTexturePicker(const char* Id, UTexture2D* Current, bool AllowNone) {
+		UTexture2D* Selected{ Current };
+		const FString Preview{ Current ? PathUtils::ToUtf8(PathUtils::FromUtf8(Current->GetPath()).filename()) : "None" };
+		if (!ImGui::BeginCombo(Id, Preview.c_str(), ImGuiComboFlags_HeightLarge)) {
+			return Selected;
+		}
+
+		static ImGuiTextFilter Filter{};
+		if (ImGui::IsWindowAppearing()) {
+			Filter.Clear();
+		}
+		ImGui::SetNextItemWidth(-1.0f);
+		if (ImGui::InputTextWithHint("##Filter", "Search textures", Filter.InputBuf, IM_ARRAYSIZE(Filter.InputBuf))) {
+			Filter.Build();
+		}
+		if (AllowNone && ImGui::Selectable("None", Current == nullptr)) {
+			Selected = nullptr;
+		}
+
+		TArray<UTexture2D*> Textures{};
+		for (TObjectIterator<UTexture2D> It{}; It; ++It) {
+			UTexture2D* Texture{ *It };
+			const FString& Path{ Texture->GetPath() };
+			if (!Path.empty() && Texture->GetResource() && Filter.PassFilter(Path.c_str()) && UAssetManager::GetAssetByPath<UTexture2D>(Path) == Texture) {
+				Textures.Add(Texture);
+			}
+		}
+		std::sort(Textures.begin(), Textures.end(), [](const UTexture2D* First, const UTexture2D* Second) {
+			return First->GetPath() < Second->GetPath();
+		});
+		for (UTexture2D* Texture : Textures) {
+			const FString& Path{ Texture->GetPath() };
+			const FString Name{ PathUtils::ToUtf8(PathUtils::FromUtf8(Path).filename()) };
+			ImGui::PushID(Texture);
+			if (ImGui::Selectable(Name.c_str(), Texture == Current)) {
+				Selected = Texture;
+			}
+			ImGui::SetItemTooltip("%s", Path.c_str());
+			ImGui::PopID();
+		}
+		if (Textures.IsEmpty()) {
+			ImGui::TextDisabled("No matching textures");
+		}
+		ImGui::EndCombo();
+		return Selected;
+	}
+
+	UTexture2D* DrawMaterialTextureRow(const char* Label, UTexture2D* Current, bool IsNormal, bool UsePicker) {
+		BeginMaterialPropertyRow(Label);
+		ImGui::PushID(Label);
+
+		const float ThumbnailSize{ UsePicker ? 56.0f : 64.0f };
+		const float AvailableWidth{ ImGui::GetContentRegionAvail().x };
+		const FTexture2D* Resource{ Current ? Current->GetResource() : nullptr };
+		const ImTextureID Thumbnail{ Resource ? reinterpret_cast<ImTextureID>(Resource->GetRawSRV()) : ImTextureID{} };
+		if (Thumbnail) {
+			ImGui::Image(Thumbnail, { ThumbnailSize, ThumbnailSize });
+			ImGui::SetItemTooltip("%s", Current->GetPath().c_str());
+		} else if (UsePicker) {
+			ImGui::Dummy({ ThumbnailSize, ThumbnailSize });
+			ImGui::GetWindowDrawList()->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_FrameBg));
+		} else {
+			ImGui::Button(IsNormal ? "EmptyNormal" : "Empty", { ThumbnailSize, ThumbnailSize });
+		}
+
+		UTexture2D* Selected{ Current };
+		if (!UsePicker && ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* Payload{ ImGui::AcceptDragDropPayload(EditorDragDrop::Texture) }; Payload && Payload->DataSize == sizeof(UTexture2D*)) {
+				Selected = *static_cast<UTexture2D* const*>(Payload->Data);
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		if (!UsePicker || AvailableWidth > ThumbnailSize + 100.0f) {
+			ImGui::SameLine();
+		}
+		if (UsePicker) {
+			ImGui::SetNextItemWidth(-1.0f);
+			Selected = DrawMaterialTexturePicker("##Texture", Current, IsNormal);
+		} else if (Selected) {
+			const FString& Path{ Selected->GetPath() };
+			const FString Name{ PathUtils::ToUtf8(PathUtils::FromUtf8(Path).filename()) };
+			ImGui::TextWrapped("%s", Name.c_str());
+			ImGui::SetItemTooltip("%s", Path.c_str());
+		} else {
+			ImGui::TextDisabled("(Empty)");
+		}
+		ImGui::PopID();
+
+		return Selected;
+	}
+
+	void SetMaterialTexture(UMaterial& Material, int32 Slot, UTexture2D* Texture) {
+		while (Material.Textures.Num() <= Slot) {
+			Material.Textures.Add(nullptr);
+		}
+		Material.Textures[Slot] = Texture;
+	}
+
+	bool DrawMaterialProperties(const UMaterial* Effective, bool IsParticleMaterial, const std::function<UMaterial*()>& EditMaterial) {
+		// 1: 텍스처 썸네일
+		// 2: 텍스처 경로
+		UTexture2D* CurrentTexture{ Effective && Effective->Textures.IsValidIndex(0) ? Effective->Textures[0] : nullptr };
+		UTexture2D* Texture{ DrawMaterialTextureRow("Texture", CurrentTexture, false, IsParticleMaterial) };
+
+		// 3: 노말 텍스처 썸네일
+		// 4: 노말 텍스처 경로
+		UTexture2D* CurrentNormal{ Effective && Effective->Textures.IsValidIndex(1) ? Effective->Textures[1] : nullptr };
+		UTexture2D* Normal{ DrawMaterialTextureRow("Normal Texture", CurrentNormal, true, IsParticleMaterial) };
+
+		BeginMaterialPropertyRow("Flip Green");
+		bool FlipNormalGreen{ Effective && Effective->bFlipNormalGreen };
+		ImGui::BeginDisabled(Normal == nullptr);
+		const bool FlipNormalGreenChanged{ ImGui::Checkbox("##FlipNormalGreen", &FlipNormalGreen) };
+		ImGui::EndDisabled();
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+			ImGui::SetTooltip("OpenGL(Y+) 규칙 노멀맵이면 켠다");
+		}
+
+		// 5: Base Color
+		// BaseColor는 셰이더가 Linear로 쓰므로 선택기에서 sRGB로 보여주고 Linear로 저장한다
+		BeginMaterialPropertyRow("Base Color");
+		FLinearColor BaseColor{ Effective ? Effective->BaseColor : FLinearColor::White };
+		const bool BaseColorChanged{ ColorEditLinear("##BaseColor", &BaseColor.R) };
+
+		// 6: UV Scroll Speed
+		BeginMaterialPropertyRow("UV Scroll");
+		FVector2 UVScroll{ Effective ? Effective->UVScrollSpeed : FVector2{} };
+		const bool UVScrollChanged{ ImGui::DragFloat2("##UVScrollSpeed", &UVScroll.X, 0.01f) && std::isfinite(UVScroll.X) && std::isfinite(UVScroll.Y) };
+
+		BeginMaterialPropertyRow("Shininess");
+		float Shininess{ Effective ? Effective->Shininess : 32.0f };
+		const bool ShininessChanged{ ImGui::DragFloat("##Shininess", &Shininess, 1.0f, 1.0f, 1024.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp) && std::isfinite(Shininess) };
+		if (IsParticleMaterial) {
+			ImGui::SetItemTooltip("Used when isLit is enabled.");
+		}
+
+		BeginMaterialPropertyRow("Specular Color");
+		FLinearColor SpecularColor{ Effective ? Effective->SpecularColor : FLinearColor{ 0.5f, 0.5f, 0.5f, 1.0f } };
+		const bool SpecularColorChanged{ ColorEditLinear("##SpecularColor", &SpecularColor.R, ImGuiColorEditFlags_NoAlpha) };
+		if (IsParticleMaterial) {
+			ImGui::SetItemTooltip("Used when isLit is enabled.");
+		}
+
+		// 7: Sampler State
+		BeginMaterialPropertyRow("Sampler");
+		int SamplerIndex{ Effective && Effective->SamplerState == ESamplerState::LinearWrap ? 1 : 0 };
+		const bool SamplerChanged{ ImGui::Combo("##SamplerState", &SamplerIndex, "Linear Clamp\0Linear Wrap\0") };
+
+		// 8: Blend State
+		BeginMaterialPropertyRow("Blend Mode");
+		int BlendIndex{ Effective && Effective->BlendState == EBlendState::AlphaBlend ? 1 : 0 };
+		const bool BlendChanged{ ImGui::Combo("##BlendState", &BlendIndex, "Opaque\0Alpha Blend\0") };
+
+		// 표면 머티리얼의 데칼 색상 수신 방식 편집
+		EColorBlendMode DecalColorBlendMode{ Effective ? Effective->DecalColorBlendMode : EColorBlendMode::Alpha };
+		bool DecalBlendChanged{};
+		if (!IsParticleMaterial && Effective && Effective->MaterialDomain == EMaterialDomain::Surface && Effective->bUseViewModeShader) {
+			BeginMaterialPropertyRow("Decal Color Blend");
+			int DecalBlendIndex{ DecalColorBlendMode == EColorBlendMode::Multiply ? 1 : 0 };
+			if (ImGui::Combo("##DecalColorBlendMode", &DecalBlendIndex, "Alpha\0Multiply\0")) {
+				DecalColorBlendMode = DecalBlendIndex == 1 ? EColorBlendMode::Multiply : EColorBlendMode::Alpha;
+				DecalBlendChanged = true;
+			}
+		}
+
+		if (!FlipNormalGreenChanged && !BaseColorChanged && !SpecularColorChanged && !UVScrollChanged && !ShininessChanged && !SamplerChanged && !BlendChanged && !DecalBlendChanged && Texture == CurrentTexture && Normal == CurrentNormal) {
+			return false;
+		}
+
+		UMaterial* Material{ EditMaterial() };
+		if (!Material) {
+			return false;
+		}
+
+		if (Texture != CurrentTexture) {
+			SetMaterialTexture(*Material, 0, Texture);
+		}
+		if (Normal != CurrentNormal) {
+			SetMaterialTexture(*Material, 1, Normal);
+		}
+		if (FlipNormalGreenChanged) {
+			Material->bFlipNormalGreen = FlipNormalGreen;
+		}
+		if (BaseColorChanged) {
+			Material->BaseColor = BaseColor;
+		}
+		if (SpecularColorChanged) {
+			Material->SpecularColor = SpecularColor;
+		}
+		if (DecalBlendChanged) {
+			Material->DecalColorBlendMode = DecalColorBlendMode;
+		}
+		if (UVScrollChanged) {
+			Material->UVScrollSpeed = UVScroll;
+		}
+		if (ShininessChanged) {
+			Material->Shininess = Shininess;
+		}
+		if (SamplerChanged) {
+			Material->SamplerState = SamplerIndex == 1 ? ESamplerState::LinearWrap : ESamplerState::LinearClamp;
+		}
+		if (BlendChanged) {
+			Material->BlendState = BlendIndex == 1 ? EBlendState::AlphaBlend : EBlendState::Opaque;
+		}
+		return true;
+	}
+
 	// 메시 컴포넌트의 머티리얼 슬롯을 한 줄씩 그린다.
 	// 텍스처를 드롭하면 그 슬롯의 덮어쓰기에 반영하고, 메시 에셋의 머티리얼은 건드리지 않는다.
-	void DrawMaterialSlots(UMeshComponent* MeshComponent)
-	{
-		const int32 NumSlots = MeshComponent->GetNumMaterials();
-		if (NumSlots <= 0)
-		{
+	void DrawMaterialSlots(UMeshComponent* MeshComponent) {
+		const int32 NumSlots{ MeshComponent->GetNumMaterials() };
+		if (NumSlots <= 0 || !ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen)) {
 			return;
 		}
-
-		if (!ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			return;
-		}
-
-		const float ThumbnailSize = 64.0f;
 
 		// 메쉬 내의 매터리얼 별 Slot 순회
-		for (int32 Slot = 0; Slot < NumSlots; ++Slot)
-		{
+		for (int32 Slot{}; Slot < NumSlots; ++Slot) {
 			ImGui::PushID(Slot);
-
-			FString SlotLabel = std::format("[{}] {}", Slot, MeshComponent->GetMaterialSlotName(Slot));
-			bool bOpen = ImGui::TreeNode(SlotLabel.c_str());
-
-			UMaterial* Override = MeshComponent->GetOverrideMaterial(Slot);
-			UMaterial* Effective = MeshComponent->GetMaterial(Slot);
-			UTexture2D* Texture = (Effective && Effective->Textures.Num() > 0) ? Effective->Textures[0] : nullptr;
-			UTexture2D* NormalTexture = (Effective && Effective->Textures.Num() > 1) ? Effective->Textures[1] : nullptr;
+			const FString SlotLabel{ std::format("[{}] {}", Slot, MeshComponent->GetMaterialSlotName(Slot)) };
+			const bool Open{ ImGui::TreeNode(SlotLabel.c_str()) };
+			UMaterial* Override{ MeshComponent->GetOverrideMaterial(Slot) };
+			UMaterial* Effective{ MeshComponent->GetMaterial(Slot) };
 
 			ImGui::SameLine();
-
-			if (Override)
-			{
-				ImGui::TextDisabled("Override");
+			ImGui::TextDisabled(Override ? "Override" : "Default");
+			if (Override) {
 				ImGui::SameLine();
-
-				if (ImGui::SmallButton("Reset"))
-				{
+				if (ImGui::SmallButton("Reset")) {
 					MeshComponent->SetMaterial(Slot, nullptr);
 					Override = nullptr;
 					Effective = MeshComponent->GetMaterial(Slot);
 				}
 			}
-			else
-			{
-				ImGui::TextDisabled("Default");
-			}
 
-			if (bOpen)
-			{
-				if (ImGui::BeginTable("MaterialProperties", 2))
-				{
+			if (Open) {
+				if (ImGui::BeginTable("MaterialProperties", 2)) {
 					ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 110.0f);
 					ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
-					ImGui::TableNextRow();
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Texture");
-
-					ImGui::TableSetColumnIndex(1);
-
-					// 1: 텍스처 썸네일
-					if (Texture && Texture->GetResource())
-					{
-						ImGui::Image((ImTextureID)Texture->GetResource()->GetRawSRV(), { ThumbnailSize, ThumbnailSize });
-						if (ImGui::IsItemHovered())
-						{
-							ImGui::SetTooltip("%s", Texture->GetPath().c_str());
-						}
-					}
-					else
-					{
-						ImGui::Button("Empty", { ThumbnailSize, ThumbnailSize });
-					}
-					if (ImGui::BeginDragDropTarget())
-					{
-						if (const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload(EditorDragDrop::Texture))
-						{
-							UTexture2D* DroppedTexture = *static_cast<UTexture2D**>(Payload->Data);
-							Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-
-							if (Override)
-							{
-								if (Override->Textures.Num() == 0)
-								{
-									Override->Textures.Add(nullptr);
-								}
-								Override->Textures[0] = DroppedTexture;
-								Texture = DroppedTexture;
-								Effective = Override;
-							}
-						}
-						ImGui::EndDragDropTarget();
-					}
-					ImGui::SameLine();
-
-					// 2: 텍스처 경로
-					if (Texture)
-					{
-						std::filesystem::path Path = PathUtils::FromUtf8(Texture->GetPath());
-						FString FileName = PathUtils::ToUtf8(Path.filename());
-
-						ImGui::TextWrapped("%s", FileName.c_str());
-						if (ImGui::IsItemHovered())
-						{
-							ImGui::SetTooltip("%s", Path.c_str());
-						}
-					}
-					else
-					{
-						ImGui::TextDisabled("(Empty)");
-					}
-
-					ImGui::TableNextRow();
-
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("NormalTexture");
-
-					ImGui::TableSetColumnIndex(1);
-
-					// 3: 노말 텍스처 썸네일
-					if (NormalTexture && NormalTexture->GetResource())
-					{
-						ImGui::Image((ImTextureID)NormalTexture->GetResource()->GetRawSRV(), { ThumbnailSize, ThumbnailSize });
-						if (ImGui::IsItemHovered())
-						{
-							ImGui::SetTooltip("%s", NormalTexture->GetPath().c_str());
-						}
-					}
-					else
-					{
-						ImGui::Button("EmptyNormal", { ThumbnailSize, ThumbnailSize });
-					}
-					if (ImGui::BeginDragDropTarget())
-					{
-						if (const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload(EditorDragDrop::Texture))
-						{
-							UTexture2D* DroppedNormalTexture = *static_cast<UTexture2D**>(Payload->Data);
-							Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-
-							if (Override)
-							{
-								if (Override->Textures.Num() == 0)
-								{
-									Override->Textures.Add(nullptr);
-								}
-								Override->Textures[1] = DroppedNormalTexture;
-								NormalTexture = DroppedNormalTexture;
-								Effective = Override;
-							}
-						}
-						ImGui::EndDragDropTarget();
-					}
-					ImGui::SameLine();
-
-					// 4: 노말 텍스처 경로
-					if (NormalTexture)
-					{
-						fs::path Path = PathUtils::FromUtf8(NormalTexture->GetPath());
-						FString FileName = PathUtils::ToUtf8(Path.filename());
-
-						ImGui::TextWrapped("%s", FileName.c_str());
-						if (ImGui::IsItemHovered())
-						{
-							ImGui::SetTooltip("%s", NormalTexture->GetPath().c_str());
-						}
-					}
-					else
-					{
-						ImGui::TextDisabled("(Empty)");
-					}
-
-					ImGui::TableNextRow();
-
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Flip Green");
-
-					ImGui::TableSetColumnIndex(1);
-
-					bool bTempFlipGreen = Effective ? Effective->bFlipNormalGreen : false;
-					ImGui::BeginDisabled(NormalTexture == nullptr);
-					if (ImGui::Checkbox("##FlipNormalGreen", &bTempFlipGreen))
-					{
-						Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-						if (Override)
-						{
-							Override->bFlipNormalGreen = bTempFlipGreen;
-							Effective = Override;
-						}
-					}
-					ImGui::EndDisabled();
-					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-					{
-						ImGui::SetTooltip("OpenGL(Y+) 규칙 노멀맵이면 켠다");
-					}
-
-					ImGui::TableNextRow();
-
-					// 5: Base Color
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Base Color");
-
-					ImGui::TableSetColumnIndex(1);
-					ImGui::SetNextItemWidth(-1.0f);
-
-					// BaseColor는 셰이더가 Linear로 쓰므로 선택기에서 sRGB로 보여주고 Linear로 저장한다
-					FLinearColor TempColor = Effective ? Effective->BaseColor : FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
-					if (ColorEditLinear("##BaseColor", &TempColor.R))
-					{
-						Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-						if (Override)
-						{
-							Override->BaseColor = TempColor;
-							Effective = Override;
-						}
-					}
-
-					ImGui::TableNextRow();
-
-					// 6: UV Scroll Speed
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("UV Scroll");
-
-					ImGui::TableSetColumnIndex(1);
-					ImGui::SetNextItemWidth(-1.0f);
-
-					FVector2 TempUVScrollSpeed = Effective ? Effective->UVScrollSpeed : FVector2();
-					if (ImGui::DragFloat2("##UVScrollSpeed", &TempUVScrollSpeed.X, 0.01f))
-					{
-						Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-						if (Override)
-						{
-							Override->UVScrollSpeed = TempUVScrollSpeed;
-							Effective = Override;
-						}
-					}
-
-					ImGui::TableNextRow();
-
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Shininess");
-
-					ImGui::TableSetColumnIndex(1);
-					ImGui::SetNextItemWidth(-1.0f);
-
-					float TempShininess = Effective ? Effective->Shininess : 32.0f;
-					if (ImGui::DragFloat("##Shininess", &TempShininess, 1.0f, 1.0f, 1024.0f))
-					{
-						Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-						if (Override)
-						{
-							Override->Shininess = TempShininess;
-							Effective = Override;
-						}
-					}
-
-					ImGui::TableNextRow();
-
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Specular Color");
-
-					ImGui::TableSetColumnIndex(1);
-					ImGui::SetNextItemWidth(-1.0f);
-
-					FLinearColor TempSpecular = Effective ? Effective->SpecularColor : FLinearColor(0.5f, 0.5f, 0.5f, 1.0f);
-					if (ColorEditLinear("##SpecularColor", &TempSpecular.R, ImGuiColorEditFlags_NoAlpha))
-					{
-						Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-						if (Override)
-						{
-							Override->SpecularColor = TempSpecular;
-							Effective = Override;
-						}
-					}
-
-					ImGui::TableNextRow();
-
-					// 7: Sampler State
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Sampler");
-
-					ImGui::TableSetColumnIndex(1);
-					ImGui::SetNextItemWidth(-1.0f);
-
-					const char* SamplerItems[] = { "Linear Clamp", "Linear Wrap" };
-					int SamplerIndex = Effective ? static_cast<int>(Effective->SamplerState) : static_cast<int>(ESamplerState::LinearClamp);
-					if (ImGui::BeginCombo("##SamplerState", SamplerItems[SamplerIndex]))
-					{
-						for (int i = 0; i < static_cast<int>(ESamplerState::Count); ++i)
-						{
-							if (ImGui::Selectable(SamplerItems[i], SamplerIndex == i))
-							{
-								Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-								if (Override)
-								{
-									Override->SamplerState = static_cast<ESamplerState>(i);
-									Effective = Override;
-								}
-							}
-						}
-						ImGui::EndCombo();
-					}
-
-					ImGui::TableNextRow();
-
-					// 8: Blend State
-					ImGui::TableSetColumnIndex(0);
-					ImGui::Text("Blend Mode");
-
-					ImGui::TableSetColumnIndex(1);
-					ImGui::SetNextItemWidth(-1.0f);
-
-					const char* BlendItems[] = { "Opaque", "Alpha Blend" };
-					int BlendIndex = Effective ? static_cast<int>(Effective->BlendState) : static_cast<int>(EBlendState::Opaque);
-					if (ImGui::BeginCombo("##BlendState", BlendItems[BlendIndex]))
-					{
-						for (int i = 0; i < IM_ARRAYSIZE(BlendItems); ++i)
-						{
-							if (ImGui::Selectable(BlendItems[i], BlendIndex == i))
-							{
-								Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-								if (Override)
-								{
-									Override->BlendState = static_cast<EBlendState>(i);
-									Effective = Override;
-								}
-							}
-						}
-						ImGui::EndCombo();
-					}
-					// 표면 머티리얼의 데칼 색상 수신 방식 편집
-					if (Effective && Effective->MaterialDomain == EMaterialDomain::Surface &&
-						Effective->bUseViewModeShader)
-					{
-						ImGui::TableNextRow();
-						ImGui::TableSetColumnIndex(0);
-						ImGui::TextUnformatted("Decal Color Blend");
-
-						ImGui::TableSetColumnIndex(1);
-						ImGui::SetNextItemWidth(-1.0f);
-
-						const EColorBlendMode ColorBlendModes[] = {
-							EColorBlendMode::Alpha,
-							EColorBlendMode::Multiply
-						};
-
-						if (ImGui::BeginCombo("##DecalColorBlendMode",
-							ColorBlending::ToString(Effective->DecalColorBlendMode)))
-						{
-							for (const EColorBlendMode Mode : ColorBlendModes)
-							{
-								const bool bSelected = Effective->DecalColorBlendMode == Mode;
-								if (ImGui::Selectable(ColorBlending::ToString(Mode), bSelected) && !bSelected)
-								{
-									Override = EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
-									if (Override)
-									{
-										Override->DecalColorBlendMode = Mode;
-										Effective = Override;
-									}
-								}
-
-								if (bSelected)
-								{
-									ImGui::SetItemDefaultFocus();
-								}
-							}
-							ImGui::EndCombo();
-						}
-					}
+					DrawMaterialProperties(Effective, false, [MeshComponent, Slot, Effective, Override]() {
+						return EnsureMaterialOverride(MeshComponent, Slot, Effective, Override);
+					});
 					ImGui::EndTable();
 				}
 				ImGui::TreePop();
 			}
 			ImGui::PopID();
-
 			ImGui::Separator();
 		}
 	}
@@ -1199,6 +1079,14 @@ namespace
 			}
 			break;
 		case EPropertyType::Bool:
+			if (UParticleModuleRequired* Required{ Cast<UParticleModuleRequired>(Object) }; Required && Property.Name == "isLit") {
+				bool Lit{ *static_cast<const bool*>(ValuePtr) };
+				bChanged = ImGui::Checkbox(Label.c_str(), &Lit);
+				if (bChanged) {
+					Required->SetList(Lit);
+				}
+				break;
+			}
 			bChanged = ImGui::Checkbox(Label.c_str(), static_cast<bool*>(ValuePtr));
 			break;
 		case EPropertyType::Vector:
@@ -1743,6 +1631,41 @@ namespace
 bool FDetailsPanel::DrawObjectProperties(UObject* Object, ImFont* Font)
 {
 	return DrawProperties(Object, Font);
+}
+
+bool FDetailsPanel::DrawParticleMaterialProperties(UParticleModuleRequired* Required, bool ShowAssetPicker) {
+	if (!ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen)) {
+		return false;
+	}
+
+	const float LabelWidth{ std::min(ImGui::CalcTextSize("Specular Color").x + 12.0f, ImGui::GetContentRegionAvail().x * 0.45f) };
+	if (!ImGui::BeginTable("ParticleMaterialProperties", 2)) {
+		return false;
+	}
+	ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, LabelWidth);
+	ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+	bool AssetChanged{};
+	if (ShowAssetPicker) {
+		BeginMaterialPropertyRow("Material");
+		AssetChanged = DrawParticleMaterialSlot(Required);
+	}
+
+	UMaterial* Material{ Required->GetMaterial() };
+	if (!Material) {
+		ImGui::EndTable();
+		ImGui::TextDisabled("Choose a material to edit its properties.");
+		return AssetChanged;
+	}
+
+	const bool PropertiesChanged{ DrawMaterialProperties(Material, true, [Required, Material]() {
+		if (!Material->GetPath().empty() || !Material->bIsInstance) {
+			Required->SetMaterial(Material);
+		}
+		return Required->GetMaterial();
+	}) };
+	ImGui::EndTable();
+	return AssetChanged || PropertiesChanged;
 }
 
 bool FDetailsPanel::Init()

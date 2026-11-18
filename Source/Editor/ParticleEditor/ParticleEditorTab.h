@@ -27,7 +27,7 @@ private:
 	void RestartPreview();
 	void ApplyPendingStructureChange();
 
-	void OnPropertiesChanged();
+	void OnPropertiesChanged(bool RestartPreview);
 	void DrawEditorToolbar();
 	void DrawCloseConfirmation();
 	bool SaveAsset();

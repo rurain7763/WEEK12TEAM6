@@ -44,7 +44,7 @@ FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 	UParticleSystem* WorkingCopy{ mEditSession->GetWorkingCopy() };
 	const FString PanelSuffix{ "##ParticleEditor:" + (mParticleSystem ? mParticleSystem->GetPath() : FString{}) };
 	mEmitterPanel = AddPanel<FParticleEmitterPanel>(WorkingCopy, "Emitters" + PanelSuffix, [this](UObject* Object) {
-		mDetailsPanel->SetTarget(Object);
+		mDetailsPanel->SetTarget(Object, mEditSession->GetSelectedLODIndex());
 		mDetailsPanel->SetOpen(true);
 	}, [this]() {
 		DrawEditorToolbar();
@@ -55,10 +55,10 @@ FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 		mDirty = true;
 		mStatus.clear();
 	});
-	mDetailsPanel = AddPanel<FParticleModuleDetailsPanel>("Module Details" + PanelSuffix, [this]() {
-		OnPropertiesChanged();
+	mDetailsPanel = AddPanel<FParticleModuleDetailsPanel>("Module Details" + PanelSuffix, [this](bool RestartPreview) {
+		OnPropertiesChanged(RestartPreview);
 	});
-	mDetailsPanel->SetTarget(mEmitterPanel->GetSelectedObject());
+	mDetailsPanel->SetTarget(mEmitterPanel->GetSelectedObject(), mEditSession->GetSelectedLODIndex());
 	mStatus = mEditSession->GetError();
 
 	if (!WorkingCopy) {
@@ -200,9 +200,9 @@ void FParticleEditorTab::DrawPreviewToolbar() {
 	}
 }
 
-void FParticleEditorTab::OnPropertiesChanged() {
+void FParticleEditorTab::OnPropertiesChanged(bool RestartPreview) {
 	mDirty = true;
-	mPendingPreviewRestart = true;
+	mPendingPreviewRestart |= RestartPreview;
 	mStatus.clear();
 }
 
@@ -214,6 +214,7 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 	if (mPendingStructureRequest.mAction == FParticleEmitterPanel::EStructureAction::SelectLOD) {
 		if (mEditSession->SelectLOD(mPendingStructureRequest.mTargetIndex)) {
 			mEmitterPanel->SetSelectedLODIndex(mEditSession->GetSelectedLODIndex());
+			mDetailsPanel->SetTarget(mEmitterPanel->GetSelectedObject(), mEditSession->GetSelectedLODIndex());
 			mPendingPreviewRestart = true;
 		}
 		mPendingStructureRequest = {};
@@ -297,7 +298,7 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 	mEmitterPanel->SetSelectedLODIndex(mEditSession->GetSelectedLODIndex());
 	mEmitterPanel->SelectObject(Changed ? Selection : PreviousSelection);
 	if (Changed) {
-		OnPropertiesChanged();
+		OnPropertiesChanged(true);
 	}
 }
 

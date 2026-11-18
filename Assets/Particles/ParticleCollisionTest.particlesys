@@ -185,6 +185,39 @@
                         "RequiredModule": {
                             "ClassName": "UParticleModuleRequired",
                             "Material": "SpriteMaterial",
+                            "MaterialInstance": {
+                                "Base": "SpriteMaterial",
+                                "Instance": {
+                                    "BaseColor": {
+                                        "A": 1.0,
+                                        "B": 1.0,
+                                        "G": 1.0,
+                                        "R": 1.0
+                                    },
+                                    "BlendState": "AlphaBlend",
+                                    "DecalColorBlendMode": "Alpha",
+                                    "MaterialDomain": "Surface",
+                                    "Properties": {},
+                                    "SamplerState": "LinearClamp",
+                                    "Shininess": 32.0,
+                                    "SpecularColor": {
+                                        "A": 1.0,
+                                        "B": 0.5,
+                                        "G": 0.5,
+                                        "R": 0.5
+                                    },
+                                    "Textures": [
+                                        "Assets/Models/Mercy (Overwatch 2)/Textures/000000021CC9.png"
+                                    ],
+                                    "UVScrollSpeed": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "bAffectBaseColor": true,
+                                    "bAffectNormal": true,
+                                    "bFlipNormalGreen": false
+                                }
+                            },
                             "bUseLocalSpace": true,
                             "isLit": false
                         },

@@ -29,18 +29,17 @@ void UParticleModuleRequired::Serialize(FStructuredArchive::FRecord Record)
 	}
 }
 
-void UParticleModuleRequired::SetList(bool InIsLit)
-{
-	if (Material && isLit != InIsLit)
-	{
-		Material->Shader = FRenderResourceManager::GetShaderProgram(isLit ? "TransparentUber_Static_Lit" : "TransparentUber_Static_Unlit");
+void UParticleModuleRequired::SetList(bool InIsLit) {
+	if (isLit == InIsLit) {
+		return;
 	}
 
 	isLit = InIsLit;
+	SetMaterial(Material);
 }
 
 void UParticleModuleRequired::SetMaterial(UMaterial* InMaterial) {
-	Material = InMaterial && !InMaterial->bIsInstance ? UMaterial::CreateInstance(InMaterial) : InMaterial;
+	Material = InMaterial && (!InMaterial->GetPath().empty() || !InMaterial->bIsInstance) ? UMaterial::CreateInstance(InMaterial) : InMaterial;
 	if (!Material)
 	{
 		return;

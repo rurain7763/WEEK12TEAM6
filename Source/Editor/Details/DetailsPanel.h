@@ -7,6 +7,7 @@
 
 struct FTransform;
 class USkeletalMesh;
+class UParticleModuleRequired;
 
 using DetailsSelectionCallback = std::function<void(UActorComponent*)>;
 using DetailsDeleteComponentCallback = std::function<void(UActorComponent*)>;
@@ -20,6 +21,7 @@ public:
 
 	bool Init() override;
 	static bool DrawObjectProperties(UObject* Object, ImFont* Font = nullptr);
+	static bool DrawParticleMaterialProperties(UParticleModuleRequired* Required, bool ShowAssetPicker);
 	void Tick(float DeltaTime) override;
 	void OnRender() override;
 

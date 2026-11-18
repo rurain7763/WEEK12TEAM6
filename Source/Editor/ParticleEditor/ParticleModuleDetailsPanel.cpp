@@ -1,9 +1,12 @@
 #include "EnginePCH.h"
 #include "ParticleModuleDetailsPanel.h"
 #include "Editor/Details/DetailsPanel.h"
+#include "Particle/ParticleEmitter.h"
+#include "Particle/ParticleLODLevel.h"
 #include "Particle/ParticleSystem.h"
 #include "Particle/Modules/ParticleModuleCollision.h"
 #include "Particle/Modules/ParticleModuleEventGenerator.h"
+#include "Particle/Modules/ParticleModuleRequired.h"
 
 #include <cmath>
 #include <limits>
@@ -78,8 +81,9 @@ const char* FParticleModuleDetailsPanel::GetPanelName() const {
 	return mPanelName.c_str();
 }
 
-void FParticleModuleDetailsPanel::SetTarget(UObject* Object) {
+void FParticleModuleDetailsPanel::SetTarget(UObject* Object, int32 LODIndex) {
 	mTarget = Object;
+	mLODIndex = LODIndex;
 }
 
 bool FParticleModuleDetailsPanel::DrawParticleSystemProperties(UParticleSystem* ParticleSystem) {
@@ -124,15 +128,22 @@ void FParticleModuleDetailsPanel::OnRender() {
 			ImGui::TextUnformatted(mTarget->GetClass()->Name.c_str());
 			ImGui::Separator();
 			bool Changed{ FDetailsPanel::DrawObjectProperties(mTarget) };
+			bool MaterialChanged{};
 			if (UParticleSystem* ParticleSystem{ Cast<UParticleSystem>(mTarget) }) {
 				Changed |= DrawParticleSystemProperties(ParticleSystem);
 			} else if (UParticleModuleCollision* Collision{ Cast<UParticleModuleCollision>(mTarget) }) {
 				Changed |= DrawCollisionOptions(Collision);
 			} else if (UParticleModuleEventGenerator* Generator{ Cast<UParticleModuleEventGenerator>(mTarget) }) {
 				Changed |= DrawEventGeneratorRules(Generator);
+			} else if (UParticleModuleRequired* Required{ Cast<UParticleModuleRequired>(mTarget) }) {
+				MaterialChanged = FDetailsPanel::DrawParticleMaterialProperties(Required, false);
+			} else if (UParticleEmitter* Emitter{ Cast<UParticleEmitter>(mTarget) }) {
+				if (UParticleLODLevel* LOD{ Emitter->GetLODLevel(mLODIndex) }; LOD && LOD->RequiredModule) {
+					MaterialChanged = FDetailsPanel::DrawParticleMaterialProperties(LOD->RequiredModule, true);
+				}
 			}
-			if (Changed && mChangeCallback) {
-				mChangeCallback();
+			if ((Changed || MaterialChanged) && mChangeCallback) {
+				mChangeCallback(Changed);
 			}
 		}
 	}
