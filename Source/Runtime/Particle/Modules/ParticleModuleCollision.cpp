@@ -8,6 +8,10 @@
 #include "Collision/HitResult.h"
 #include "Particle/ParticleLODLevel.h"
 #include "Particle/Modules/ParticleModuleEventGenerator.h"
+#include "Particle/Modules/ParticleModuleTypeDataMesh.h"
+#include "Collision/CollisionShape.h"
+#include "Collision/PhysicsScene.h"
+#include "Math/Quat.h"
 
 namespace
 {
@@ -41,9 +45,38 @@ bool UParticleModuleCollision::MoveParticle(FParticleEmitterInstance& Owner, FBa
 	const FVector WorldStart = SimToWorld.TransformPosition(Particle.Location);
 	const FVector WorldDelta = SimToWorld.TransformVector(SimDelta);
 
+	// 메시 파티클은 메시 바운드 박스로 Sweep, 그 외에는 점(LineTrace)
+	const UParticleModuleTypeDataMesh* MeshType = Owner.CurrentLODLevel	? Cast<UParticleModuleTypeDataMesh>(Owner.CurrentLODLevel->TypeDataModule) : nullptr;
+	const UStaticMesh* Mesh = MeshType ? MeshType->GetStaticMesh() : nullptr;
+
 	// 자기 Actor의 충돌체는 제외
 	FHitResult Hit;
-	if (!World->GetPhysicsScene().LineTraceSingle(WorldStart, WorldDelta, Component->GetOwner(), Hit))
+	FVector CenterOffset = FVector::ZeroVector; // 파티클 원점 → 박스 중심 (월드)
+	bool bHit = false;
+	if (Mesh)
+	{
+		// 로컬 바운드 × Size × SimulateToWorld 의 월드 AABB (파티클 회전은 무시, UE4 방식)
+		const FMatrix ParticleToWorld = FMatrix::MakeFromTRS(Particle.Location, FQuat::Identity(), Particle.Size) * SimToWorld;
+		const FBox WorldBox = Mesh->GetRenderBounds().GetWorldAABB(ParticleToWorld);
+		const FVector Center = (WorldBox.Min + WorldBox.Max) * 0.5f;
+		const FVector Extent = (WorldBox.Max - WorldBox.Min) * 0.5f;
+		CenterOffset = Center - WorldStart;
+
+		bHit = World->GetPhysicsScene().SweepSingleByShape(*World, FCollisionShape::MakeBox(Extent), Center, WorldDelta,
+			FRotator(0.f, 0.f, 0.f), Component->GetOwner(), Hit);
+
+		// 시작부터 겹친 경우는 반사하면 표면에 갇히므로 충돌로 보지 않는다
+		if (bHit && (Hit.bStartPentrating || Hit.Time <= 0.f))
+		{
+			bHit = false;
+		}
+	}
+	else
+	{
+		bHit = World->GetPhysicsScene().LineTraceSingle(WorldStart, WorldDelta, Component->GetOwner(), Hit);
+	}
+
+	if (!bHit)
 	{
 		Particle.Location += SimDelta;
 		return false;
@@ -65,7 +98,8 @@ bool UParticleModuleCollision::MoveParticle(FParticleEmitterInstance& Owner, FBa
 	Particle.RotationRate *= RotationDampingFactor;
 
 	// 접촉점에서 남은 시간만큼 반사 방향으로 이동 (재검사 없음)
-	const FVector ContactLocation = Hit.Location + Normal * SurfaceOffset;
+	// Sweep의 Hit.Location은 박스 중심이므로 파티클 원점으로 되돌린다 (LineTrace는 Offset 0)
+	const FVector ContactLocation = Hit.Location - CenterOffset + Normal * SurfaceOffset;
 	const float RemainingTime = (1.f - Hit.Time) * DeltaTime;
 
 	// 시뮬레이션 좌표로 복귀
