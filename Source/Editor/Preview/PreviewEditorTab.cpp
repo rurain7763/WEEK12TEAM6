@@ -10,10 +10,9 @@
 #include <algorithm>
 #include <cmath>
 
-FPreviewEditorTab::FPreviewEditorTab(FEditorTabSettings InSettings, FString InViewportName)
-	: FEditorTab(std::move(InSettings))
-	, PreviewScene(MakeUnique<FPreviewScene>())
-{
+FPreviewEditorTab::FPreviewEditorTab(FEditorTabSettings InSettings, FString InViewportName, bool CreateFloor)
+	: FEditorTab{ std::move(InSettings) },
+	  PreviewScene{ MakeUnique<FPreviewScene>(CreateFloor) } {
 	ViewportPanel = AddPanel<FPreviewViewportPanel>(GetWorld(), std::move(InViewportName), [this]()
 	{
 		DrawPreviewToolbar();

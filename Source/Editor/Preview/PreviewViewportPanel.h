@@ -35,6 +35,7 @@ public:
 
 	FViewport* GetViewport() const { return Viewport.get(); }
 	FEditorViewportClient* GetEditorClient() const { return EditorClient; }
+	void SetGridControlVisible(bool Visible);
 
 private:
 	UWorld* World = nullptr; // 탭 소유
@@ -53,4 +54,5 @@ private:
 	bool bHovered = false;
 	// 우클릭을 누른 채 창 밖으로 나가도 놓을 때까지 카메라를 잡고 있는다
 	bool bCaptured = false;
+	bool mGridControlVisible{ true };
 };

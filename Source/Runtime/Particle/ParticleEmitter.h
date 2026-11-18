@@ -23,6 +23,8 @@ public:
 
 	const FString& GetEmitterName() const;
 	void SetEmitterName(const FString& Name);
+	bool IsEnabled() const;
+	void SetEnabled(bool Enabled);
 
 	FParticleEmitterInstance* CreateInstance(UParticleSystemComponent* Owner);
 
@@ -37,6 +39,7 @@ private:
 	friend struct FParticleEmitterInstance;
 
 	FString mEmitterName{};
+	bool mEnabled{ true };
 
 	int32 MaxParticleCount = 1000;
 	int32 ParticleSize = 0;

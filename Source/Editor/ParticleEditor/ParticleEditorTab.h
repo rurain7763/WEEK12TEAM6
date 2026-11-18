@@ -20,8 +20,10 @@ public:
 
 private:
 	void BuildDefaultLayout(ImGuiID DockSpaceRoot) override;
+	void DrawPreviewToolbar() override;
 	void TickPreview(float DeltaTime) override;
 	void InitializePreviewCamera();
+	void UpdatePreviewMotion(float DeltaTime);
 	void RestartPreview();
 	void ApplyPendingStructureChange();
 
@@ -41,6 +43,10 @@ private:
 	bool mHasPendingStructureRequest{};
 	bool mPendingCameraSetup{ true };
 	bool mPendingPreviewRestart{};
+	bool mMotionEnabled{};
+	float mMotionRadius{ 3.0f };
+	float mMotionAngle{};
+	double mPreviewTime{};
 	bool mDirty{};
 	bool mCloseRequested{};
 	bool mCloseApproved{};

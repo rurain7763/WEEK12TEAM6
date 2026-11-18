@@ -147,8 +147,8 @@ private:
 	void DrawTranslucentMeshGroups();
 	void UpdatePerObjectConstants(const FMatrix& World, const FMatrix& NormalMatrix, uint32 ObjectMask);
 
-	void BindMaterial(UMaterial* material, bool bUseSkinning);
-	void UpdateMaterialParams(UMaterial* Material);
+	void BindMaterial(UMaterial* Material, bool UseSkinning);
+	void UpdateMaterialParams(UMaterial* Material, const FLinearColor& ColorMultiplier = FLinearColor::White);
 	void UpdatePerObjectConstants(const FRenderPacket& RenderPacket);
 	void EnsurePerObjectSlotCapacity(uint32 SlotCount);
 	void UploadPerObjectConstants();

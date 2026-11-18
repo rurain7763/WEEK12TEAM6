@@ -84,8 +84,7 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, const FVector& InitLo
 
 void FParticleEmitterInstance::SpawnParticle(const FVector& InitLocation)
 {
-	if (!ParticleData || !CurrentLODLevel || !CurrentLODLevel->IsEnabled())
-	{
+	if (!ParticleData || !EmitterTemplate || !EmitterTemplate->IsEnabled() || !CurrentLODLevel || !CurrentLODLevel->IsEnabled()) {
 		return;
 	}
 
@@ -150,8 +149,15 @@ void FParticleEmitterInstance::UpdateTransforms()
 	}
 }
 
-void FParticleEmitterInstance::Tick(float DeltaTime)
-{
+void FParticleEmitterInstance::Tick(float DeltaTime) {
+	if (!EmitterTemplate || !EmitterTemplate->IsEnabled()) {
+		while (ActiveParticles > 0) {
+			KillParticle(ActiveParticles - 1);
+		}
+		SpawnFraction = 0.0f;
+		return;
+	}
+
 	Tick_KillParticles(DeltaTime);
 	UpdateTransforms();
 	Tick_SpawnParticles(DeltaTime);
@@ -257,12 +263,10 @@ void FParticleEmitterInstance::Tick_MoveParticles(float DeltaTime)
 	}
 }
 
-void FParticleEmitterInstance::BuildRenderData(FParticleEmitterRenderData& RenderData) const
-{
-	RenderData.Particles.Reset();
+void FParticleEmitterInstance::BuildRenderData(FParticleEmitterRenderData& RenderData) const {
+	RenderData = FParticleEmitterRenderData{};
 
-	if (!CurrentLODLevel->RequiredModule)
-	{
+	if (!EmitterTemplate || !EmitterTemplate->IsEnabled() || !CurrentLODLevel || !CurrentLODLevel->RequiredModule) {
 		return;
 	}
 

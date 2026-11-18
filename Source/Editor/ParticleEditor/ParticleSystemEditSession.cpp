@@ -18,14 +18,26 @@
 #include "Particle/Modules/ParticleModuleRotationRate.h"
 #include "Particle/Modules/ParticleModuleSizeOfLifeTime.h"
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
+#include "Particle/Modules/ParticleModuleTypeDataBase.h"
+#include "Particle/Modules/ParticleModuleTypeDataBeam.h"
+#include "Particle/Modules/ParticleModuleTypeDataRibbon.h"
+#include "Particle/Modules/ParticleModuleTypeDataMesh.h"
 #include "Particle/Modules/ParticleModuleCollision.h"
 #include "Particle/Modules/ParticleModuleEventGenerator.h"
 #include "Serialization/JsonArchive.h"
+#include "Serialization/MemoryReader.h"
+#include "Serialization/MemoryWriter.h"
+#include "Serialization/StructuredArchive.h"
+#include "Serialization/StructuredArchiveSlots.h"
+#include "Serialization/Formatter/JsonArchiveInputFormatter.h"
+#include "Serialization/Formatter/JsonArchiveOutputFormatter.h"
 #include "UObject/UObjectIterator.h"
 #include "Render/Material.h"
 
 #include <algorithm>
+#include <cmath>
 #include <utility>
+#include <vector>
 
 FParticleSystemEditSession::FParticleSystemEditSession(UParticleSystem* Original)
 	: mOriginal{ Original },
@@ -41,6 +53,175 @@ UParticleSystem* FParticleSystemEditSession::GetWorkingCopy() const {
 
 const FString& FParticleSystemEditSession::GetError() const {
 	return mError;
+}
+
+int32 FParticleSystemEditSession::GetSelectedLODIndex() const {
+	return mSelectedLODIndex;
+}
+
+bool FParticleSystemEditSession::SelectLOD(int32 LODIndex) {
+	if (!mWorkingCopy || !mWorkingCopy->LODDistances.IsValidIndex(LODIndex) || LODIndex == mSelectedLODIndex) {
+		return false;
+	}
+
+	mSelectedLODIndex = LODIndex;
+	return true;
+}
+
+FParticleSystemEditSession::FOwnedLOD FParticleSystemEditSession::CloneLOD(UParticleLODLevel* Source, UParticleEmitter* Emitter) {
+	FOwnedLOD Copy{ nullptr, &DestroyLOD };
+	if (!Source) {
+		return Copy;
+	}
+
+	TArray<uint8> Bytes{};
+	FMemoryWriter Writer{ Bytes };
+	{
+		FJsonArchiveOutputFormatter Formatter{ Writer };
+		FStructuredArchive Archive{ Formatter };
+		Source->Serialize(Archive.Open().EnterRecord());
+		Archive.Close();
+	}
+	if (Writer.IsError()) {
+		return Copy;
+	}
+
+	Copy.reset(NewObject<UParticleLODLevel>(Emitter));
+	FMemoryReader Reader{ Bytes };
+	FJsonArchiveInputFormatter Formatter{ Reader };
+	if (Reader.IsError()) {
+		Copy.reset();
+		return Copy;
+	}
+
+	FStructuredArchive Archive{ Formatter };
+	Copy->Serialize(Archive.Open().EnterRecord());
+	Archive.Close();
+	if (Reader.IsError() || !Copy->RequiredModule || !Copy->SpawnModule || Copy->Modules.Find(nullptr) >= 0) {
+		Copy.reset();
+		return Copy;
+	}
+
+	Copy->RequiredModule->SetOuter(Copy.get());
+	Copy->SpawnModule->SetOuter(Copy.get());
+	if (Copy->TypeDataModule) {
+		Copy->TypeDataModule->SetOuter(Copy.get());
+	}
+	for (UParticleModule* Module : Copy->Modules) {
+		Module->SetOuter(Copy.get());
+	}
+	Copy->BuildModuleLists();
+	return Copy;
+}
+
+void FParticleSystemEditSession::DestroyLOD(UParticleLODLevel* LOD) {
+	if (!LOD) {
+		return;
+	}
+
+	for (UParticleModule* Module : LOD->Modules) {
+		delete Module;
+	}
+	delete LOD->RequiredModule;
+	delete LOD->SpawnModule;
+	delete LOD->TypeDataModule;
+	delete LOD;
+}
+
+void FParticleSystemEditSession::RenumberLODs() {
+	for (UParticleEmitter* Emitter : mWorkingCopy->Emitters) {
+		for (int32 Index{}; Index < Emitter->LODLevels.Num(); ++Index) {
+			Emitter->LODLevels[Index]->SetLevel(Index);
+		}
+	}
+}
+
+bool FParticleSystemEditSession::AddLOD(int32 TargetIndex, FString& Error) {
+	Error.clear();
+	if (!mWorkingCopy || !mWorkingCopy->ValidateLODLevels() || TargetIndex <= 0 || TargetIndex > mWorkingCopy->LODDistances.Num()) {
+		Error = "A new LOD must be inserted after LOD 0 in a valid particle system.";
+		return false;
+	}
+
+	const TArray<float>& Distances{ mWorkingCopy->LODDistances };
+	const float PreviousDistance{ Distances[TargetIndex - 1] };
+	const float Distance{ TargetIndex < Distances.Num() ? static_cast<float>((static_cast<double>(PreviousDistance) + Distances[TargetIndex]) * 0.5) : PreviousDistance + (TargetIndex > 1 ? PreviousDistance - Distances[TargetIndex - 2] : 10.0f) };
+	if (!std::isfinite(Distance) || Distance <= PreviousDistance || (TargetIndex < Distances.Num() && Distance >= Distances[TargetIndex])) {
+		Error = "There is no available distance between these LODs. Adjust the LOD distances first.";
+		return false;
+	}
+
+	std::vector<FOwnedLOD> NewLevels{};
+	NewLevels.reserve(mWorkingCopy->Emitters.Num());
+	for (UParticleEmitter* Emitter : mWorkingCopy->Emitters) {
+		FOwnedLOD Level{ CloneLOD(Emitter->GetLODLevel(mSelectedLODIndex), Emitter) };
+		if (!Level) {
+			Error = "Could not copy the selected LOD.";
+			return false;
+		}
+		NewLevels.push_back(std::move(Level));
+		Emitter->LODLevels.Reserve(Emitter->LODLevels.Num() + 1);
+	}
+	mWorkingCopy->LODDistances.Reserve(Distances.Num() + 1);
+
+	for (int32 Index{}; Index < mWorkingCopy->Emitters.Num(); ++Index) {
+		mWorkingCopy->Emitters[Index]->LODLevels.Insert(NewLevels[Index].get(), TargetIndex);
+		NewLevels[Index].release();
+	}
+	mWorkingCopy->LODDistances.Insert(Distance, TargetIndex);
+	mSelectedLODIndex = TargetIndex;
+	RenumberLODs();
+	return true;
+}
+
+bool FParticleSystemEditSession::DeleteLOD(FString& Error) {
+	Error.clear();
+	if (!mWorkingCopy || !mWorkingCopy->ValidateLODLevels() || mSelectedLODIndex <= 0 || !mWorkingCopy->LODDistances.IsValidIndex(mSelectedLODIndex)) {
+		Error = "LOD 0 is the base level and cannot be deleted.";
+		return false;
+	}
+
+	for (UParticleEmitter* Emitter : mWorkingCopy->Emitters) {
+		UParticleLODLevel* Level{ Emitter->LODLevels[mSelectedLODIndex] };
+		Emitter->LODLevels.RemoveAt(mSelectedLODIndex);
+		DestroyLOD(Level);
+	}
+	mWorkingCopy->LODDistances.RemoveAt(mSelectedLODIndex);
+	mSelectedLODIndex = std::min(mSelectedLODIndex, mWorkingCopy->LODDistances.Num() - 1);
+	RenumberLODs();
+	return true;
+}
+
+bool FParticleSystemEditSession::RegenerateLODs(FString& Error) {
+	Error.clear();
+	if (!mWorkingCopy || !mWorkingCopy->ValidateLODLevels() || mWorkingCopy->LODDistances.Num() < 2) {
+		Error = "Add a lower LOD before regenerating LODs from LOD 0.";
+		return false;
+	}
+
+	std::vector<FOwnedLOD> NewLevels{};
+	const int32 LowerLODCount{ mWorkingCopy->LODDistances.Num() - 1 };
+	NewLevels.reserve(static_cast<std::size_t>(mWorkingCopy->Emitters.Num()) * LowerLODCount);
+	for (UParticleEmitter* Emitter : mWorkingCopy->Emitters) {
+		for (int32 Index{ 1 }; Index <= LowerLODCount; ++Index) {
+			FOwnedLOD Level{ CloneLOD(Emitter->GetLODLevel(0), Emitter) };
+			if (!Level) {
+				Error = "Could not regenerate the lower LODs.";
+				return false;
+			}
+			Level->SetLevel(Index);
+			NewLevels.push_back(std::move(Level));
+		}
+	}
+
+	for (int32 EmitterIndex{}; EmitterIndex < mWorkingCopy->Emitters.Num(); ++EmitterIndex) {
+		UParticleEmitter* Emitter{ mWorkingCopy->Emitters[EmitterIndex] };
+		for (int32 Index{ 1 }; Index <= LowerLODCount; ++Index) {
+			DestroyLOD(Emitter->LODLevels[Index]);
+			Emitter->LODLevels[Index] = NewLevels[static_cast<std::size_t>(EmitterIndex) * LowerLODCount + Index - 1].release();
+		}
+	}
+	return true;
 }
 
 FParticleSystemEditSession::FOwnedParticleSystem FParticleSystemEditSession::CloneParticleSystem(UParticleSystem* Source) {
@@ -73,15 +254,7 @@ void FParticleSystemEditSession::DestroyEmitter(UParticleEmitter* Emitter) {
 		return;
 	}
 	for (UParticleLODLevel* LOD : Emitter->LODLevels) {
-		if (!LOD) {
-			continue;
-		}
-		for (UParticleModule* Module : LOD->Modules) {
-			delete Module;
-		}
-		delete LOD->RequiredModule;
-		delete LOD->SpawnModule;
-		delete LOD;
+		DestroyLOD(LOD);
 	}
 	delete Emitter;
 }
@@ -120,6 +293,7 @@ UParticleEmitter* FParticleSystemEditSession::AddEmitter(FString& Error) {
 	}
 	Emitter->CacheEmitterModuleInfo();
 	mWorkingCopy->Emitters.Add(Emitter.get());
+	mWorkingCopy->EnsureEmitterNames();
 	return Emitter.release();
 }
 
@@ -155,12 +329,51 @@ bool FParticleSystemEditSession::MoveEmitter(UParticleEmitter* Emitter, int32 Ta
 	return true;
 }
 
+bool FParticleSystemEditSession::SetEmitterTypeData(UParticleEmitter* Emitter, UClass* ModuleClass, FString& Error) {
+	Error.clear();
+	if (!GetEditableLOD(Emitter, Error)) {
+		return false;
+	}
+	if (!mWorkingCopy->ValidateLODLevels()) {
+		Error = "A valid particle system is required to change Type Data.";
+		return false;
+	}
+	if (ModuleClass && ModuleClass != UParticleModuleTypeDataMesh::StaticClass() && ModuleClass != UParticleModuleTypeDataBeam::StaticClass() && ModuleClass != UParticleModuleTypeDataRibbon::StaticClass()) {
+		Error = "Choose Sprite, Mesh, Beam, or Ribbon for this emitter's Type Data.";
+		return false;
+	}
+
+	std::vector<TUniquePtr<UParticleModuleTypeDataBase>> NewModules{};
+	NewModules.reserve(Emitter->LODLevels.Num());
+	bool Changed{};
+	for (UParticleLODLevel* LOD : Emitter->LODLevels) {
+		UClass* CurrentClass{ LOD->TypeDataModule ? LOD->TypeDataModule->GetClass() : nullptr };
+		const bool Replace{ CurrentClass != ModuleClass };
+		NewModules.emplace_back(Replace && ModuleClass ? NewObject<UParticleModuleTypeDataBase>(LOD, ModuleClass) : nullptr);
+		Changed |= Replace;
+	}
+	if (!Changed) {
+		return false;
+	}
+
+	for (int32 Index{}; Index < Emitter->LODLevels.Num(); ++Index) {
+		UParticleLODLevel* LOD{ Emitter->LODLevels[Index] };
+		UClass* CurrentClass{ LOD->TypeDataModule ? LOD->TypeDataModule->GetClass() : nullptr };
+		if (CurrentClass != ModuleClass) {
+			delete LOD->TypeDataModule;
+			LOD->TypeDataModule = NewModules[Index].release();
+		}
+	}
+	Emitter->CacheEmitterModuleInfo();
+	return true;
+}
+
 UParticleLODLevel* FParticleSystemEditSession::GetEditableLOD(UParticleEmitter* Emitter, FString& Error) const {
-	if (!mWorkingCopy || !Emitter || mWorkingCopy->Emitters.Find(Emitter) < 0 || !Emitter->GetLODLevel(0)) {
+	if (!mWorkingCopy || !Emitter || mWorkingCopy->Emitters.Find(Emitter) < 0 || !Emitter->GetLODLevel(mSelectedLODIndex)) {
 		Error = "Select an emitter in this particle system to edit its modules.";
 		return nullptr;
 	}
-	return Emitter->GetLODLevel(0);
+	return Emitter->GetLODLevel(mSelectedLODIndex);
 }
 
 UParticleModule* FParticleSystemEditSession::AddModule(UParticleEmitter* Emitter, UClass* ModuleClass, FString& Error) {

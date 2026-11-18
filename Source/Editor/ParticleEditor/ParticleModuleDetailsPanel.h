@@ -4,6 +4,7 @@
 #include <functional>
 
 class UObject;
+class UParticleSystem;
 
 class FParticleModuleDetailsPanel : public IEditorPanel {
 public:
@@ -19,6 +20,9 @@ public:
 	const char* GetPanelName() const override;
 
 	void SetTarget(UObject* Object);
+
+private:
+	static bool DrawParticleSystemProperties(UParticleSystem* ParticleSystem);
 
 private:
 	FString mPanelName{};
