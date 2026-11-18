@@ -88,6 +88,17 @@
                                 "RotationDampingFactor": 0.5,
                                 "MaxCollisions": 3,
                                 "CompletionOption": 0
+                            },
+                            {
+                                "ClassName": "UParticleModuleEventGenerator",
+                                "Events": [
+                                    {
+                                        "EventName": "KillHit",
+                                        "Frequency": 1,
+                                        "bFirstTimeOnly": false,
+                                        "bLastTimeOnly": true
+                                    }
+                                ]
                             }
                         ],
                         "SpawnModule": {
@@ -183,6 +194,17 @@
                                 "RotationDampingFactor": 0.5,
                                 "MaxCollisions": 2,
                                 "CompletionOption": 1
+                            },
+                            {
+                                "ClassName": "UParticleModuleEventGenerator",
+                                "Events": [
+                                    {
+                                        "EventName": "FirstHit",
+                                        "Frequency": 5,
+                                        "bFirstTimeOnly": true,
+                                        "bLastTimeOnly": false
+                                    }
+                                ]
                             }
                         ],
                         "SpawnModule": {

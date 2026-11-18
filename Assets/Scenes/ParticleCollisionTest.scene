@@ -359,6 +359,14 @@
                                 },
                                 "bVisible": true
                             }
+                        },
+                        {
+                            "Class": "UScriptComponent",
+                            "Name": "UScriptComponent_0",
+                            "Parent": "",
+                            "Properties": {
+                                "ScriptPath": "Assets/Scripts/Actors/ParticleCollisionTest.lua"
+                            }
                         }
                     ],
                     "Name": "CollisionParticles",
