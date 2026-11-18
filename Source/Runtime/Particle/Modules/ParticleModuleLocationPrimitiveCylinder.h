@@ -7,6 +7,9 @@ class UParticleModuleLocationPrimitiveCylinder : public UParticleModule
 	DECLARE_CLASS(UParticleModuleLocationPrimitiveCylinder, UParticleModule)
 
 	REFLECT_START(ThisClass)
+		PROPERTY(Center)
+		PROPERTY(Radius)
+		PROPERTY(HalfHeight)
 	REFLECT_END()
 
 public:
@@ -16,5 +19,7 @@ public:
 	void Spawn(const FSpawnContext& Ctx) override;
 
 private:
-
+	FVector Center = FVector::ZeroVector;
+	float Radius = 1.f;
+	float HalfHeight = 0.5f;
 };

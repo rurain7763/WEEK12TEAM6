@@ -26,6 +26,26 @@ FVector::FVector(float f)
 
 /* Functions */
 
+void FVector::BuildOrthonormalBasis(const FVector& Direction, FVector& Forward, FVector& Right, FVector& Up)
+{
+	FVector Axis = Direction;
+	const float MaxAbs = FMath::Max(FMath::Max(std::fabs(Axis.X), std::fabs(Axis.Y)), std::fabs(Axis.Z));
+	if (!std::isfinite(Axis.X) || !std::isfinite(Axis.Y) || !std::isfinite(Axis.Z) || MaxAbs == 0.f)
+	{
+		Axis = FVector(1.f, 0.f, 0.f);
+	}
+	else
+	{
+		Axis = (Axis / MaxAbs).Normalized();
+	}
+	const FVector Reference = std::fabs(Axis.Z) < 0.999f ? FVector(0.f, 0.f, 1.f) : FVector(1.f, 0.f, 0.f);
+	const FVector RightAxis = Cross(Reference, Axis).Normalized();
+	const FVector UpAxis = Cross(Axis, RightAxis).Normalized();
+	Forward = Axis;
+	Right = RightAxis;
+	Up = UpAxis;
+}
+
 void FVector::Set(float x, float y, float z)
 {
 	X = x;

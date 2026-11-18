@@ -7,11 +7,78 @@
 #include "Particle/Modules/ParticleModuleCollision.h"
 #include "Particle/Modules/ParticleModuleEventGenerator.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
+#include "Particle/Modules/ParticleModuleVelocityCone.h"
 
 #include <cmath>
 #include <limits>
 
 namespace {
+	void DrawDirectionProjection(const char* Label, float Horizontal, float Vertical, const char* Axes) {
+		ImGui::BeginGroup();
+		ImGui::TextUnformatted(Label);
+		const ImVec2 Origin = ImGui::GetCursorScreenPos();
+		const ImVec2 Center(Origin.x + 48.f, Origin.y + 48.f);
+		ImDrawList* Draw = ImGui::GetWindowDrawList();
+		const ImU32 Grid = ImGui::GetColorU32(ImGuiCol_Border);
+		const ImU32 Color = ImGui::GetColorU32(ImGuiCol_PlotHistogram);
+		Draw->AddCircle(Center, 38.f, Grid);
+		Draw->AddLine(ImVec2(Center.x - 38.f, Center.y), ImVec2(Center.x + 38.f, Center.y), Grid);
+		Draw->AddLine(ImVec2(Center.x, Center.y - 38.f), ImVec2(Center.x, Center.y + 38.f), Grid);
+		const ImVec2 Tip(Center.x + Horizontal * 38.f, Center.y - Vertical * 38.f);
+		Draw->AddLine(Center, Tip, Color, 2.f);
+		const float Length = std::sqrt(Horizontal * Horizontal + Vertical * Vertical);
+		if (Length > 0.01f) {
+			const float X = Horizontal / Length, Y = -Vertical / Length;
+			Draw->AddTriangleFilled(Tip, ImVec2(Tip.x - X * 8.f - Y * 4.f, Tip.y - Y * 8.f + X * 4.f), ImVec2(Tip.x - X * 8.f + Y * 4.f, Tip.y - Y * 8.f - X * 4.f), Color);
+		} else {
+			Draw->AddCircleFilled(Center, 3.f, Color);
+		}
+		ImGui::Dummy(ImVec2(96.f, 96.f));
+		ImGui::TextDisabled("%s", Axes);
+		ImGui::EndGroup();
+	}
+
+	bool DrawConeDirection(UParticleModuleVelocityCone* Cone) {
+		FVector Value = Cone->GetDirection();
+		FVector Forward, Right, Up;
+		FVector::BuildOrthonormalBasis(Value, Forward, Right, Up);
+		bool Changed = false;
+		ImGui::SeparatorText("Cone Direction (Emitter Local Space)");
+		ImGui::TextDisabled("Yaw: +X toward +Y. Elevation: toward +Z.");
+		float Yaw = std::atan2(Forward.Y, Forward.X) * 180.f / PI;
+		float Elevation = std::atan2(Forward.Z, std::sqrt(Forward.X * Forward.X + Forward.Y * Forward.Y)) * 180.f / PI;
+		bool AngleChanged = ImGui::SliderFloat("Yaw (deg)", &Yaw, -180.f, 180.f, "%.1f");
+		AngleChanged |= ImGui::SliderFloat("Elevation (deg)", &Elevation, -90.f, 90.f, "%.1f");
+		if (AngleChanged) {
+			const float Y = FMath::DegreesToRadians(Yaw), E = FMath::DegreesToRadians(Elevation);
+			Value = FVector(std::cos(E) * std::cos(Y), std::cos(E) * std::sin(Y), std::sin(E));
+			Changed = true;
+		}
+		const char* Labels[] = { "+X", "-X", "+Y", "-Y", "+Z", "-Z" };
+		const FVector Axes[] = { FVector(1, 0, 0), FVector(-1, 0, 0), FVector(0, 1, 0), FVector(0, -1, 0), FVector(0, 0, 1), FVector(0, 0, -1) };
+		for (int Index = 0; Index < IM_ARRAYSIZE(Labels); ++Index) {
+			if (Index > 0) ImGui::SameLine();
+			if (ImGui::Button(Labels[Index])) { Value = Axes[Index]; Changed = true; }
+		}
+		if (ImGui::TreeNode("Vector components (advanced)")) {
+			Changed |= ImGui::DragFloat3("XYZ", Value.V, 0.01f);
+			if (ImGui::Button("Normalize Direction")) {
+				FVector::BuildOrthonormalBasis(Value, Forward, Right, Up);
+				Value = Forward;
+				Changed = true;
+			}
+			ImGui::TreePop();
+		}
+		FVector::BuildOrthonormalBasis(Value, Forward, Right, Up);
+		DrawDirectionProjection("Top (XY)", Forward.X, Forward.Y, "Right: +X / Up: +Y");
+		ImGui::SameLine();
+		DrawDirectionProjection("Side (XZ)", Forward.X, Forward.Z, "Right: +X / Up: +Z");
+		if (!std::isfinite(Value.X) || !std::isfinite(Value.Y) || !std::isfinite(Value.Z) || Value.SizeSquared() == 0.f)
+			ImGui::TextDisabled("Invalid direction: preview and emission use +X.");
+		if (Changed) Cone->SetDirection(Value);
+		return Changed;
+	}
+
 	// 리플렉션 미지원 enum이라 직접 콤보로 그림
 	bool DrawCollisionOptions(UParticleModuleCollision* Collision) {
 		const char* Items[]{ "Kill", "Freeze" };
@@ -129,7 +196,9 @@ void FParticleModuleDetailsPanel::OnRender() {
 			ImGui::Separator();
 			bool Changed{ FDetailsPanel::DrawObjectProperties(mTarget) };
 			bool MaterialChanged{};
-			if (UParticleSystem* ParticleSystem{ Cast<UParticleSystem>(mTarget) }) {
+			if (UParticleModuleVelocityCone* Cone{ Cast<UParticleModuleVelocityCone>(mTarget) }) {
+				Changed |= DrawConeDirection(Cone);
+			} else if (UParticleSystem* ParticleSystem{ Cast<UParticleSystem>(mTarget) }) {
 				Changed |= DrawParticleSystemProperties(ParticleSystem);
 			} else if (UParticleModuleCollision* Collision{ Cast<UParticleModuleCollision>(mTarget) }) {
 				Changed |= DrawCollisionOptions(Collision);

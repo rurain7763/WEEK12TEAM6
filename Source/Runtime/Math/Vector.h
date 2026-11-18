@@ -106,6 +106,8 @@ public:
 	/* Static */
 	static float Dot(const FVector& V1, const FVector& V2);
 	static FVector Cross(const FVector& V1, const FVector& V2);
+	// Builds a right-handed unit basis. Invalid/zero input falls back to +X.
+	static void BuildOrthonormalBasis(const FVector& Direction, FVector& Forward, FVector& Right, FVector& Up);
 	static float Distance(const FVector& V1, const FVector& V2); // == Dist()
 	/*static FVector DegreesToRadians(const FVector& V1);
 	static FVector RadiansToDegrees(const FVector& V1);

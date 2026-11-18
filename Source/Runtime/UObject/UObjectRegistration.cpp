@@ -115,6 +115,7 @@
 #include "Particle/Modules/ParticleModuleTypeDataRibbon.h"
 #include "Particle/Modules/ParticleModuleTypeDataMesh.h"
 #include "Particle/Modules/ParticleModuleVelocity.h"
+#include "Particle/Modules/ParticleModuleVelocityCone.h"
 #include "Particle/ParticleEmitter.h"
 #include "Particle/ParticleLODLevel.h"
 #include "Particle/ParticleModule.h"
@@ -275,6 +276,7 @@ void RegisterUClasses()
 	UParticleModuleTypeDataRibbon::StaticClass();
 	UParticleModuleTypeDataMesh::StaticClass();
 	UParticleModuleVelocity::StaticClass();
+	UParticleModuleVelocityCone::StaticClass();
 	UParticleEmitter::StaticClass();
 	UParticleLODLevel::StaticClass();
 	UParticleModule::StaticClass();
