@@ -1,0 +1,431 @@
+{
+    "Version": 1,
+    "ParticleSystem": {
+        "LODMethod": 0,
+        "LODDistances": [
+            0.0,
+            40.0
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "Cubes",
+                "MaxParticleCount": 120,
+                "ParticleSize": 0,
+                "bEnabled": true,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 4.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0.5
+                                },
+                                "MinLocation": {
+                                    "X": -0.4,
+                                    "Y": -0.4,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.4,
+                                    "Y": 0.4,
+                                    "Z": 0.4
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 3.0,
+                                "MaxVelocity": 5.5,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -9.8
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.3,
+                                    "Y": 0.3,
+                                    "Z": 0.3
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 0.3,
+                                    "G": 0.85,
+                                    "B": 1.0,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleRotation",
+                                "StartRotation": 0.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleRotationRate",
+                                "StartRotationRate": 6.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleCollision",
+                                "DampingFactor": {
+                                    "X": 0.5,
+                                    "Y": 0.5,
+                                    "Z": 0.5
+                                },
+                                "RotationDampingFactor": 0.5,
+                                "MaxCollisions": 3,
+                                "CompletionOption": 0
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 20.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataMesh",
+                            "StaticMesh": "Cube"
+                        }
+                    },
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 1,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 4.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0.5
+                                },
+                                "MinLocation": {
+                                    "X": -0.4,
+                                    "Y": -0.4,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.4,
+                                    "Y": 0.4,
+                                    "Z": 0.4
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 3.0,
+                                "MaxVelocity": 5.5,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -9.8
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.3,
+                                    "Y": 0.3,
+                                    "Z": 0.3
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 0.3,
+                                    "G": 0.85,
+                                    "B": 1.0,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleRotation",
+                                "StartRotation": 0.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleRotationRate",
+                                "StartRotationRate": 6.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleCollision",
+                                "DampingFactor": {
+                                    "X": 0.5,
+                                    "Y": 0.5,
+                                    "Z": 0.5
+                                },
+                                "RotationDampingFactor": 0.5,
+                                "MaxCollisions": 3,
+                                "CompletionOption": 0
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 6.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataMesh",
+                            "StaticMesh": "Cube"
+                        }
+                    }
+                ]
+            },
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "Spheres",
+                "MaxParticleCount": 120,
+                "ParticleSize": 0,
+                "bEnabled": true,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 4.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0.5
+                                },
+                                "MinLocation": {
+                                    "X": -0.4,
+                                    "Y": -0.4,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.4,
+                                    "Y": 0.4,
+                                    "Z": 0.4
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 3.0,
+                                "MaxVelocity": 5.5,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -9.8
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.25,
+                                    "Y": 0.25,
+                                    "Z": 0.25
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.6,
+                                    "B": 0.2,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleRotation",
+                                "StartRotation": 0.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleRotationRate",
+                                "StartRotationRate": 6.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleCollision",
+                                "DampingFactor": {
+                                    "X": 0.5,
+                                    "Y": 0.5,
+                                    "Z": 0.5
+                                },
+                                "RotationDampingFactor": 0.5,
+                                "MaxCollisions": 3,
+                                "CompletionOption": 0
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 14.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataMesh",
+                            "StaticMesh": "Sphere"
+                        }
+                    },
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 1,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 4.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0.5
+                                },
+                                "MinLocation": {
+                                    "X": -0.4,
+                                    "Y": -0.4,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.4,
+                                    "Y": 0.4,
+                                    "Z": 0.4
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 3.0,
+                                "MaxVelocity": 5.5,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -9.8
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.25,
+                                    "Y": 0.25,
+                                    "Z": 0.25
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.6,
+                                    "B": 0.2,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleRotation",
+                                "StartRotation": 0.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleRotationRate",
+                                "StartRotationRate": 6.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleCollision",
+                                "DampingFactor": {
+                                    "X": 0.5,
+                                    "Y": 0.5,
+                                    "Z": 0.5
+                                },
+                                "RotationDampingFactor": 0.5,
+                                "MaxCollisions": 3,
+                                "CompletionOption": 0
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 4.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataMesh",
+                            "StaticMesh": "Sphere"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

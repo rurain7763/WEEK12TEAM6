@@ -68,6 +68,17 @@
                                 },
                                 "ClassName": "UParticleModuleAccelerationConstant",
                                 "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleCollision",
+                                "CompletionOption": 0,
+                                "DampingFactor": {
+                                    "X": 0.5,
+                                    "Y": 0.5,
+                                    "Z": 0.5
+                                },
+                                "MaxCollisions": 2,
+                                "RotationDampingFactor": 0.5
                             }
                         ],
                         "RequiredModule": {
@@ -88,7 +99,7 @@
                     }
                 ],
                 "MaxParticleCount": 1755,
-                "ParticleSize": 96,
+                "ParticleSize": 104,
                 "bEnabled": true
             },
             {
@@ -207,7 +218,7 @@
                                         "R": 0.5
                                     },
                                     "Textures": [
-                                        "Assets/Models/Mercy (Overwatch 2)/Textures/000000021CC9.png"
+                                        "Resources/Textures/OrientParticle.png"
                                     ],
                                     "UVScrollSpeed": [
                                         0.0,

@@ -1,59 +1,62 @@
 {
-    "Version": 1,
     "ParticleSystem": {
-        "LODMethod": 0,
-        "LODDistances": [
-            0
-        ],
-        "LODDistanceCheckTime": 0.25,
         "Emitters": [
             {
                 "ClassName": "UParticleEmitter",
-                "MaxParticleCount": 100,
-                "ParticleSize": 0,
+                "EmitterName": "Emitter 1",
                 "LODLevels": [
                     {
                         "ClassName": "UParticleLODLevel",
                         "Level": 0,
-                        "bEnable": true,
                         "Modules": [
                             {
                                 "ClassName": "UParticleModuleLifeTime",
-                                "LifeTime": 1.0
+                                "LifeTime": 2.0
                             },
                             {
                                 "ClassName": "UParticleModuleSize",
                                 "StartSize": {
-                                    "X": 0.3,
-                                    "Y": 0.3,
-                                    "Z": 0.3
+                                    "X": 0.30000001192092896,
+                                    "Y": 0.30000001192092896,
+                                    "Z": 0.30000001192092896
                                 }
                             },
                             {
                                 "ClassName": "UParticleModuleColor",
                                 "StartColor": {
-                                    "R": 1.0,
+                                    "A": 1.0,
+                                    "B": 0.10000000149011612,
                                     "G": 0.5,
-                                    "B": 0.1,
-                                    "A": 1.0
+                                    "R": 1.0
                                 }
                             }
                         ],
-                        "SpawnModule": {
-                            "ClassName": "UParticleModuleSpawn",
-                            "SpawnRate": 30
-                        },
                         "RequiredModule": {
                             "ClassName": "UParticleModuleRequired",
+                            "Material": "BeamMaterial",
                             "bUseLocalSpace": false,
-                            "Material": "BeamMaterial"
+                            "isLit": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 100.0
                         },
                         "TypeDataModule": {
                             "ClassName": "UParticleModuleTypeDataRibbon"
-                        }
+                        },
+                        "bEnable": true
                     }
-                ]
+                ],
+                "MaxParticleCount": 2000,
+                "ParticleSize": 104,
+                "bEnabled": true
             }
-        ]
-    }
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "LODDistances": [
+            0.0
+        ],
+        "LODMethod": 0
+    },
+    "Version": 1
 }

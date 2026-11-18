@@ -1,0 +1,62 @@
+{
+    "Version": 1,
+    "ParticleSystem": {
+        "LODMethod": 0,
+        "LODDistances": [
+            0.0
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "Ribbon",
+                "MaxParticleCount": 200,
+                "ParticleSize": 0,
+                "bEnabled": true,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.3,
+                                    "Y": 0.3,
+                                    "Z": 0.3
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.5,
+                                    "B": 0.1,
+                                    "A": 1.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "BeamMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 60.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataRibbon"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

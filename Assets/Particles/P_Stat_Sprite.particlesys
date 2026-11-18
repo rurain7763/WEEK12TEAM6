@@ -1,0 +1,941 @@
+{
+    "Version": 1,
+    "ParticleSystem": {
+        "LODMethod": 0,
+        "LODDistances": [
+            0.0,
+            35.0,
+            60.0
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "Sparks",
+                "MaxParticleCount": 200,
+                "ParticleSize": 0,
+                "bEnabled": true,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.2
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.3,
+                                    "Y": -0.3,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.3,
+                                    "Y": 0.3,
+                                    "Z": 0.2
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 2.0,
+                                "MaxVelocity": 3.5,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -3.0
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.2,
+                                    "Y": 0.2,
+                                    "Z": 0.2
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.75,
+                                    "B": 0.3,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.75,
+                                    "B": 0.3,
+                                    "A": 1.0
+                                },
+                                "EndColor": {
+                                    "R": 1.0,
+                                    "G": 0.2,
+                                    "B": 0.05,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 120.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        }
+                    },
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 1,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.2
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.3,
+                                    "Y": -0.3,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.3,
+                                    "Y": 0.3,
+                                    "Z": 0.2
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 2.0,
+                                "MaxVelocity": 3.5,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -3.0
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.27999999999999997,
+                                    "Y": 0.27999999999999997,
+                                    "Z": 0.27999999999999997
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.75,
+                                    "B": 0.3,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.75,
+                                    "B": 0.3,
+                                    "A": 1.0
+                                },
+                                "EndColor": {
+                                    "R": 1.0,
+                                    "G": 0.2,
+                                    "B": 0.05,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 40.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        }
+                    },
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 2,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.2
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.3,
+                                    "Y": -0.3,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.3,
+                                    "Y": 0.3,
+                                    "Z": 0.2
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 2.0,
+                                "MaxVelocity": 3.5,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -3.0
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.36000000000000004,
+                                    "Y": 0.36000000000000004,
+                                    "Z": 0.36000000000000004
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.75,
+                                    "B": 0.3,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.75,
+                                    "B": 0.3,
+                                    "A": 1.0
+                                },
+                                "EndColor": {
+                                    "R": 1.0,
+                                    "G": 0.2,
+                                    "B": 0.05,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 10.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        }
+                    }
+                ]
+            },
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "Smoke",
+                "MaxParticleCount": 120,
+                "ParticleSize": 0,
+                "bEnabled": true,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.8
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.4,
+                                    "Y": -0.4,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.4,
+                                    "Y": 0.4,
+                                    "Z": 0.2
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 1.0,
+                                "MaxVelocity": 1.6,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -1.0
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.5,
+                                    "Y": 0.5,
+                                    "Z": 0.5
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 0.5,
+                                    "G": 0.5,
+                                    "B": 0.55,
+                                    "A": 0.6
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 0.5,
+                                    "G": 0.5,
+                                    "B": 0.55,
+                                    "A": 0.6
+                                },
+                                "EndColor": {
+                                    "R": 0.3,
+                                    "G": 0.3,
+                                    "B": 0.35,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 50.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        }
+                    },
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 1,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.8
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.4,
+                                    "Y": -0.4,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.4,
+                                    "Y": 0.4,
+                                    "Z": 0.2
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 1.0,
+                                "MaxVelocity": 1.6,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -1.0
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.7,
+                                    "Y": 0.7,
+                                    "Z": 0.7
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 0.5,
+                                    "G": 0.5,
+                                    "B": 0.55,
+                                    "A": 0.6
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 0.5,
+                                    "G": 0.5,
+                                    "B": 0.55,
+                                    "A": 0.6
+                                },
+                                "EndColor": {
+                                    "R": 0.3,
+                                    "G": 0.3,
+                                    "B": 0.35,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 16.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        }
+                    },
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 2,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.8
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.4,
+                                    "Y": -0.4,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.4,
+                                    "Y": 0.4,
+                                    "Z": 0.2
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 1.0,
+                                "MaxVelocity": 1.6,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -1.0
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.9,
+                                    "Y": 0.9,
+                                    "Z": 0.9
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 0.5,
+                                    "G": 0.5,
+                                    "B": 0.55,
+                                    "A": 0.6
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 0.5,
+                                    "G": 0.5,
+                                    "B": 0.55,
+                                    "A": 0.6
+                                },
+                                "EndColor": {
+                                    "R": 0.3,
+                                    "G": 0.3,
+                                    "B": 0.35,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 4.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        }
+                    }
+                ]
+            },
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "Embers",
+                "MaxParticleCount": 150,
+                "ParticleSize": 0,
+                "bEnabled": true,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.4
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.6,
+                                    "Y": -0.6,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.6,
+                                    "Y": 0.6,
+                                    "Z": 0.2
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 3.0,
+                                "MaxVelocity": 5.0,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -4.0
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.12,
+                                    "Y": 0.12,
+                                    "Z": 0.12
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.4,
+                                    "B": 0.1,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.4,
+                                    "B": 0.1,
+                                    "A": 1.0
+                                },
+                                "EndColor": {
+                                    "R": 0.6,
+                                    "G": 0.05,
+                                    "B": 0.0,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 80.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        }
+                    },
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 1,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.4
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.6,
+                                    "Y": -0.6,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.6,
+                                    "Y": 0.6,
+                                    "Z": 0.2
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 3.0,
+                                "MaxVelocity": 5.0,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -4.0
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.16799999999999998,
+                                    "Y": 0.16799999999999998,
+                                    "Z": 0.16799999999999998
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.4,
+                                    "B": 0.1,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.4,
+                                    "B": 0.1,
+                                    "A": 1.0
+                                },
+                                "EndColor": {
+                                    "R": 0.6,
+                                    "G": 0.05,
+                                    "B": 0.0,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 25.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        }
+                    },
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 2,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.4
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.6,
+                                    "Y": -0.6,
+                                    "Z": 0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.6,
+                                    "Y": 0.6,
+                                    "Z": 0.2
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 1
+                                },
+                                "MinVelocity": 3.0,
+                                "MaxVelocity": 5.0,
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -4.0
+                                },
+                                "bAlwaysInWorldSpace": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.216,
+                                    "Y": 0.216,
+                                    "Z": 0.216
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.4,
+                                    "B": 0.1,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.4,
+                                    "B": 0.1,
+                                    "A": 1.0
+                                },
+                                "EndColor": {
+                                    "R": 0.6,
+                                    "G": 0.05,
+                                    "B": 0.0,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 6.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,120 @@
+{
+    "ParticleSystem": {
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "StressSprite",
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 2.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "StartLocation": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 0
+                                },
+                                "MinLocation": {
+                                    "X": -0.3,
+                                    "Y": -0.3,
+                                    "Z": 0.0
+                                },
+                                "MaxLocation": {
+                                    "X": 0.3,
+                                    "Y": 0.3,
+                                    "Z": 0.3
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "StartVelocity": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": 2.0
+                                },
+                                "bHasRandomValue": true,
+                                "MinVelocity": 1.0,
+                                "MaxVelocity": 2.5
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "Acceleration": {
+                                    "X": 0,
+                                    "Y": 0,
+                                    "Z": -2.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.25,
+                                    "Y": 0.25,
+                                    "Z": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleSizeOfLifeTime",
+                                "StartScale": 1.0,
+                                "EndScale": 0.3
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.75,
+                                    "B": 0.3,
+                                    "A": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColorOverLife",
+                                "StartColor": {
+                                    "R": 1.0,
+                                    "G": 0.75,
+                                    "B": 0.3,
+                                    "A": 1.0
+                                },
+                                "EndColor": {
+                                    "R": 1.0,
+                                    "G": 0.2,
+                                    "B": 0.05,
+                                    "A": 0.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "isLit": false,
+                            "bUseLocalSpace": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 150.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": ""
+                        },
+                        "bEnable": true
+                    }
+                ],
+                "MaxParticleCount": 400,
+                "ParticleSize": 96,
+                "bEnabled": true
+            }
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "LODDistances": [
+            0.0
+        ],
+        "LODMethod": 0
+    },
+    "Version": 1
+}
