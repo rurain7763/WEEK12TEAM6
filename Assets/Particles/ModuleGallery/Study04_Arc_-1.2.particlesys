@@ -1,0 +1,134 @@
+{
+  "Version": 1,
+  "ParticleSystem": {
+    "LODMethod": 0,
+    "LODDistanceCheckTime": 0.25,
+    "Emitters": [
+      {
+        "ClassName": "UParticleEmitter",
+        "ParticleSize": 96,
+        "bEnabled": true,
+        "MaxParticleCount": 32,
+        "LODLevels": [
+          {
+            "Modules": [
+              {
+                "LifeTime": 1,
+                "ClassName": "UParticleModuleLifeTime",
+                "Properties": {}
+              },
+              {
+                "Properties": {},
+                "MinVelocity": 0,
+                "ClassName": "UParticleModuleVelocity",
+                "StartVelocity": {
+                  "Z": 0,
+                  "X": 0,
+                  "Y": 0
+                },
+                "MaxVelocity": 0,
+                "bHasRandomValue": false
+              },
+              {
+                "StartSize": {
+                  "Z": 0.48,
+                  "X": 0.48,
+                  "Y": 0.48
+                },
+                "ClassName": "UParticleModuleSize",
+                "Properties": {}
+              },
+              {
+                "StartColor": {
+                  "B": 1,
+                  "G": 0.85,
+                  "A": 1,
+                  "R": 0.55
+                },
+                "ClassName": "UParticleModuleColor",
+                "Properties": {}
+              },
+              {
+                "Strength": 1,
+                "ClassName": "UParticleModuleBeamSource",
+                "BoneName": "",
+                "Properties": {}
+              },
+              {
+                "TargetOffset": {
+                  "Z": 0,
+                  "X": 0,
+                  "Y": 0
+                },
+                "ClassName": "UParticleModuleBeamTarget",
+                "Properties": {},
+                "Strength": 1
+              }
+            ],
+            "ClassName": "UParticleLODLevel",
+            "RequiredModule": {
+              "MaterialInstance": {
+                "Instance": {
+                  "Textures": [
+                    "Assets/Textures/Particles/BeamArc.png"
+                  ],
+                  "bFlipNormalGreen": false,
+                  "bAffectBaseColor": true,
+                  "SpecularColor": {
+                    "B": 0.25,
+                    "G": 0.25,
+                    "A": 1,
+                    "R": 0.25
+                  },
+                  "UVScrollSpeed": [
+                    0.7,
+                    0
+                  ],
+                  "BaseColor": {
+                    "B": 1,
+                    "G": 1,
+                    "A": 1,
+                    "R": 1
+                  },
+                  "SamplerState": "LinearWrap",
+                  "BlendState": "AlphaBlend",
+                  "Shininess": 32,
+                  "DecalColorBlendMode": "Alpha",
+                  "Properties": {},
+                  "MaterialDomain": "Surface",
+                  "bAffectNormal": true
+                },
+                "Base": "BeamArcMaterial"
+              },
+              "Properties": {},
+              "ClassName": "UParticleModuleRequired",
+              "isLit": false,
+              "bUseLocalSpace": true,
+              "Material": "BeamArcMaterial"
+            },
+            "bEnable": true,
+            "Level": 0,
+            "TypeDataModule": {
+              "bAlwaysOn": true,
+              "Properties": {},
+              "MaxBeamCount": 1,
+              "ClassName": "UParticleModuleTypeDataBeam",
+              "NoiseRange": 0.35,
+              "Distance": 6,
+              "InterpolationPoints": 24
+            },
+            "SpawnModule": {
+              "SpawnRate": 1,
+              "ClassName": "UParticleModuleSpawn",
+              "Properties": {}
+            }
+          }
+        ],
+        "EmitterName": "Gallery"
+      }
+    ],
+    "LODDistances": [
+      0
+    ]
+  }
+}

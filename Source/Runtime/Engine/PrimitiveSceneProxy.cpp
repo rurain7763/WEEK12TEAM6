@@ -441,12 +441,20 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
                 for (uint32 i = 0; i < N; ++i)
                 {
                     FVector Dir = (i + 1 < N) ? P[i + 1] - P[i] : P[i] - P[i - 1];
-                    FVector Side = FVector::Cross(Dir, View.Location - P[i]);
 
+                    int32 NextPoint = i + 1;
+                    int32 PrevPoint = i - 1;
+                    for (uint32 k = i + 1; k < N && Dir.SizeSquared() < 1e-8f; ++k) Dir = P[k] - P[i];
+                    for (int32 k = (int32)i - 1; k >= 0 && Dir.SizeSquared() < 1e-8f; --k) Dir = P[i] - P[k];
+
+              
+
+                    FVector Side = FVector::Cross(Dir, View.Location - P[i]);
 
                     if (Side.SizeSquared() < 1e-8f) Side = FVector::Cross(Dir, FVector(0, 0, 1));
                     if (Side.SizeSquared() < 1e-8f) Side = FVector::Cross(Dir, FVector(0, 1, 0));
                     Side = Side.Normalized() * (Strip.Width * 0.5f);
+                    if (Strip.EdgeOffsets.Num() == N) Side = Strip.EdgeOffsets[i]; // AnimTrail: 저장된 칼날 방향·길이 (UE: Location ± Direction * Length)
                     const float U = static_cast<float>(i) / (N - 1);
 
                     FVertexPNCT& Top = V[Base + 2 * i];

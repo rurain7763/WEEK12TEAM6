@@ -1,0 +1,113 @@
+{
+  "Version": 1,
+  "ParticleSystem": {
+    "LODMethod": 0,
+    "LODDistanceCheckTime": 0.25,
+    "Emitters": [
+      {
+        "ClassName": "UParticleEmitter",
+        "ParticleSize": 96,
+        "bEnabled": true,
+        "MaxParticleCount": 72,
+        "LODLevels": [
+          {
+            "Modules": [
+              {
+                "LifeTime": 1.4,
+                "ClassName": "UParticleModuleLifeTime",
+                "Properties": {}
+              },
+              {
+                "Properties": {},
+                "MinVelocity": 0,
+                "ClassName": "UParticleModuleVelocity",
+                "StartVelocity": {
+                  "Z": 0,
+                  "X": 0,
+                  "Y": 0
+                },
+                "MaxVelocity": 0,
+                "bHasRandomValue": false
+              },
+              {
+                "StartSize": {
+                  "Z": 0.2,
+                  "X": 0.2,
+                  "Y": 0.2
+                },
+                "ClassName": "UParticleModuleSize",
+                "Properties": {}
+              },
+              {
+                "StartColor": {
+                  "B": 0.08,
+                  "G": 0.35,
+                  "A": 1,
+                  "R": 1
+                },
+                "ClassName": "UParticleModuleColor",
+                "Properties": {}
+              }
+            ],
+            "ClassName": "UParticleLODLevel",
+            "RequiredModule": {
+              "MaterialInstance": {
+                "Instance": {
+                  "Textures": [
+                    "Assets/Textures/Particles/RibbonFlow.png"
+                  ],
+                  "bFlipNormalGreen": false,
+                  "bAffectBaseColor": true,
+                  "SpecularColor": {
+                    "B": 0.25,
+                    "G": 0.25,
+                    "A": 1,
+                    "R": 0.25
+                  },
+                  "UVScrollSpeed": [
+                    0.5,
+                    0
+                  ],
+                  "BaseColor": {
+                    "B": 1,
+                    "G": 1,
+                    "A": 1,
+                    "R": 1
+                  },
+                  "SamplerState": "LinearWrap",
+                  "BlendState": "AlphaBlend",
+                  "Shininess": 32,
+                  "DecalColorBlendMode": "Alpha",
+                  "Properties": {},
+                  "MaterialDomain": "Surface",
+                  "bAffectNormal": true
+                },
+                "Base": "RibbonFlowMaterial"
+              },
+              "Properties": {},
+              "ClassName": "UParticleModuleRequired",
+              "isLit": false,
+              "bUseLocalSpace": false,
+              "Material": "RibbonFlowMaterial"
+            },
+            "bEnable": true,
+            "Level": 0,
+            "TypeDataModule": {
+              "ClassName": "UParticleModuleTypeDataRibbon",
+              "Properties": {}
+            },
+            "SpawnModule": {
+              "SpawnRate": 40,
+              "ClassName": "UParticleModuleSpawn",
+              "Properties": {}
+            }
+          }
+        ],
+        "EmitterName": "Gallery"
+      }
+    ],
+    "LODDistances": [
+      0
+    ]
+  }
+}

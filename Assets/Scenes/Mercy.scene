@@ -33,76 +33,7 @@
                         {
                             "Class": "USkeletalMeshComponent",
                             "Name": "SkeletalMeshComponent",
-                            "OverrideMaterials": [
-                                {
-                                    "Base": "DefaultMaterial",
-                                    "Instance": {
-                                        "BaseColor": {
-                                            "A": 1.0,
-                                            "B": 0.09000000357627869,
-                                            "G": 0.44999998807907104,
-                                            "R": 0.9200000166893005
-                                        },
-                                        "BlendState": "Opaque",
-                                        "DecalColorBlendMode": "Alpha",
-                                        "MaterialDomain": "Surface",
-                                        "Properties": {},
-                                        "SamplerState": "LinearClamp",
-                                        "Shininess": 25.0,
-                                        "SpecularColor": {
-                                            "A": 1.0,
-                                            "B": 0.25999999046325684,
-                                            "G": 0.25999999046325684,
-                                            "R": 0.25999999046325684
-                                        },
-                                        "Textures": [
-                                            "WhiteTexture",
-                                            ""
-                                        ],
-                                        "UVScrollSpeed": [
-                                            0.0,
-                                            0.0
-                                        ],
-                                        "bAffectBaseColor": true,
-                                        "bAffectNormal": true,
-                                        "bFlipNormalGreen": false
-                                    }
-                                },
-                                {
-                                    "Base": "DefaultMaterial",
-                                    "Instance": {
-                                        "BaseColor": {
-                                            "A": 1.0,
-                                            "B": 0.27000001072883606,
-                                            "G": 0.20999999344348907,
-                                            "R": 0.14000000059604645
-                                        },
-                                        "BlendState": "Opaque",
-                                        "DecalColorBlendMode": "Alpha",
-                                        "MaterialDomain": "Surface",
-                                        "Properties": {},
-                                        "SamplerState": "LinearClamp",
-                                        "Shininess": 25.0,
-                                        "SpecularColor": {
-                                            "A": 1.0,
-                                            "B": 0.18000000715255737,
-                                            "G": 0.18000000715255737,
-                                            "R": 0.18000000715255737
-                                        },
-                                        "Textures": [
-                                            "WhiteTexture",
-                                            ""
-                                        ],
-                                        "UVScrollSpeed": [
-                                            0.0,
-                                            0.0
-                                        ],
-                                        "bAffectBaseColor": true,
-                                        "bAffectNormal": true,
-                                        "bFlipNormalGreen": false
-                                    }
-                                }
-                            ],
+                            "OverrideMaterials": [],
                             "Parent": "DefaultSceneRoot",
                             "Properties": {
                                 "AnimGraph": "Models/Mercy_Export/Mercy_Staff.animgraph",
@@ -666,6 +597,571 @@
                         }
                     ],
                     "Name": "HealBeacon",
+                    "Properties": {},
+                    "RootComponent": "DefaultSceneRoot"
+                },
+                {
+                    "Class": "AActor",
+                    "Components": [
+                        {
+                            "Class": "USceneComponent",
+                            "Name": "DefaultSceneRoot",
+                            "Parent": "",
+                            "Properties": {
+                                "Transform": {
+                                    "Location": {
+                                        "X": 5.0,
+                                        "Y": 5.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": -135.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "Class": "USkeletalMeshComponent",
+                            "Name": "SkeletalMeshComponent",
+                            "OverrideMaterials": [],
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "AnimGraph": "Models/Genji_Export/Genji_Blade.animgraph",
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "SkeletalMesh": "Models/Genji_Export/Genji_Blade_SK.fbx",
+                                "Skeleton": "Models/Genji_Export/Genji_Blade_SK_Skeleton",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCPUSkinning": false,
+                                "bCastShadow": true,
+                                "bExtractRootMotion": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": true,
+                                "bReceivesDecals": true,
+                                "bVisible": true
+                            }
+                        },
+                        {
+                            "Class": "UScriptComponent",
+                            "Name": "ScriptComponent",
+                            "Parent": "",
+                            "Properties": {
+                                "ScriptPath": "Assets/Scripts/Actors/GenjiController.lua"
+                            }
+                        },
+                        {
+                            "Class": "UParticleSystemComponent",
+                            "Name": "BladeTrail",
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "Template": "Particles/Genji_BladeTrail.particlesys",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCastShadow": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": false,
+                                "bReceivesDecals": false,
+                                "bVisible": false
+                            }
+                        }
+                    ],
+                    "Name": "Genji",
+                    "Properties": {},
+                    "RootComponent": "DefaultSceneRoot"
+                },
+                {
+                    "Class": "AActor",
+                    "Components": [
+                        {
+                            "Class": "USceneComponent",
+                            "Name": "DefaultSceneRoot",
+                            "Parent": "",
+                            "Properties": {
+                                "Transform": {
+                                    "Location": {
+                                        "X": 5.0,
+                                        "Y": -5.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 135.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "Class": "USkeletalMeshComponent",
+                            "Name": "SkeletalMeshComponent",
+                            "OverrideMaterials": [],
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "AnimGraph": "Models/Genji_Export/Genji_Blade.animgraph",
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "SkeletalMesh": "Models/Genji_Export/Genji_Blade_SK.fbx",
+                                "Skeleton": "Models/Genji_Export/Genji_Blade_SK_Skeleton",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCPUSkinning": false,
+                                "bCastShadow": true,
+                                "bExtractRootMotion": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": true,
+                                "bReceivesDecals": true,
+                                "bVisible": true
+                            }
+                        },
+                        {
+                            "Class": "UScriptComponent",
+                            "Name": "ScriptComponent",
+                            "Parent": "",
+                            "Properties": {
+                                "ScriptPath": "Assets/Scripts/Actors/GenjiController.lua"
+                            }
+                        },
+                        {
+                            "Class": "UParticleSystemComponent",
+                            "Name": "WaterTrail",
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "Template": "Particles/Genji_WaterBreathing.particlesys",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCastShadow": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": false,
+                                "bReceivesDecals": false,
+                                "bVisible": false
+                            }
+                        }
+                    ],
+                    "Name": "Genji_Water",
+                    "Properties": {},
+                    "RootComponent": "DefaultSceneRoot"
+                },
+                {
+                    "Class": "AActor",
+                    "Components": [
+                        {
+                            "Class": "USceneComponent",
+                            "Name": "DefaultSceneRoot",
+                            "Parent": "",
+                            "Properties": {
+                                "Transform": {
+                                    "Location": {
+                                        "X": 7.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 180.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "Class": "USkeletalMeshComponent",
+                            "Name": "SkeletalMeshComponent",
+                            "OverrideMaterials": [],
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "AnimGraph": "Models/Swordsman/Swordsman.animgraph",
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "SkeletalMesh": "Models/Swordsman/Swordsman_SK.fbx",
+                                "Skeleton": "Models/Swordsman/Swordsman_SK_Skeleton",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCPUSkinning": false,
+                                "bCastShadow": true,
+                                "bExtractRootMotion": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": true,
+                                "bReceivesDecals": true,
+                                "bVisible": true
+                            }
+                        },
+                        {
+                            "Class": "UScriptComponent",
+                            "Name": "ScriptComponent",
+                            "Parent": "",
+                            "Properties": {
+                                "ScriptPath": "Assets/Scripts/Actors/SwordsmanController.lua"
+                            }
+                        },
+                        {
+                            "Class": "UParticleSystemComponent",
+                            "Name": "BladeTrail",
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "Template": "Particles/Genji_BladeTrail.particlesys",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCastShadow": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": false,
+                                "bReceivesDecals": false,
+                                "bVisible": false
+                            }
+                        }
+                    ],
+                    "Name": "Swordsman",
+                    "Properties": {},
+                    "RootComponent": "DefaultSceneRoot"
+                },
+                {
+                    "Class": "AActor",
+                    "Components": [
+                        {
+                            "Class": "USceneComponent",
+                            "Name": "DefaultSceneRoot",
+                            "Parent": "",
+                            "Properties": {
+                                "Transform": {
+                                    "Location": {
+                                        "X": 9.0,
+                                        "Y": -5.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 150.9
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "Class": "USkeletalMeshComponent",
+                            "Name": "SkeletalMeshComponent",
+                            "OverrideMaterials": [],
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "AnimGraph": "Models/Tanjiro_Export/Tanjiro_Blade.animgraph",
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "SkeletalMesh": "Models/Tanjiro_Export/Tanjiro_Blade_SK.fbx",
+                                "Skeleton": "Models/Tanjiro_Export/Tanjiro_Blade_SK_Skeleton",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCPUSkinning": false,
+                                "bCastShadow": true,
+                                "bExtractRootMotion": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": true,
+                                "bReceivesDecals": true,
+                                "bVisible": true
+                            }
+                        },
+                        {
+                            "Class": "UScriptComponent",
+                            "Name": "ScriptComponent",
+                            "Parent": "",
+                            "Properties": {
+                                "ScriptPath": "Assets/Scripts/Actors/GenjiController.lua"
+                            }
+                        },
+                        {
+                            "Class": "UParticleSystemComponent",
+                            "Name": "BladeTrail",
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "Template": "Particles/Tanjiro_BladeTrail.particlesys",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCastShadow": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": false,
+                                "bReceivesDecals": false,
+                                "bVisible": false
+                            }
+                        }
+                    ],
+                    "Name": "Tanjiro",
+                    "Properties": {},
+                    "RootComponent": "DefaultSceneRoot"
+                },
+                {
+                    "Class": "AActor",
+                    "Components": [
+                        {
+                            "Class": "USceneComponent",
+                            "Name": "DefaultSceneRoot",
+                            "Parent": "",
+                            "Properties": {
+                                "Transform": {
+                                    "Location": {
+                                        "X": 9.0,
+                                        "Y": 5.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": -150.9
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "Class": "USkeletalMeshComponent",
+                            "Name": "SkeletalMeshComponent",
+                            "OverrideMaterials": [],
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "AnimGraph": "Models/Zenitsu_Export/Zenitsu_Blade.animgraph",
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "SkeletalMesh": "Models/Zenitsu_Export/Zenitsu_Blade_SK.fbx",
+                                "Skeleton": "Models/Zenitsu_Export/Zenitsu_Blade_SK_Skeleton",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCPUSkinning": false,
+                                "bCastShadow": true,
+                                "bExtractRootMotion": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": true,
+                                "bReceivesDecals": true,
+                                "bVisible": true
+                            }
+                        },
+                        {
+                            "Class": "UScriptComponent",
+                            "Name": "ScriptComponent",
+                            "Parent": "",
+                            "Properties": {
+                                "ScriptPath": "Assets/Scripts/Actors/GenjiController.lua"
+                            }
+                        },
+                        {
+                            "Class": "UParticleSystemComponent",
+                            "Name": "BladeTrail",
+                            "Parent": "DefaultSceneRoot",
+                            "Properties": {
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "Template": "Particles/Zenitsu_BladeTrail.particlesys",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCastShadow": false,
+                                "bGenerateOverlapEvents": false,
+                                "bReceiveShadow": false,
+                                "bReceivesDecals": false,
+                                "bVisible": false
+                            }
+                        }
+                    ],
+                    "Name": "Zenitsu",
                     "Properties": {},
                     "RootComponent": "DefaultSceneRoot"
                 }

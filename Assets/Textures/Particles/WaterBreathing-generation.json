@@ -1,0 +1,10 @@
+{
+  "tool": "Built-in image_gen",
+  "transparent_background": true,
+  "prompt": "Use case: stylized-concept\nAsset type: a production-ready transparent RGBA game texture for a Water Breathing sword Ribbon particle.\nPrimary request: spectacular stylized anime water sword trail, flowing cobalt-blue and turquoise water with crisp white foam crests and elegant curling wave motifs, like hand-drawn Japanese woodblock waves animated as a sword technique. This must be the FLAT STRAIGHT unwrapped texture for a 3D ribbon, not an illustration of a curved sword slash.\nComposition: very wide horizontal 3:1 canvas, target 1536 x 512. One continuous cohesive water ribbon runs left-to-right along the entire length. LEFT is the newest head: a powerful broad stream with small curling white foam crests. RIGHT is the older tail: increasingly thin elegant cyan streams, delicate foam and a few droplets dissolving to full transparency by x=96%. Keep everything within x=4%..96% and y=15%..85%, leaving fully transparent padding. The longitudinal axis is nearly straight; convey motion with several interweaving parallel blue current bands and three or four small breaking wave curls distributed along the ribbon, rather than one giant spiral. Crisp readable large shapes and secondary fine foam strokes that stay readable when stretched several times horizontally. Rich deep-blue inner contours, vibrant cyan water surfaces, clean white foamy highlights. Smooth anti-aliased silhouette, translucent water fringes, real partial-alpha edges.\nBackground: actual fully transparent RGBA background, no scenery.\nConstraints: only a SINGLE standalone horizontal water ribbon texture; no sword, person, dragon, character, lettering, border, watermark, black background, painted checkerboard, shadow, circular slash, ring or perspective. Not electric lightning, not smoke. Do not clip head or tail to the image edge. Preserve true transparency.",
+  "actual_dimensions": [
+    2172,
+    724
+  ],
+  "texture": "WaterBreathing_Ribbon.png"
+}

@@ -1,0 +1,165 @@
+{
+    "AnimGraph": {
+        "AnimSequencePlayers": [
+            {
+                "Looping": true,
+                "SequencePath": "Models/Zenitsu_Export/Zenitsu_Blade_SK_Armature|Blade_Idle",
+                "Speed": 1.0
+            },
+            {
+                "Looping": false,
+                "SequencePath": "Models/Zenitsu_Export/Zenitsu_Blade_SK_Armature|Blade_Swing1",
+                "Speed": 1.0
+            },
+            {
+                "Looping": false,
+                "SequencePath": "Models/Zenitsu_Export/Zenitsu_Blade_SK_Armature|Blade_Swing2",
+                "Speed": 1.0
+            }
+        ],
+        "AnimTwoWayBlends": [],
+        "BlendSpacePlayers": [],
+        "Nodes": [
+            {
+                "ActualType": 0,
+                "NodeID": 1,
+                "Type": 0
+            },
+            {
+                "ActualType": 1,
+                "NodeID": 2,
+                "Type": 0
+            },
+            {
+                "ActualType": 2,
+                "NodeID": 3,
+                "Type": 0
+            },
+            {
+                "ActualType": 0,
+                "NodeID": 4,
+                "Type": 3
+            }
+        ],
+        "Parameters": [
+            {
+                "Name": "Swing",
+                "Type": 3,
+                "Value": false
+            }
+        ],
+        "Properties": {},
+        "RootNodeID": 4,
+        "StateMachines": [
+            {
+                "AnyTransitions": [],
+                "InitStateID": 0,
+                "Name": "Blade",
+                "States": [
+                    {
+                        "Name": "Idle",
+                        "NodeID": 1,
+                        "StateID": 0
+                    },
+                    {
+                        "Name": "Swing1",
+                        "NodeID": 2,
+                        "StateID": 1
+                    },
+                    {
+                        "Name": "Swing2",
+                        "NodeID": 3,
+                        "StateID": 2
+                    }
+                ],
+                "Transitions": [
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": "Swing",
+                            "Value": true
+                        },
+                        "CrossfadeDuration": 0.15,
+                        "ExitTime": 1.0,
+                        "HasExitTime": false,
+                        "NextStateID": 1,
+                        "PreviousStateID": 0
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": ""
+                        },
+                        "CrossfadeDuration": 0.1,
+                        "ExitTime": 0.9,
+                        "HasExitTime": true,
+                        "NextStateID": 2,
+                        "PreviousStateID": 1
+                    },
+                    {
+                        "Condition": {
+                            "ComparisonOperator": 0,
+                            "ParameterName": ""
+                        },
+                        "CrossfadeDuration": 0.25,
+                        "ExitTime": 0.9,
+                        "HasExitTime": true,
+                        "NextStateID": 0,
+                        "PreviousStateID": 2
+                    }
+                ]
+            }
+        ]
+    },
+    "Editor": {
+        "Nodes": [
+            {
+                "NodeID": 1,
+                "X": 60.0,
+                "Y": 60.0
+            },
+            {
+                "NodeID": 2,
+                "X": 60.0,
+                "Y": 230.0
+            },
+            {
+                "NodeID": 3,
+                "X": 60.0,
+                "Y": 400.0
+            },
+            {
+                "NodeID": 4,
+                "X": 560.0,
+                "Y": 230.0
+            }
+        ],
+        "States": [
+            {
+                "MachineNodeID": 4,
+                "StateID": 0,
+                "X": 400,
+                "Y": 200
+            },
+            {
+                "MachineNodeID": 4,
+                "StateID": 1,
+                "X": 800,
+                "Y": 200
+            },
+            {
+                "MachineNodeID": 4,
+                "StateID": 2,
+                "X": 800,
+                "Y": 500
+            },
+            {
+                "MachineNodeID": 4,
+                "StateID": -1,
+                "X": 100,
+                "Y": 200
+            }
+        ]
+    },
+    "Version": 1
+}

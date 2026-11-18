@@ -1,0 +1,144 @@
+{
+    "ParticleSystem": {
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "Blade_Sweep",
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 0.5
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "A": 0.85,
+                                    "B": 1.0,
+                                    "G": 0.8,
+                                    "R": 0.55
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "BeamMaterial",
+                            "MaterialInstance": {
+                                "Base": "BeamMaterial",
+                                "Instance": {
+                                    "BaseColor": {
+                                        "A": 1.0,
+                                        "B": 1.0,
+                                        "G": 1.0,
+                                        "R": 1.0
+                                    },
+                                    "BlendState": "AlphaBlend",
+                                    "DecalColorBlendMode": "Alpha",
+                                    "MaterialDomain": "Surface",
+                                    "Properties": {},
+                                    "SamplerState": "LinearClamp",
+                                    "Shininess": 32.0,
+                                    "SpecularColor": {
+                                        "A": 1.0,
+                                        "B": 0.5,
+                                        "G": 0.5,
+                                        "R": 0.5
+                                    },
+                                    "Textures": [
+                                        "Assets/Textures/Genji_Dragonblade/Dragonblade_Sweep.png"
+                                    ],
+                                    "UVScrollSpeed": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "bAffectBaseColor": true,
+                                    "bAffectNormal": true,
+                                    "bFlipNormalGreen": false
+                                }
+                            },
+                            "bUseLocalSpace": false,
+                            "isLit": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 100.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataAnimTrail",
+                            "FirstSocketName": "Weapon_R",
+                            "SecondSocketName": "BladeTip",
+                            "Width": 1.0
+                        },
+                        "bEnable": true
+                    }
+                ],
+                "MaxParticleCount": 200,
+                "ParticleSize": 120,
+                "bEnabled": true
+            },
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "BladeTip_Lightning",
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 0.30000001192092896
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.3499999940395355,
+                                    "Y": 0.3499999940395355,
+                                    "Z": 0.3499999940395355
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "A": 1.0,
+                                    "B": 1.0,
+                                    "G": 0.6,
+                                    "R": 0.3
+                                }
+                            },
+                            {
+                                "BoneName": "BladeTip",
+                                "ClassName": "UParticleModuleLocationBoneSocket"
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "BeamArcMaterial",
+                            "bUseLocalSpace": false,
+                            "isLit": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 120.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataRibbon"
+                        },
+                        "bEnable": true
+                    }
+                ],
+                "MaxParticleCount": 64,
+                "ParticleSize": 104,
+                "bEnabled": true
+            }
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "LODDistances": [
+            0.0
+        ],
+        "LODMethod": 0
+    },
+    "Version": 1
+}

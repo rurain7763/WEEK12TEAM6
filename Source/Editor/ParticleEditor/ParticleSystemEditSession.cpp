@@ -27,10 +27,12 @@
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
 #include "Particle/Modules/ParticleModuleTypeDataBeam.h"
 #include "Particle/Modules/ParticleModuleTypeDataRibbon.h"
+#include "Particle/Modules/ParticleModuleTypeDataAnimTrail.h"
 #include "Particle/Modules/ParticleModuleTypeDataMesh.h"
 #include "Particle/Modules/ParticleModuleCollision.h"
 #include "Particle/Modules/ParticleModuleEventGenerator.h"
 #include "Particle/Modules/ParticleModuleBeamSource.h"
+#include "Particle/Modules/ParticleModuleLocationBoneSocket.h"
 #include "Particle/Modules/ParticleModuleBeamTarget.h"
 #include "Serialization/JsonArchive.h"
 #include "Serialization/MemoryReader.h"
@@ -268,7 +270,7 @@ void FParticleSystemEditSession::DestroyEmitter(UParticleEmitter* Emitter) {
 }
 
 const TArray<UClass*>& FParticleSystemEditSession::GetAddableModuleClasses() {
-	static const TArray<UClass*> Classes{ UParticleModuleSizeScaleBySpeed::StaticClass(), UParticleModuleLifeTime::StaticClass(), UParticleModuleLocation::StaticClass(), UParticleModuleLocationPrimitiveBox::StaticClass(), UParticleModuleLocationPrimitiveSphere::StaticClass(), UParticleModuleLocationPrimitiveCylinder::StaticClass(), UParticleModuleVelocity::StaticClass(), UParticleModuleAccelerationConstant::StaticClass(), UParticleModuleSize::StaticClass(), UParticleModuleColor::StaticClass(), UParticleModuleRotation::StaticClass(), UParticleModuleRotationRate::StaticClass(), UParticleModuleSizeOfLifeTime::StaticClass(), UParticleModuleColorOverLife::StaticClass(), UParticleModuleCollision::StaticClass(), UParticleModuleEventGenerator::StaticClass(), UParticleModuleBeamSource::StaticClass(), UParticleModuleBeamTarget::StaticClass() };
+	static const TArray<UClass*> Classes{ UParticleModuleSizeScaleBySpeed::StaticClass(), UParticleModuleLifeTime::StaticClass(), UParticleModuleLocation::StaticClass(), UParticleModuleLocationPrimitiveBox::StaticClass(), UParticleModuleLocationPrimitiveSphere::StaticClass(), UParticleModuleLocationPrimitiveCylinder::StaticClass(), UParticleModuleVelocity::StaticClass(), UParticleModuleSize::StaticClass(), UParticleModuleColor::StaticClass(), UParticleModuleRotation::StaticClass(), UParticleModuleRotationRate::StaticClass(), UParticleModuleSizeOfLifeTime::StaticClass(), UParticleModuleColorOverLife::StaticClass(), UParticleModuleCollision::StaticClass(), UParticleModuleEventGenerator::StaticClass(), UParticleModuleBeamSource::StaticClass(), UParticleModuleBeamTarget::StaticClass(), UParticleModuleLocationBoneSocket::StaticClass() };
 	return Classes;
 }
 
@@ -346,8 +348,8 @@ bool FParticleSystemEditSession::SetEmitterTypeData(UParticleEmitter* Emitter, U
 		Error = "A valid particle system is required to change Type Data.";
 		return false;
 	}
-	if (ModuleClass && ModuleClass != UParticleModuleTypeDataMesh::StaticClass() && ModuleClass != UParticleModuleTypeDataBeam::StaticClass() && ModuleClass != UParticleModuleTypeDataRibbon::StaticClass()) {
-		Error = "Choose Sprite, Mesh, Beam, or Ribbon for this emitter's Type Data.";
+	if (ModuleClass && ModuleClass != UParticleModuleTypeDataMesh::StaticClass() && ModuleClass != UParticleModuleTypeDataBeam::StaticClass() && ModuleClass != UParticleModuleTypeDataRibbon::StaticClass() && ModuleClass != UParticleModuleTypeDataAnimTrail::StaticClass()) {
+		Error = "Choose Sprite, Mesh, Beam, Ribbon, or AnimTrail for this emitter's Type Data.";
 		return false;
 	}
 
