@@ -268,11 +268,7 @@ void FParticleSystemEditSession::DestroyEmitter(UParticleEmitter* Emitter) {
 }
 
 const TArray<UClass*>& FParticleSystemEditSession::GetAddableModuleClasses() {
-<<<<<<< HEAD
-	static const TArray<UClass*> Classes{ UParticleModuleSizeScaleBySpeed::StaticClass(), UParticleModuleLifeTime::StaticClass(), UParticleModuleLocation::StaticClass(), UParticleModuleLocationPrimitiveBox::StaticClass(), UParticleModuleLocationPrimitiveSphere::StaticClass(), UParticleModuleLocationPrimitiveCylinder::StaticClass(), UParticleModuleVelocity::StaticClass(), UParticleModuleVelocityCone::StaticClass(), UParticleModuleSize::StaticClass(), UParticleModuleColor::StaticClass(), UParticleModuleRotation::StaticClass(), UParticleModuleRotationRate::StaticClass(), UParticleModuleSizeOfLifeTime::StaticClass(), UParticleModuleColorOverLife::StaticClass(), UParticleModuleCollision::StaticClass(), UParticleModuleEventGenerator::StaticClass(), UParticleModuleBeamSource::StaticClass(), UParticleModuleBeamTarget::StaticClass() };
-=======
 	static const TArray<UClass*> Classes{ UParticleModuleSizeScaleBySpeed::StaticClass(), UParticleModuleLifeTime::StaticClass(), UParticleModuleLocation::StaticClass(), UParticleModuleLocationPrimitiveBox::StaticClass(), UParticleModuleLocationPrimitiveSphere::StaticClass(), UParticleModuleLocationPrimitiveCylinder::StaticClass(), UParticleModuleVelocity::StaticClass(), UParticleModuleAccelerationConstant::StaticClass(), UParticleModuleSize::StaticClass(), UParticleModuleColor::StaticClass(), UParticleModuleRotation::StaticClass(), UParticleModuleRotationRate::StaticClass(), UParticleModuleSizeOfLifeTime::StaticClass(), UParticleModuleColorOverLife::StaticClass(), UParticleModuleCollision::StaticClass(), UParticleModuleEventGenerator::StaticClass(), UParticleModuleBeamSource::StaticClass(), UParticleModuleBeamTarget::StaticClass() };
->>>>>>> ee63f3008ab1ded0783b224feea18ea8abceccbf
 	return Classes;
 }
 
