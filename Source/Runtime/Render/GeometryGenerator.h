@@ -6,10 +6,8 @@
 class FGeometryGenerator
 {
 public:
-	static TUniquePtr<FModelMeshData> CreateTextQuad(const FVector& Start, const FVector& End, const FVector4& Color);
-	static TUniquePtr<FModelMeshData> CreateLine(const FVector& Start, const FVector& End, const FVector4& Color);
-	static TUniquePtr<FModelMeshData> CreatePlane(float Size, const FVector4& Color = FVector4(1.0f, 1.0f, 1.0f, 1.0f));
-	static TUniquePtr<FModelMeshData> CreateAxis();
+	static TUniquePtr<FModelMeshData> CreatePlane(float Size, const FVector4& Color = FVector4(1.0f, 1.0f, 1.0f, 1.0f), bool bUseSphericalNormals = false);
+	static TUniquePtr<FModelMeshData> CreateQuad(float Size = 1.0f, const FVector4& Color = FVector4(1.0f, 1.0f, 1.0f, 1.0f), bool bUseSphericalNormals = false);
 
 	static TUniquePtr<FModelMeshData> CreateCone(float Radius, float Height, int Segments, const FVector4& Color);
 	static TUniquePtr<FModelMeshData> CreateCylinder(float Radius, float Height, int Segments, const FVector4& Color);

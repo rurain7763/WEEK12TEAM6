@@ -64,11 +64,12 @@ struct FObjectInstance
     FMatrix Model;
     FMatrix NormalMatrix;
     FLinearColor Color = FLinearColor::White;
+    uint32 ObjectMask = 0;
+    uint32 InstancePadding[3] = {};
 };
 
 struct FMeshDrawGroup
 {
-    bool bReceiveShadow = true;
     bool bUseSkinning = false;
     FGeometryBinding Geometry;
     UMaterial* Material = nullptr;

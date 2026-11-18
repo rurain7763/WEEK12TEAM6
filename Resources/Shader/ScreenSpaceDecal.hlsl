@@ -3,9 +3,7 @@
 #define VIEWMODE 0
 #define LIGHTING_MODEL 2
 #define SHADING_MODEL 1
-#define HAS_NORMAL_MAP 0
 #define USE_SKINNING 0
-#define RECEIVE_SHADOW 1
 #include "UberLit.hlsl"
 
 // 카메라 깊이와 불투명 표면 정보
@@ -91,7 +89,7 @@ float4 mainPS(FDecalPSInput Input) : SV_TARGET
     float3 DiffuseLight;
     float3 SpecularLight;
 
-    ComputeTiledLighting(N, WorldPosition, V, Shininess, LocalPixel, DiffuseLight, SpecularLight);
+    ComputeTiledLighting(N, N, WorldPosition, V, Shininess, LocalPixel, DiffuseLight, SpecularLight, OM_ReceiveShadow);
 
     float3 LitColor = SurfaceColor.rgb * (AmbientLight.Color + DiffuseLight) + SpecularColor * SpecularLight;
 

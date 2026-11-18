@@ -34,8 +34,7 @@ namespace
 	}
 }
 
-
-TUniquePtr<FModelMeshData> FGeometryGenerator::CreatePlane(float Size, const FVector4& Color)
+TUniquePtr<FModelMeshData> FGeometryGenerator::CreatePlane(float Size, const FVector4& Color, bool bUseSphericalNormals)
 {
 	TUniquePtr<FModelMeshData> PlaneMeshData = MakeUnique<FModelMeshData>();
 
@@ -49,6 +48,14 @@ TUniquePtr<FModelMeshData> FGeometryGenerator::CreatePlane(float Size, const FVe
 		FVector(-HalfSize, -HalfSize, 0.0f),
 	};
 
+	TArray<FVector> Normals =
+	{
+		FVector(-1.0f, 1.0f, 1.0f).Normalized(),
+		FVector(1.0f, 1.0f, 1.0f).Normalized(),
+		FVector(1.0f, -1.0f, 1.0f).Normalized(),
+		FVector(-1.0f, -1.0f, 1.0f).Normalized(),
+	};
+
 	TArray<FVector2> uvs =
 	{
 		FVector2(0.0f, 0.0f),
@@ -59,7 +66,8 @@ TUniquePtr<FModelMeshData> FGeometryGenerator::CreatePlane(float Size, const FVe
 
 	for (int32 i = 0; i < positions.Num(); i++)
 	{
-		PlaneMeshData->Vertices.Add({ positions[i], FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 0.0f), Color, uvs[i] });
+		const FVector Normal = bUseSphericalNormals ? Normals[i] : FVector(0.0f, 0.0f, 0.0f);
+		PlaneMeshData->Vertices.Add({ positions[i], Normal, FVector(0.0f, 0.0f, 0.0f), Color, uvs[i] });
 	}
 
 	PlaneMeshData->Indices.Add(0);
@@ -70,11 +78,55 @@ TUniquePtr<FModelMeshData> FGeometryGenerator::CreatePlane(float Size, const FVe
 	PlaneMeshData->Indices.Add(3);
 	PlaneMeshData->Indices.Add(2);
 
-	PlaneMeshData->CalculateNormals();
+	if (!bUseSphericalNormals)
+	{
+		PlaneMeshData->CalculateNormals();
+	}
 	PlaneMeshData->CalculateTangents();
 	PlaneMeshData->AABB = CalculateAABB(PlaneMeshData->Vertices);
 
 	return PlaneMeshData;
+}
+
+TUniquePtr<FModelMeshData> FGeometryGenerator::CreateQuad(float Size, const FVector4& Color, bool bUseSphericalNormals)
+{
+	TUniquePtr<FModelMeshData> QuadMeshData = MakeUnique<FModelMeshData>();
+	const float HalfSize = Size / 2.0f;
+	const FVector Positions[] =
+	{
+		FVector(0.0f, -HalfSize, HalfSize),
+		FVector(0.0f, HalfSize, HalfSize),
+		FVector(0.0f, HalfSize, -HalfSize),
+		FVector(0.0f, -HalfSize, -HalfSize),
+	};
+	const FVector SphericalNormals[] =
+	{
+		FVector(1.0f, -1.0f, 1.0f).Normalized(),
+		FVector(1.0f, 1.0f, 1.0f).Normalized(),
+		FVector(1.0f, 1.0f, -1.0f).Normalized(),
+		FVector(1.0f, -1.0f, -1.0f).Normalized(),
+	};
+	const FVector2 UVs[] =
+	{
+		FVector2(0.0f, 0.0f),
+		FVector2(1.0f, 0.0f),
+		FVector2(1.0f, 1.0f),
+		FVector2(0.0f, 1.0f),
+	};
+
+	for (int32 Index = 0; Index < 4; ++Index)
+	{
+		// Billboard matrices map local +X toward the camera.
+		const FVector Normal = bUseSphericalNormals ? SphericalNormals[Index] : FVector(1.0f, 0.0f, 0.0f);
+		QuadMeshData->Vertices.Add({ Positions[Index], Normal, FVector4(), Color, UVs[Index] });
+	}
+
+	QuadMeshData->Indices = { 0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2 };
+	QuadMeshData->CalculateTangents();
+	QuadMeshData->AABB = CalculateAABB(QuadMeshData->Vertices);
+	QuadMeshData->AABB.Min.X = -0.001f;
+	QuadMeshData->AABB.Max.X = 0.001f;
+	return QuadMeshData;
 }
 
 TUniquePtr<FModelMeshData> FGeometryGenerator::CreateCone(float Radius, float Height, int Segments, const FVector4& Color)
@@ -460,8 +512,11 @@ void FGeometryGenerator::CreateDefaultMeshDatas()
 	MeshDataMap["Cylinder"] = CreateCylinder(1.0f, 1.0f, 20, FVector4(1.0f, 1.0f, 1.0f, 1.0f));
 	MeshDataMap["Sphere"] = CreateSphere(1.0f, 100, 50, FVector4(1.0f, 1.0f, 1.0f, 1.0f));
 	MeshDataMap["Plane"] = CreatePlane(1.0f, FVector4(1.0f, 1.0f, 1.0f, 1.0f));
+	MeshDataMap["ParticleQuad"] = CreateQuad(1.0f, FVector4(1.0f, 1.0f, 1.0f, 1.0f), true);
 	MeshDataMap["Arrow"] = CreateArrow(0.1f, 1.0f, 0.2f, 0.5f, 20, FVector4(1.0f, 0.0f, 0.0f, 1.0f));
 	MeshDataMap["Ring"] = CreateRing(1.0f, 0.03f, 32, 16, FVector4(1.0f, 0.0f, 0.0f, 1.0f));
 	MeshDataMap["ScaleBar"] = CreateScaleBar(0.1f, 1.0f, 0.4f, 20, FVector4(1.0f, 0.0f, 0.0f, 1.0f));
 	MeshDataMap["GizmoSphere"] = CreateSphere(0.2f, 100, 50, FVector4(1.0f, 1.0f, 1.0f, 1.0f));
+	MeshDataMap["Quad"] = CreateQuad(1.f, FVector4(1.f), false);
+	MeshDataMap["ParticleQuad"] = CreateQuad(1.f, FVector4(1.f), true);
 }

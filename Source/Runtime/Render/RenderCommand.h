@@ -68,6 +68,7 @@ public:
 	static bool UpdateBufferSubresource(FBuffer* InBuffer, const void* Data, uint32 DataSize, uint32 DestinationOffset = 0);
 
 	static void BindVertexBuffer(FVertexBuffer* VertexBuffer);
+	static void BindVertexBuffer(int32 Slot, FVertexBuffer* VertexBuffer);
 	static void BindVertexBuffers(FVertexBuffer* const* VertexBuffers, int32 Count);
 	static void BindIndexBuffer(FIndexBuffer* IndexBuffer);
 	static void BindConstantBuffer(uint32 Slot, FConstantBuffer* ConstantBuffer, EShaderBindFlagBits FlagBits);

@@ -139,6 +139,15 @@ void RenderCommand::BindVertexBuffer(FVertexBuffer* VertexBuffer)
 	RenderDevice->GetContext()->IASetVertexBuffers(0, 1, &Buffer, &Stride, &Offset);
 }
 
+void RenderCommand::BindVertexBuffer(int32 Slot, FVertexBuffer* VertexBuffer)
+{
+	ID3D11Buffer* Buffer = VertexBuffer ? VertexBuffer->GetBuffer() : nullptr;
+
+	uint32 Offset = 0;
+	uint32 Stride = VertexBuffer ? VertexBuffer->GetStride() : 0;
+	RenderDevice->GetContext()->IASetVertexBuffers(Slot, 1, &Buffer, &Stride, &Offset);
+}
+
 void RenderCommand::BindVertexBuffers(FVertexBuffer* const* VertexBuffers, int32 Count)
 {
 	ID3D11Buffer* Buffers[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];

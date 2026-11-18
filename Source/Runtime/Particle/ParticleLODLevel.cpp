@@ -5,15 +5,16 @@
 #include "Particle/Modules/ParticleModuleRequired.h"
 #include "Serialization/StructuredArchiveHelpers.h"
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
+
 void UParticleLODLevel::Serialize(FStructuredArchive::FRecord Record)
 {
 	Record << SA_VALUE("Level", Level);
 	Record << SA_VALUE("bEnable", bEnable);
+
 	StructuredArchiveHelpers::SerializeArray(Record, "Modules", Modules);
 	StructuredArchiveHelpers::SerializeObject(Record, "SpawnModule", SpawnModule);
 	StructuredArchiveHelpers::SerializeObject(Record, "RequiredModule", RequiredModule);
 	StructuredArchiveHelpers::SerializeObject(Record, "TypeDataModule", TypeDataModule);
-
 }
 
 void UParticleLODLevel::SetLevel(int32 InLevel) {

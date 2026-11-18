@@ -8,6 +8,10 @@
 #define VIEWMODE_UNLIT        1
 #define VIEWMODE_WORLDNORMAL  3
 
+// Must match EObjectMaskBit in PrimitiveSceneProxy.h.
+#define OM_ReceiveShadow 0x2u
+#define MTBF_NormalMap 0x1u
+
 // ELightingModel 순서와 일치해야 한다.
 #define LIGHTING_MODEL_LAMBERT      0
 #define LIGHTING_MODEL_PHONG        1
@@ -29,15 +33,6 @@
 #ifndef SHADING_MODEL
 #define SHADING_MODEL SHADING_MODEL_PHONG
 #endif
-
-#ifndef HAS_NORMAL_MAP
-#define HAS_NORMAL_MAP 0
-#endif
-#define USE_NORMAL_MAP (SHADING_MODEL == SHADING_MODEL_PHONG && HAS_NORMAL_MAP)
-
-#ifndef RECEIVE_SHADOW
-#define RECEIVE_SHADOW 1
-#endif 
 
 #define GOURAUD (VIEWMODE == VIEWMODE_LIT && SHADING_MODEL == SHADING_MODEL_GOURAUD)
 
@@ -90,12 +85,12 @@ struct FShadowInfo
     uint AtlasStartX;
     uint AtlasStartY;
     uint AtlasSize;
-    
+
     float Bias;
     float NormalBias;
     float Near;
     float Far;
-    
+
     float LightSize;
     float ProjScale;
     float2 Padding;
@@ -121,10 +116,8 @@ struct FPSInput
     float3 Normal : NORMAL;
     float2 UV : TEXCOORD0;
     float3 WorldPosition : TEXCOORD1;
-#if USE_NORMAL_MAP
     float3 Tangent : TANGENT;
     int BitangentSign : BITANGENT_SIGN;
-#endif
 #if GOURAUD
     float3 DiffuseLight : TEXCOORD2;
     float3 SpecularLight : TEXCOORD3;
@@ -148,7 +141,7 @@ cbuffer ViewConstants : register(b0)
     float ViewPadding;
 };
 
-cbuffer SurfaceMaterialParams : register(b1)
+cbuffer MaterialParams : register(b1)
 {
     float4 BaseColor;
     float2 UVScrollOffset;
@@ -157,8 +150,18 @@ cbuffer SurfaceMaterialParams : register(b1)
     float3 SpecularColor;
     uint bFlipNormalGreen;
     uint DecalColorBlendMode;
-    uint3 MaterialPadding;
+    uint TextureBindFlags;
+    uint2 MaterialPadding;
 };
+
+bool IsNormalMapEnabled()
+{
+#if SHADING_MODEL == SHADING_MODEL_PHONG || VIEWMODE == VIEWMODE_WORLDNORMAL
+    return (TextureBindFlags & MTBF_NormalMap) != 0u;
+#else
+    return false; // Gouraud lighting uses the geometry normal.
+#endif
+}
 
 cbuffer PerObjectConstants : register(b2)
 {
@@ -236,9 +239,7 @@ StructuredBuffer<float4x4> BoneMatrices : register(t13);
 
 Texture2D AlbedoTexture : register(t0);
 
-#if USE_NORMAL_MAP
 Texture2D NormalTexture : register(t1);
-#endif
 
 Texture2DArray<float> ShadowTextureArray : register(t2);
 Texture2D<float> DirectionalLightShadowmapAtlas : register(t3);
@@ -348,15 +349,15 @@ float LinearizeShadowDepth(float depth, float Near, float Far)
 {
     //Projection의 ZScale = F / F-N
     float ZScale = Far / (Far - Near);
-    
+
     //ZOffset = -NF / F - N
     float ZOffset = (-Near * Far) / (Far - Near);
-    
+
     //            [0      0       ZScale  1]
     //[x y z 1] * [XScale 0       0       0]
     //            [0      YScale  0       0]
     //            [0      0       ZOffset 0]
-    
+
     //depth(NDC.z) = Clip.z / Clip.w
     //              = (ZScale * x + ZOffset) / x
     //x = ZOffset / (depth - ZScale)
@@ -394,13 +395,13 @@ float PCF_Software3x3(float2 TexelSize, float2 UV, float TextureIndex, float Ref
         for (int x = -1; x <= 1; ++x)
         {
             float2 SampleUV = clamp(UV + float2(x, y) * TexelSize, TileMin, TileMax);
-            
+
             float Stored = ShadowTextureArray.SampleLevel(ShadowPointSampler, float3(SampleUV, TextureIndex), 0);
             Lit += (Ref) > Stored ? 0.0 : 1.0;
         }
     }
     Lit /= 9.0;
-    return Lit;   
+    return Lit;
 }
 
 float PCF_Software5x5(float2 TexelSize, float2 UV, float TextureIndex, float Ref, float2 TileMin, float2 TileMax)
@@ -537,22 +538,23 @@ float PCSS(float2 TexelSize, float2 UV, float TextureIndex, float ReceiverNdcZ, 
 }
 
 // 반환값: 1 = 빛 받음, 0 = 그림자. 필터 방식은 Settings의 ShadowFilterMode(b6)로 고른다.
-float ComputeShadowFactor(float ShadowIndex, float3 WorldPosition, float2 PixelPos)
-{    
+float ComputeShadowFactor(float ShadowIndex, float3 WorldPosition, float2 PixelPos, uint ReceiverMask)
+{
+    if ((ReceiverMask & OM_ReceiveShadow) == 0u)
+        return 1.0f;
+
     //-1이면 그림자 없는 라이트
     if (ShadowIndex < 0)
         return 1.0f;
-    
-#if (RECEIVE_SHADOW == 0)
-        return 1.0f;
-#endif
+
+
     FShadowInfo Info = StructuredShadowData[ShadowIndex];
 
     // light Clip Space 클립 공간
     float4 LightClip = mul(float4(WorldPosition, 1.0f), Info.LightViewProjection);
     // 광원 뒤쪽
     if (LightClip.w <= 0.0f)
-        return 1.0f; 
+        return 1.0f;
 
     //원근 나눗셈은 PS에서 (VS에서 나누고 보간하면 원근 보정이 깨짐)
     //Receiver의 NDC 좌표 = Light 기준의 Depth를 구할 수 있다.
@@ -564,13 +566,13 @@ float ComputeShadowFactor(float ShadowIndex, float3 WorldPosition, float2 PixelP
     //범위 검사: 섀도맵 밖이거나 Far 너머면 그림자 판정 불가 : 빛 받음
     if (any(UV < 0.0f) || any(UV > 1.0f) || Ndc.z < 0.0f || Ndc.z > 1.0f)
         return 1.0f;
-    
+
     // 아틀라스 UV 구하는 로직
     float AtlasWidth, AtlasHeight, NumPages;
     ShadowTextureArray.GetDimensions(AtlasWidth, AtlasHeight, NumPages);
-    
+
     float2 AtlasUV = (float2(Info.AtlasStartX, Info.AtlasStartY) + UV * Info.AtlasSize) / float2(AtlasWidth, AtlasHeight);
-    
+
     float2 TexelSize = 1.0 / AtlasWidth;
     float2 TileMin = (float2(Info.AtlasStartX, Info.AtlasStartY) + 0.5f) * TexelSize;
     float2 TileMax = (float2(Info.AtlasStartX, Info.AtlasStartY) + Info.AtlasSize - 0.5f) * TexelSize;
@@ -777,14 +779,15 @@ void GetCascadeBlendInfo(float3 WorldPosition, out int CascadeIndex, out int Nex
 }
 
 // Directional Light 전용 그림자 판정
-float ComputeDirectionalShadowFactor(float3 WorldPosition, float3 Normal, float2 PixelPos)
+float ComputeDirectionalShadowFactor(float3 WorldPosition, float3 Normal, float2 PixelPos, uint ReceiverMask)
 {
+    if ((ReceiverMask & OM_ReceiveShadow) == 0u)
+        return 1.0f;
+
     if (NumCascades <= 0)
         return 1.0f;
-    
-    #if (RECEIVE_SHADOW == 0)
-        return 1.0f;
-    #endif
+
+
         int CascadeIndex;
         int NextCascadeIndex;
         float BlendFactor;
@@ -806,7 +809,7 @@ float ComputeDirectionalShadowFactor(float3 WorldPosition, float3 Normal, float2
 }
 
 void ComputeTiledLighting(float3 N, float3 GeoNormal, float3 WorldPosition, float3 V,
-    float n, float2 PixelPosition, out float3 DiffuseLight, out float3 SpecularLight){
+    float n, float2 PixelPosition, out float3 DiffuseLight, out float3 SpecularLight, uint ReceiverMask){
     DiffuseLight = 0.0f;
     SpecularLight = 0.0f;
 
@@ -814,21 +817,17 @@ void ComputeTiledLighting(float3 N, float3 GeoNormal, float3 WorldPosition, floa
     {
         float3 Il = DirectionalLight.Color;
         float3 L = -DirectionalLight.Direction;
-#if USE_NORMAL_MAP
-        float GeoFactor = saturate(dot(GeoNormal, L) * 4.0f);
-#else
-        float GeoFactor = 1.0f;
-#endif
+        float GeoFactor = IsNormalMapEnabled() ? saturate(dot(GeoNormal, L) * 4.0f) : 1.0f;
         // 데칼 요철과 분리된 기하 노멀 기준 그림자 바이어스
         float3 ShadowNormal = GeoNormal;
-        float Shadow = ComputeDirectionalShadowFactor(WorldPosition, ShadowNormal, PixelPosition);
-        
+        float Shadow = ComputeDirectionalShadowFactor(WorldPosition, ShadowNormal, PixelPosition, ReceiverMask);
+
         AccumulateLight(Il * GeoFactor * Shadow, N, L, V, n, DiffuseLight, SpecularLight);
     }
 
     uint2 TileCoord = min(uint2(PixelPosition) / 16u, uint2(TileCountX - 1u, TileCountY - 1u));
     uint TileIndex = TileCoord.y * TileCountX + TileCoord.x;
-    
+
     // Poisson 픽셀 회전은 ComputeShadowFactor 안에서 Settings(b6)에 따라 PixelPosition으로 계산한다.
 
     // Point Light
@@ -848,23 +847,17 @@ void ComputeTiledLighting(float3 N, float3 GeoNormal, float3 WorldPosition, floa
             continue;
 
         float3 L = ToLight / Distance;
-#if USE_NORMAL_MAP
-        float GeoFactor = saturate(dot(GeoNormal, L) * 4.0f);
-        if (GeoFactor <= 0.0f)
-            continue;
-#else
-        float GeoFactor = 1.0f;
-#endif
+        float GeoFactor = IsNormalMapEnabled() ? saturate(dot(GeoNormal, L) * 4.0f) : 1.0f;
 
         float DistanceAttenuation = ComputeDistanceAttenuation(Distance, Radius);
-        
+
         //선택할 ShadowIndex
         uint PointShadowIndex = SelectCubeFace(-ToLight);
         //spot light는 ComputeShadowFactor()내부에서 검사로 충분하지만 PointLight는 PointShadowIndex를 더해버리면서
         //ShadowIndex -1이 양수가 될 수 있다. 그래서 여기서도 한번 검사해줌.
-        float Shadow = Light.ShadowIndex < 0 ? 1.0 : 
-        ComputeShadowFactor(Light.ShadowIndex + PointShadowIndex, WorldPosition, PixelPosition);
-        
+        float Shadow = Light.ShadowIndex < 0 ? 1.0 :
+        ComputeShadowFactor(Light.ShadowIndex + PointShadowIndex, WorldPosition, PixelPosition, ReceiverMask);
+
         float3 Il = Light.Color * DistanceAttenuation * GeoFactor * Shadow;
         AccumulateLight(Il, N, L, V, n, DiffuseLight, SpecularLight);
     }
@@ -886,16 +879,10 @@ void ComputeTiledLighting(float3 N, float3 GeoNormal, float3 WorldPosition, floa
             continue;
 
         float3 L = ToLight / Distance;
-#if USE_NORMAL_MAP
-        float GeoFactor = saturate(dot(GeoNormal, L) * 4.0f);
-        if (GeoFactor <= 0.0f)
-            continue;
-#else
-        float GeoFactor = 1.0f;
-#endif
+        float GeoFactor = IsNormalMapEnabled() ? saturate(dot(GeoNormal, L) * 4.0f) : 1.0f;
         //그림자 판단
-        float Shadow = ComputeShadowFactor(Light.ShadowIndex, WorldPosition, PixelPosition);
-        
+        float Shadow = ComputeShadowFactor(Light.ShadowIndex, WorldPosition, PixelPosition, ReceiverMask);
+
         float DistanceAttenuation = ComputeDistanceAttenuation(Distance, Radius);
         float CosAngle = dot(-L, normalize(Light.Direction));
         float SpotAttenuation = Light.CosInnerCone == Light.CosOuterCone
@@ -994,16 +981,14 @@ FPSInput mainVS(FVSInput Input)
     Output.WorldPosition = WorldPosition.xyz;
     Output.Normal = mul(Local.Normal, (float3x3) NormalMatrix);
     Output.UV = Input.UV;
-#if USE_NORMAL_MAP
     Output.Tangent = mul(Local.Tangent, (float3x3) World);
     Output.BitangentSign = Input.Tangent.w;
-#endif
 #if GOURAUD
     float3 N = normalize(Output.Normal);
     float3 V = normalize(CameraPosition - Output.WorldPosition);
     // TODO
     ComputeLighting(N, Output.WorldPosition, V, Shininess, Output.DiffuseLight, Output.SpecularLight);
-    
+
 #endif
 #if USE_SKINNING
     Output.HeatmapWeight = 0.0f;
@@ -1026,37 +1011,38 @@ FPSInput mainVS(FVSInput Input)
 FPSOutput mainPS(FPSInput Input)
 {
     FPSOutput Output;
-    
+
     float4 FinalColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
     float4 TextureColor = AlbedoTexture.Sample(AlbedoSampler, Input.UV + UVScrollOffset);
     float4 DecalColor = DecalTexture.Load(int3(Input.Position.xy, 0));
     float4 SurfaceColor = TextureColor * BaseColor;
     SurfaceColor.rgb = BlendPremultipliedColor(SurfaceColor.rgb, DecalColor.rgb, DecalColor.a, DecalColorBlendMode);
-    
+
     float3 Albedo = SurfaceColor.rgb;
     float Alpha = bOpaque ? 1.0f : SurfaceColor.a;
 
     float3 Kd = Albedo;
     float3 Ka = Kd; // 나중에 Ka 를 개별로 설정할 수 있음
     float3 Ks = SpecularColor;
-    
+
     float3 Normal = normalize(Input.Normal);
-    
-#if USE_NORMAL_MAP
-    // 그람 슈미트 직교화
-    float3 Tangent = normalize(Input.Tangent - dot(Input.Tangent, Normal) * Normal);
-    float3 BiTangent = cross(Normal, Tangent) * Input.BitangentSign;
-    float3x3 TBN = float3x3(Tangent, BiTangent, Normal);
-    // Texture Normal 매핑
-    float3 NormalSample = NormalTexture.Sample(AlbedoSampler, Input.UV + UVScrollOffset).xyz;
-    float3 TextureNormal = normalize(NormalSample * 2.0f - 1.0f);
-    TextureNormal.y = bFlipNormalGreen ? -TextureNormal.y : TextureNormal.y;
-    // TBN 행렬을 이용하여 월드 공간으로 변환
-    float3 WorldNormal = mul(TextureNormal, TBN);
-#else
+
     float3 WorldNormal = Normal;
-#endif
+    [branch]
+    if (IsNormalMapEnabled())
+    {
+        // 그람 슈미트 직교화
+        float3 Tangent = normalize(Input.Tangent - dot(Input.Tangent, Normal) * Normal);
+        float3 BiTangent = cross(Normal, Tangent) * Input.BitangentSign;
+        float3x3 TBN = float3x3(Tangent, BiTangent, Normal);
+        // Texture Normal 매핑
+        float3 NormalSample = NormalTexture.Sample(AlbedoSampler, Input.UV + UVScrollOffset).xyz;
+        float3 TextureNormal = normalize(NormalSample * 2.0f - 1.0f);
+        TextureNormal.y = bFlipNormalGreen ? -TextureNormal.y : TextureNormal.y;
+        // TBN 행렬을 이용하여 월드 공간으로 변환
+        WorldNormal = mul(TextureNormal, TBN);
+    }
 #if SHADING_MODEL == SHADING_MODEL_PHONG || VIEWMODE == VIEWMODE_WORLDNORMAL
     // 픽셀 조명과 노멀 시각화를 위한 데칼 요철 합성
     WorldNormal = ApplyDecalNormal(Normal, WorldNormal, int2(Input.Position.xy));
@@ -1072,29 +1058,29 @@ FPSOutput mainPS(FPSInput Input)
         uint2 PixelCoord = uint2(Input.Position.xy);
         uint2 TileCoord = min(PixelCoord / 16u, uint2(TileCountX - 1u, TileCountY - 1u));
         uint TileIndex = TileCoord.y * TileCountX + TileCoord.x;
-        
+
         uint PointListStart = TileIndex * PointTileStride;
         uint SpotListStart = TileIndex * SpotTileStride;
-        
+
         uint PointCount = min(PointTileList[PointListStart], 64u);
         uint SpotCount = min(SpotTileList[SpotListStart], 64u);
-        
+
         float3 Color = GetLightCountColor(PointCount + SpotCount);
-        
+
         uint2 LocalCoord = PixelCoord % 16u;
 
         if (LocalCoord.x == 0u || LocalCoord.y == 0u)
         {
             Color *= 0.2f;
         }
-        
+
         Output.Color = float4(Color, 1.0f);
         Output.Normal = float4(WorldNormal, 0.f);
         Output.ObjectMask = ObjectMask;
 
         return Output;
     }
-    
+
     if (bVisualizeCascades != 0u)
     {
         // Cascade 0: Red, Cascade 1: Green, Cascade 2: Blue, Cascade 3: Yellow, Beyond: Gray
@@ -1111,12 +1097,8 @@ FPSOutput mainPS(FPSInput Input)
         float BlendFactor;
         GetCascadeBlendInfo(Input.WorldPosition, CascadeIdx, NextCascadeIdx, BlendFactor);
 
-#if USE_NORMAL_MAP
-        float3 ShadowNormal = Normal;
-#else
-        float3 ShadowNormal = WorldNormal;
-#endif
-        float Shadow = ComputeDirectionalShadowFactor(Input.WorldPosition, ShadowNormal, Input.Position.xy);
+        float3 ShadowNormal = IsNormalMapEnabled() ? Normal : WorldNormal;
+        float Shadow = ComputeDirectionalShadowFactor(Input.WorldPosition, ShadowNormal, Input.Position.xy, ObjectMask);
 
         float3 BaseColor = CascadeColors[min(CascadeIdx, 4)];
         if (BlendFactor > 0.0f && CascadeIdx < NumCascades - 1)
@@ -1126,14 +1108,14 @@ FPSOutput mainPS(FPSInput Input)
         }
 
         float3 Color = BaseColor * (0.35f + 0.65f * Shadow);
-        
+
         Output.Color = float4(Color, 1.0f);
         Output.Normal = float4(WorldNormal, 0.f);
         Output.ObjectMask = ObjectMask;
-        
+
         return Output;
     }
-    
+
     float3 DiffuseLight;
     float3 SpecularLight;
 #if SHADING_MODEL == SHADING_MODEL_GOURAUD
@@ -1142,34 +1124,34 @@ FPSOutput mainPS(FPSInput Input)
 #else // Phong
     float3 N = normalize(WorldNormal);
     float3 V = normalize(CameraPosition - Input.WorldPosition);
-    
-    ComputeTiledLighting(N, Normal, Input.WorldPosition, V, Shininess, Input.Position.xy, DiffuseLight, SpecularLight);
-    
+
+    ComputeTiledLighting(N, Normal, Input.WorldPosition, V, Shininess, Input.Position.xy, DiffuseLight, SpecularLight, ObjectMask);
+
 #endif
     FinalColor = float4(Ka * AmbientLight.Color + Kd * DiffuseLight + Ks * SpecularLight, Alpha);
 #endif
-    
+
 Output.Color = FinalColor;
-    
+
 #if USE_SKINNING
     if (BoneWeightEnabled != 0u)
     {
         const float Weight = saturate(Input.HeatmapWeight);
         const float Ramp = Weight * 5.0f - 1.0f;
-    
+
         const float PurpleRed = 0.6f * saturate(-Ramp);
         const float Red   = PurpleRed + saturate(Ramp - 2.0f);
         const float Green = saturate(min(Ramp, 4.0f - Ramp));
         const float Blue  = saturate(2.0f - Ramp);
-    
+
         Output.Color = float4(Red, Green, Blue, 1.0f);
     }
 #endif
-    
+
     //Output.Color = FinalColor;
     Output.Normal = float4(normalize(WorldNormal), 0.f);
     Output.ObjectMask = ObjectMask;
-    
+
     return Output;
 }
 #endif
