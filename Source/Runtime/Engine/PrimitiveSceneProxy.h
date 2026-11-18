@@ -185,6 +185,9 @@ public:
 
     void SubmitToRenderQueue(FRenderQueue& RenderQueue, const FViewBasis& View);
 
+    // 그림자 패스용: 불투명이 될 수 있는 메시 파티클만 제출한다. Strip 버퍼와 Stat은 건드리지 않는다.
+    void SubmitShadowCasters(FRenderQueue& RenderQueue) const;
+
     void SetDynamicData(const TArray<FParticleEmitterRenderData>& InEmitterRenderDatas);
 
 protected:
@@ -192,7 +195,7 @@ protected:
     virtual FLODSphere GetLocalLODSphere() const;
 
 private:
-    void SubmitMeshParticles(FRenderQueue& RenderQueue, const FViewBasis& View) const;
+    void SubmitMeshParticles(FRenderQueue& RenderQueue, const FViewBasis& View, bool bCountStats = true) const;
 
 private:
     TArray<FParticleEmitterRenderData> EmitterRenderDatas;

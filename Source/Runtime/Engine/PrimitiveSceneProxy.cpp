@@ -607,7 +607,11 @@ void FParticleSystemSceneProxy::SetDynamicData(const TArray<FParticleEmitterRend
     GetScene()->MarkDirty(this);
 }
 
-void FParticleSystemSceneProxy::SubmitMeshParticles(FRenderQueue& RenderQueue, const FViewBasis& View) const {
+void FParticleSystemSceneProxy::SubmitShadowCasters(FRenderQueue& RenderQueue) const {
+    SubmitMeshParticles(RenderQueue, FViewBasis{}, false);
+}
+
+void FParticleSystemSceneProxy::SubmitMeshParticles(FRenderQueue& RenderQueue, const FViewBasis& View, bool bCountStats) const {
     for (const FParticleEmitterRenderData& Emitter : EmitterRenderDatas) {
         UStaticMesh* StaticMesh{ Emitter.mStaticMesh };
         if (Emitter.DynamicEmitterType != EDynamicEmitterType::Mesh || !StaticMesh || !StaticMesh->GetVertexBuffer(0) || !StaticMesh->GetIndexBuffer(0)) {
@@ -627,7 +631,9 @@ void FParticleSystemSceneProxy::SubmitMeshParticles(FRenderQueue& RenderQueue, c
                 }
 
                 FRenderPacket& Packet{ RenderQueue.AddDefaulted_GetRef() };
-                FParticleStats::GetPending().RenderPackets++;
+                if (bCountStats) {
+                    FParticleStats::GetPending().RenderPackets++;
+                }
                 Packet.Proxy = this;
                 Packet.Model = RenderQueue.StoreWorldMatrix(Particle.Model);
                 Packet.NormalMatrix = RenderQueue.StoreWorldMatrix(Particle.NormalMatrix);

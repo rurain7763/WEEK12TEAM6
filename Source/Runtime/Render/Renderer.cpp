@@ -721,8 +721,8 @@ void FRenderer::BuildShadowStaticGroups(const TArray<FPrimitiveSceneProxy*>& Cas
 			}
 		} else if (Cast<UParticleSystemComponent>(Proxy->GetComponent())) {
 			FRenderQueue Queue{};
-			const FViewBasis View{};
-			Proxy->SubmitToRenderQueue(Queue, View);
+			// 전체 제출은 Strip 정점을 빈 뷰 기준으로 다시 써서 메인 패스의 빔·리본 방향을 망가뜨린다.
+			static_cast<FParticleSystemSceneProxy*>(Proxy)->SubmitShadowCasters(Queue);
 			for (const FRenderPacket& Packet : Queue) {
 				if (!Packet.Material || Packet.Material->BlendState != EBlendState::Opaque || !IsStaticInstanceGeometry(Packet.Geometry)) {
 					continue;
