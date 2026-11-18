@@ -5,6 +5,8 @@
 #include "Particle/ParticleLODLevel.h"
 #include "Particle/ParticleEmitter.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
+#include "Particle/Modules/ParticleModuleTypeDataAnimTrail.h"
+#include "UObject/Casts.h"
 
 void FParticleRibbonEmitterInstance::SpawnParticle(const FVector& InitLocation)
 {
@@ -70,6 +72,9 @@ void FParticleRibbonEmitterInstance::BuildRenderData(FParticleEmitterRenderData&
 	RenderData.Strips.SetNum(1);
 	FParticleStripRenderData& Strip = RenderData.Strips[0];
 
+	// AnimTrail이면 점마다 면의 반쪽 벡터도 넘긴다 (payload가 FAnimTrailTypeDataPayload)
+	const bool bAnimTrail = Cast<UParticleModuleTypeDataAnimTrail>(TypeDataModule) != nullptr;
+
 	// 머리부터 Next를 따라간다 (출석부 순서가 아니라 태어난 순서)
 	int32 Slot = HeadSlot;
 	int32 Visited = 0;
@@ -78,6 +83,11 @@ void FParticleRibbonEmitterInstance::BuildRenderData(FParticleEmitterRenderData&
 		// 칸 번호 → 입자 주소 (출석부를 거치지 않는다)
 		const FBaseParticle* Particle = (const FBaseParticle*)(ParticleData + Slot * ParticleStride);
 		Strip.Points.Add(SimulateToWorld.TransformPosition(Particle->Location));
+		if (bAnimTrail)
+		{
+			const FAnimTrailTypeDataPayload* Trail = static_cast<const FAnimTrailTypeDataPayload*>(GetPayload(Slot));
+			Strip.EdgeOffsets.Add(SimulateToWorld.TransformVector(Trail->Direction * Trail->Length));
+		}
 
 		Slot = GetPayload(Slot)->NextSlot;
 		++Visited;

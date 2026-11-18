@@ -1,0 +1,95 @@
+{
+    "Version": 1,
+    "ParticleSystem": {
+        "LODMethod": 0,
+        "LODDistances": [
+            0
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "WaterBreathing_Ribbon",
+                "bEnabled": true,
+                "MaxParticleCount": 100,
+                "ParticleSize": 0,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 0.45
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 0.7,
+                                    "Y": 0.7,
+                                    "Z": 0.7
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "R": 1,
+                                    "G": 1,
+                                    "B": 1,
+                                    "A": 1
+                                }
+                            }
+                        ],
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 90
+                        },
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "bUseLocalSpace": false,
+                            "isLit": false,
+                            "Material": "BeamMaterial",
+                            "MaterialInstance": {
+                                "Base": "BeamMaterial",
+                                "Instance": {
+                                    "Properties": {},
+                                    "MaterialDomain": "Surface",
+                                    "BaseColor": {
+                                        "R": 1,
+                                        "G": 1,
+                                        "B": 1,
+                                        "A": 1
+                                    },
+                                    "BlendState": "AlphaBlend",
+                                    "SamplerState": "LinearClamp",
+                                    "Textures": [
+                                        "Assets/Textures/Particles/WaterBreathing_Ribbon.png"
+                                    ],
+                                    "UVScrollSpeed": [
+                                        0,
+                                        0
+                                    ],
+                                    "Shininess": 32,
+                                    "SpecularColor": {
+                                        "R": 0.5,
+                                        "G": 0.5,
+                                        "B": 0.5,
+                                        "A": 1
+                                    },
+                                    "bFlipNormalGreen": false,
+                                    "bAffectBaseColor": true,
+                                    "bAffectNormal": true,
+                                    "DecalColorBlendMode": "Alpha"
+                                }
+                            }
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataRibbon"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

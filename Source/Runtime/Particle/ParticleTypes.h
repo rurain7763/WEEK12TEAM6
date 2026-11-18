@@ -101,3 +101,11 @@ struct FRibbonTypeDataPayload
 	int32 NextSlot = -1;
 	int32 PrevSlot = -1;
 };
+
+// UE: FAnimTrailTypeDataPayload (ParticleHelper.h). 입자 위치 = 두 소켓의 중앙 (simulate 공간)
+// 정점: Location - Direction * Length, Location + Direction * Length. 카메라 방향은 쓰지 않는다
+struct FAnimTrailTypeDataPayload : public FRibbonTypeDataPayload
+{
+	FVector Direction = FVector::ZeroVector; // 첫 소켓 -> 두 번째 소켓 방향 (단위 벡터)
+	float Length = 0.f;                      // 두 소켓 거리의 절반 x Width
+};

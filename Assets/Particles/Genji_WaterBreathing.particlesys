@@ -1,0 +1,90 @@
+{
+    "ParticleSystem": {
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "WaterBreathing_Sweep",
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 3.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "A": 1.0,
+                                    "B": 1.0,
+                                    "G": 1.0,
+                                    "R": 1.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "BeamMaterial",
+                            "MaterialInstance": {
+                                "Base": "BeamMaterial",
+                                "Instance": {
+                                    "BaseColor": {
+                                        "A": 1.0,
+                                        "B": 1.0,
+                                        "G": 1.0,
+                                        "R": 1.0
+                                    },
+                                    "BlendState": "AlphaBlend",
+                                    "DecalColorBlendMode": "Alpha",
+                                    "MaterialDomain": "Surface",
+                                    "Properties": {},
+                                    "SamplerState": "LinearClamp",
+                                    "Shininess": 32.0,
+                                    "SpecularColor": {
+                                        "A": 1.0,
+                                        "B": 0.5,
+                                        "G": 0.5,
+                                        "R": 0.5
+                                    },
+                                    "Textures": [
+                                        "Assets/Textures/Particles/WaterBreathing_Ribbon.png"
+                                    ],
+                                    "UVScrollSpeed": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "bAffectBaseColor": true,
+                                    "bAffectNormal": true,
+                                    "bFlipNormalGreen": false
+                                }
+                            },
+                            "bUseLocalSpace": false,
+                            "isLit": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 500.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataAnimTrail",
+                            "FirstSocketName": "Weapon_R",
+                            "SecondSocketName": "BladeTip",
+                            "Width": 3.0
+                        },
+                        "bEnable": true
+                    }
+                ],
+                "MaxParticleCount": 3000,
+                "ParticleSize": 120,
+                "bEnabled": true
+            }
+        ],
+        "LODDistanceCheckTime": 0.25,
+        "LODDistances": [
+            0.0
+        ],
+        "LODMethod": 0
+    },
+    "Version": 1
+}

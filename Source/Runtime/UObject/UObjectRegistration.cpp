@@ -112,7 +112,9 @@
 #include "Particle/Modules/ParticleModuleTypeDataBeam.h"
 #include "Particle/Modules/ParticleModuleBeamSource.h"
 #include "Particle/Modules/ParticleModuleBeamTarget.h"
+#include "Particle/Modules/ParticleModuleLocationBoneSocket.h"
 #include "Particle/Modules/ParticleModuleTypeDataRibbon.h"
+#include "Particle/Modules/ParticleModuleTypeDataAnimTrail.h"
 #include "Particle/Modules/ParticleModuleTypeDataMesh.h"
 #include "Particle/Modules/ParticleModuleVelocity.h"
 #include "Particle/Modules/ParticleModuleVelocityCone.h"
@@ -273,7 +275,9 @@ void RegisterUClasses()
 	UParticleModuleTypeDataBeam::StaticClass();
 	UParticleModuleBeamSource::StaticClass();
 	UParticleModuleBeamTarget::StaticClass();
+	UParticleModuleLocationBoneSocket::StaticClass();
 	UParticleModuleTypeDataRibbon::StaticClass();
+	UParticleModuleTypeDataAnimTrail::StaticClass();
 	UParticleModuleTypeDataMesh::StaticClass();
 	UParticleModuleVelocity::StaticClass();
 	UParticleModuleVelocityCone::StaticClass();
