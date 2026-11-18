@@ -366,7 +366,7 @@ FLODSphere FSkeletalMeshSceneProxy::GetLocalLODSphere() const
 FParticleSystemSceneProxy::FParticleSystemSceneProxy(UParticleSystemComponent* InComponent)
     : FPrimitiveSceneProxy(InComponent)
 {
-    QuadMesh = UAssetManager::GetAssetByPath<UStaticMesh>("Quad");
+    QuadMesh = UAssetManager::GetAssetByPath<UStaticMesh>("ParticleQuad");
 }
 
 FParticleSystemSceneProxy::~FParticleSystemSceneProxy()
@@ -390,10 +390,11 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
             NumStripIndices += (N - 1) * 6; //칸하나 -> 삼각형2개 -> 인덱스 6개
         }
     }
+
     //크기부족일때 재할당
     if (NumStripVertices > StripVertexCapacity)
     {
-        StripVB = RenderCommand::CreateDynamicVertexBuffer(NumStripVertices * sizeof(FParticleVertex), sizeof(FParticleVertex));
+        StripVB = RenderCommand::CreateDynamicVertexBuffer(NumStripVertices * sizeof(FVertexPNCT), sizeof(FVertexPNCT));
         StripVertexCapacity = NumStripVertices;
     }
     if (NumStripIndices > StripIndexCapacity)
@@ -401,10 +402,11 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
         StripIB = RenderCommand::CreateDynamicIndexBuffer(NumStripIndices);
         StripIndexCapacity = NumStripIndices;
     }
+
     // Beam을 삼각형화 해서 띠 모양으로 정점변환단계
     if (NumStripVertices > 0)
     {
-        FParticleVertex* V = static_cast<FParticleVertex*>(RenderCommand::MapWriteDiscard(StripVB.get()));
+        FVertexPNCT* V = static_cast<FVertexPNCT*>(RenderCommand::MapWriteDiscard(StripVB.get()));
         uint32* I = static_cast<uint32*>(RenderCommand::MapWriteDiscard(StripIB.get()));
         uint32 VertexCursor = 0;   // 지금까지 쓴 정점 수
         uint32 IndexCursor = 0;   // 지금까지 쓴 인덱스 수
@@ -432,10 +434,10 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
                     Side = Side.Normalized() * (Strip.Width * 0.5f);
                     const float U = static_cast<float>(i) / (N - 1);
 
-                    FParticleVertex& Top = V[Base + 2 * i];
-                    FParticleVertex& Bot = V[Base + 2 * i + 1];
-                    Top = FParticleVertex();  Top.Position = P[i] + Side;  Top.UV = FVector2(U, 0.f);
-                    Bot = FParticleVertex();  Bot.Position = P[i] - Side;  Bot.UV = FVector2(U, 1.f);
+                    FVertexPNCT& Top = V[Base + 2 * i];
+                    FVertexPNCT& Bot = V[Base + 2 * i + 1];
+                    Top = FVertexPNCT();  Top.Position = P[i] + Side;  Top.UV = FVector2(U, 0.f);
+                    Bot = FVertexPNCT();  Bot.Position = P[i] - Side;  Bot.UV = FVector2(U, 1.f);
                 }
 
                 // (나) 인덱스: 칸마다 삼각형 2개
@@ -482,9 +484,10 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
         {
             continue;
         }
+
         if (Emitter.DynamicEmitterType == EDynamicEmitterType::Beam || Emitter.DynamicEmitterType == EDynamicEmitterType::Ribbon)
         {
-        continue;
+            continue;
         }
 
         for (int32 ParticleIndex = 0; ParticleIndex < Emitter.Particles.Num(); ++ParticleIndex)
@@ -502,7 +505,7 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
             Packet.Geometry.StartIndex = 0;
             Packet.Geometry.IndexCount = IB->GetIndexCount();
             Packet.Material = Emitter.Material;
-            Packet.ColorMultiplier = Sprite.MaterialParams.TintColor;
+            Packet.ColorMultiplier = Sprite.TintColor;
             Packet.Model = RenderQueue.StoreWorldMatrix(BillboardMatrix);
             Packet.CameraDistanceSquared = ToCamera.SizeSquared();
         }

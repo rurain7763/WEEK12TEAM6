@@ -1,0 +1,118 @@
+{
+  "ParticleSystem": {
+    "Emitters": [
+      {
+        "EmitterName": "LightingTest_Unlit",
+        "LODLevels": [
+          {
+            "Modules": [
+              {
+                "LifeTime": 6.0,
+                "ClassName": "UParticleModuleLifeTime"
+              },
+              {
+                "MinLocation": {
+                  "Y": -1.1,
+                  "X": -0.75,
+                  "Z": -1.1
+                },
+                "StartLocation": {
+                  "Y": 0.0,
+                  "Z": 0.0,
+                  "X": 0.0
+                },
+                "MaxLocation": {
+                  "Y": 1.1,
+                  "X": 0.75,
+                  "Z": 1.1
+                },
+                "bHasRandomValue": true,
+                "ClassName": "UParticleModuleLocation"
+              },
+              {
+                "StartSize": {
+                  "Y": 0.45,
+                  "X": 0.45,
+                  "Z": 1.0
+                },
+                "ClassName": "UParticleModuleSize"
+              },
+              {
+                "StartColor": {
+                  "A": 1.0,
+                  "B": 1.0,
+                  "G": 1.0,
+                  "R": 1.0
+                },
+                "ClassName": "UParticleModuleColor"
+              },
+              {
+                "ClassName": "UParticleModuleRotation",
+                "StartRotation": 0.0
+              },
+              {
+                "ClassName": "UParticleModuleRotationRate",
+                "StartRotationRate": 0.0
+              }
+            ],
+            "bEnable": true,
+            "SpawnModule": {
+              "SpawnRate": 8.0,
+              "ClassName": "UParticleModuleSpawn"
+            },
+            "ClassName": "UParticleLODLevel",
+            "Level": 0,
+            "RequiredModule": {
+              "bUseLocalSpace": true,
+              "isLit": false,
+              "Material": "SpriteMaterial",
+              "MaterialInstance": {
+                "Base": "SpriteMaterial",
+                "Instance": {
+                  "DecalColorBlendMode": "Alpha",
+                  "bAffectNormal": true,
+                  "Shininess": 24.0,
+                  "BaseColor": {
+                    "A": 1.0,
+                    "B": 0.4,
+                    "G": 0.4,
+                    "R": 0.4
+                  },
+                  "MaterialDomain": "Surface",
+                  "BlendState": "AlphaBlend",
+                  "SamplerState": "LinearClamp",
+                  "Properties": {},
+                  "bAffectBaseColor": true,
+                  "SpecularColor": {
+                    "A": 1.0,
+                    "B": 0.0,
+                    "G": 0.0,
+                    "R": 0.0
+                  },
+                  "Textures": [
+                    "Assets/Textures/Particles/circle_05.png"
+                  ],
+                  "UVScrollSpeed": [
+                    0.0,
+                    0.0
+                  ],
+                  "bFlipNormalGreen": false
+                }
+              },
+              "ClassName": "UParticleModuleRequired"
+            }
+          }
+        ],
+        "MaxParticleCount": 64,
+        "ParticleSize": 96,
+        "ClassName": "UParticleEmitter"
+      }
+    ],
+    "LODDistanceCheckTime": 0.25,
+    "LODDistances": [
+      0.0
+    ],
+    "LODMethod": 0
+  },
+  "Version": 1
+}

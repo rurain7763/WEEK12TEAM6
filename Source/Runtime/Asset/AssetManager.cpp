@@ -380,56 +380,22 @@ void UAssetManager::CreateDefaultMeshes()
 	FModelMeshData* GizmoSphereData = FGeometryGenerator::GetMeshData("GizmoSphere");
 	RegisterAsset("GizmoSphere", CreateStaticMesh(GizmoSphereData));
 
-	const FParticleVertex Vertices[] =
-	{
-		{ FVector(0.0f, -0.5f,  0.5f), FVector2(0.0f, 0.0f) },
-		{ FVector(0.0f, 0.5f,  0.5f), FVector2(1.0f, 0.0f) },
-		{ FVector(0.0f, 0.5f, -0.5f), FVector2(1.0f, 1.0f) },
-		{ FVector(0.0f, -0.5f, -0.5f), FVector2(0.0f, 1.0f) }
-	};
+	FModelMeshData* QuadData = FGeometryGenerator::GetMeshData("Quad");
+	RegisterAsset("Quad", CreateStaticMesh(QuadData));
 
-	const uint32 Indices[] =
-	{
-		0, 1, 2,
-		0, 2, 3
-	};
-
-	UStaticMesh* Mesh = NewObject<UStaticMesh>();
-	Mesh->VertexBuffer = RenderCommand::CreateStaticVertexBuffer(
-		Vertices,
-		sizeof(Vertices), sizeof(FParticleVertex));
-	Mesh->IndexBuffer = RenderCommand::CreateStaticIndexBuffer(
-		Indices,
-		ARRAYSIZE(Indices));
-
-	FVertexPNCT Vertex{};
-	Vertex.Position = FVector(0.0f, -0.5f, 0.5f);
-	Mesh->MeshData.Vertices.Add(Vertex);
-	Vertex.Position = FVector(0.0f, 0.5f, 0.5f);
-	Mesh->MeshData.Vertices.Add(Vertex);
-	Vertex.Position = FVector(0.0f, 0.5f, -0.5f);
-	Mesh->MeshData.Vertices.Add(Vertex);
-	Vertex.Position = FVector(0.0f, -0.5f, -0.5f);
-	Mesh->MeshData.Vertices.Add(Vertex);
-
-	Mesh->MeshData.Indices = { 0, 1, 2, 0, 2, 3, 0,2,1, 0,3,2 };
-
-	Mesh->MeshData.AABB.Min = FVector(-0.001f, -0.5, -0.5);
-	Mesh->MeshData.AABB.Max = FVector(0.001f, 0.5, 0.5);
-	Mesh->RebuildRenderData();
-
-	RegisterAsset("Quad", Mesh);
+	FModelMeshData* ParticleQuadData = FGeometryGenerator::GetMeshData("ParticleQuad");
+	RegisterAsset("ParticleQuad", CreateStaticMesh(ParticleQuadData));
 }
 
 void UAssetManager::CreateDefaultMaterial()
 {
 	UMaterial* DefaultMat = NewObject<UMaterial>();
-	DefaultMat->Shader = FRenderResourceManager::GetUberLitProgram(FViewRenderMode{}, false);
+	DefaultMat->Shader = FRenderResourceManager::GetUberLitProgram(FViewRenderMode{});
 	DefaultMat->Textures.Add(GetAssetByPath<UTexture2D>("WhiteTexture"));
 	 //DefaultMat->Textures.Add(GetAssetByPath<UTexture2D>("FlatNormalTexture"));
 
-	DefaultMat->ParamLayout = EMaterialParamLayout::Surface;
-	DefaultMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FSurfaceMaterialParams));
+	DefaultMat->bUseViewModeShader = true;
+	DefaultMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FMaterialParams));
 	RegisterAsset("DefaultMaterial", DefaultMat);
 }
 
@@ -440,20 +406,18 @@ void UAssetManager::CreateParticleMaterial()
 	ParticleMat->Textures.Add(LoadTexture(ResourcePaths::DefaultSpriteTexture));
 	ParticleMat->BlendState = EBlendState::AlphaBlend;
 	ParticleMat->DepthStencilState = EDepthStencilState::ReadOnly;
-	ParticleMat->ParamLayout = EMaterialParamLayout::ParticleSubUV;
-	ParticleMat->ParamBuffer = RenderCommand::CreateConstantBuffer(256);
+	ParticleMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FMaterialParams));
 	RegisterAsset("SubUVMaterial", ParticleMat);
 }
 
 void UAssetManager::CreateSpriteMaterial()
 {
 	UMaterial* SpriteMat = NewObject<UMaterial>();
-	SpriteMat->Shader = FRenderResourceManager::GetShaderProgram("Resources/Shader/SpriteShader.hlsl");
+	SpriteMat->Shader = FRenderResourceManager::GetShaderProgram("TransparentUber_Static_Unlit");
 	SpriteMat->Textures.Add(LoadTexture(ResourcePaths::DefaultParticleTexture));
 	SpriteMat->BlendState = EBlendState::AlphaBlend;
 	SpriteMat->DepthStencilState = EDepthStencilState::ReadOnly;
-	SpriteMat->ParamLayout = EMaterialParamLayout::Sprite;
-	SpriteMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FSpriteMaterialParams));
+	SpriteMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FMaterialParams));
 	RegisterAsset("SpriteMaterial", SpriteMat);
 }
 
@@ -461,12 +425,11 @@ void UAssetManager::CreateSpriteMaterial()
 void UAssetManager::CreateBeamMaterial()
 {
 	UMaterial* BeamMat = NewObject<UMaterial>();
-	BeamMat->Shader = FRenderResourceManager::GetShaderProgram("Resources/Shader/SpriteShader.hlsl");
+	BeamMat->Shader = FRenderResourceManager::GetShaderProgram("TransparentUber_Static_Unlit");
 	BeamMat->Textures.Add(LoadTexture(ResourcePaths::DefaultBeamTexture));
 	BeamMat->BlendState = EBlendState::AlphaBlend;
 	BeamMat->DepthStencilState = EDepthStencilState::ReadOnly;
-	BeamMat->ParamLayout = EMaterialParamLayout::Sprite;
-	BeamMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FSpriteMaterialParams));
+	BeamMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FMaterialParams));
 	RegisterAsset("BeamMaterial", BeamMat);
 
 	// Register textured variants before particle assets resolve their material names.
@@ -487,7 +450,6 @@ void UAssetManager::CreateDecalMaterial()
 {
 	UMaterial* Material = NewObject<UMaterial>();
 	Material->MaterialDomain = EMaterialDomain::Decal;
-	Material->ParamLayout = EMaterialParamLayout::None;
 	Material->Textures.Add(GetAssetByPath<UTexture2D>("WhiteTexture"));
 	Material->Textures.Add(GetAssetByPath<UTexture2D>("FlatNormalTexture"));
 	Material->BaseColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);

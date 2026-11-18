@@ -32,7 +32,7 @@ UMaterial* UMaterial::CreateInstance(const UMaterial* Source)
 	UMaterial* Instance = NewObject<UMaterial>();
 
 	Instance->MaterialDomain = Source->MaterialDomain;
-	Instance->ParamLayout = Source->ParamLayout;
+	Instance->bUseViewModeShader = Source->bUseViewModeShader;
 	Instance->Shader = Source->Shader;
 	Instance->Textures = Source->Textures;
 	Instance->BlendState = Source->BlendState;
@@ -51,7 +51,7 @@ UMaterial* UMaterial::CreateInstance(const UMaterial* Source)
 	// 원본이 갖고 있으면 같은 크기로 새로 만들어 준다. 내용은 매 프레임 갱신되므로 옮기지 않는다.
 	if (Source->ParamBuffer)
 	{
-		Instance->ParamBuffer = RenderCommand::CreateConstantBuffer(Source->ParamBuffer->GetBufferSize());
+		Instance->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FMaterialParams));
 	}
 
 	Instance->BaseColor = Source->BaseColor;

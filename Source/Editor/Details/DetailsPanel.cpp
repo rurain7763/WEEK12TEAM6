@@ -1045,7 +1045,7 @@ namespace
 					}
 					// 표면 머티리얼의 데칼 색상 수신 방식 편집
 					if (Effective && Effective->MaterialDomain == EMaterialDomain::Surface &&
-						Effective->ParamLayout == EMaterialParamLayout::Surface)
+						Effective->bUseViewModeShader)
 					{
 						ImGui::TableNextRow();
 						ImGui::TableSetColumnIndex(0);

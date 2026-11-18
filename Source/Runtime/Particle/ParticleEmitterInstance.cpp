@@ -278,6 +278,6 @@ void FParticleEmitterInstance::BuildRenderData(FParticleEmitterRenderData& Rende
 		ParticleRenderData.Location = SimulateToWorld.TransformPosition(Particle->Location);
 		ParticleRenderData.Size = Particle->Size;
 		ParticleRenderData.Rotation = Particle->Rotation;
-		ParticleRenderData.MaterialParams.TintColor = Particle->Color;
+		ParticleRenderData.TintColor = Particle->Color;
 	}
 }

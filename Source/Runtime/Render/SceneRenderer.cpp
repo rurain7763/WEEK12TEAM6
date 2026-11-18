@@ -363,10 +363,10 @@ void FSceneRenderer::RenderTranslucentPass(const FSceneView& SceneView, const FS
 	PassInfo.DepthStencil.LoadOp = ERenderTargetLoadOp::Load;
 	RenderCommand::BeginRenderPass(PassInfo);
 
-	const ERasterizerState SceneRasterizerState = SceneView.RenderMode.ViewMode == EViewMode::Wireframe
-		? ERasterizerState::Wireframe : ERasterizerState::SolidBack;
+	const ERasterizerState SceneRasterizerState = SceneView.RenderMode.ViewMode == EViewMode::Wireframe ? ERasterizerState::Wireframe : ERasterizerState::SolidBack;
 	DrawWorldText(SceneView, ViewWorld);
 	RenderCommand::SetRasterizerState(SceneRasterizerState); // TextRenderer가 상태를 바꾸므로 되돌림
+	Renderer->BindShadowForShading();
 	Renderer->RenderTranslucent();
 	// 장면 Wireframe이 Grid·Gizmo·UI로 전파되지 않도록 복원한다.
 	RenderCommand::SetRasterizerState(ERasterizerState::SolidBack);

@@ -33,6 +33,7 @@ public:
 	{
 		Get().ScanShaders("Resources/Shader");
 		Get().LoadUberLitPermutations();
+		Get().LoadTransparentUberShaders();
 	}
 
 	void ScanShaders(const fs::path& ShaderRoot);
@@ -43,14 +44,15 @@ public:
 
 	static FShaderProgram* GetShaderProgram(FName Key);
 
-	static FShaderProgram* GetUberLitProgram(const FViewRenderMode& Mode, bool bHasNormalMap, bool bReceiveShadow = true, bool bUseSkinning = false);
+	static FShaderProgram* GetUberLitProgram(const FViewRenderMode& Mode, bool bUseSkinning = false);
 
 private:
-	static FString GetUberLitSuffix(const FViewRenderMode& Mode, bool bHasNormalMap = false, bool bReceiveShadow = true, bool bUseSkinning = false);
+	static FString GetUberLitSuffix(const FViewRenderMode& Mode, bool bUseSkinning = false);
 
 	void LoadOrCompileShader(const FString& Path, const FString& PermutationSuffix = "", const D3D_SHADER_MACRO* Defines = nullptr, const TArray<D3D11_INPUT_ELEMENT_DESC>& InputLayoutDescs = {});
 
 	void LoadUberLitPermutations();
+	void LoadTransparentUberShaders();
 
 	struct FShaderProgramEntry
 	{
