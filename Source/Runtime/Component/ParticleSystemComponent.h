@@ -59,6 +59,10 @@ public:
 	// 파티클 충돌 이벤트 콜백 (EventManager가 Broadcast)
 	TMulticastDelegate<UParticleSystemComponent*, const FParticleEventCollideData&> OnParticleCollide;
 
+	// 빔 대상 (UE: SetActorParameter). BeamTarget 모듈이 매 틱 이 액터 위치를 읽는다. nullptr이면 Default 끝점
+	void SetBeamTargetActor(AActor* InActor) { BeamTargetActor = InActor; }
+	AActor* GetBeamTargetActor() const { return BeamTargetActor; }
+
 private:
 	void UpdateAutomaticLOD(float DeltaTime);
 	bool GetLODViewLocation(FVector& OutViewLocation) const;
@@ -77,4 +81,5 @@ private:
 	TArray<FParticleEventCollideData> CollisionEvents;
 	bool mEmitterInstancesInitialized{};
 	float LODDistanceCheckElapsed = 0.f;
+	AActor* BeamTargetActor = nullptr; // 비소유 참조. 대상 액터를 삭제하기 전에 nullptr로 지운다
 };

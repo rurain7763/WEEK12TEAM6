@@ -431,6 +431,8 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
                 {
                     FVector Dir = (i + 1 < N) ? P[i + 1] - P[i] : P[i] - P[i - 1];
                     FVector Side = FVector::Cross(Dir, View.Location - P[i]);
+
+
                     if (Side.SizeSquared() < 1e-8f) Side = FVector::Cross(Dir, FVector(0, 0, 1));
                     if (Side.SizeSquared() < 1e-8f) Side = FVector::Cross(Dir, FVector(0, 1, 0));
                     Side = Side.Normalized() * (Strip.Width * 0.5f);
