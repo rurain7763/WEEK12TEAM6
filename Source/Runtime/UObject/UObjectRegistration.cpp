@@ -98,6 +98,9 @@
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
 #include "Particle/Modules/ParticleModuleLifeTime.h"
 #include "Particle/Modules/ParticleModuleLocation.h"
+#include "Particle/Modules/ParticleModuleLocationPrimitiveBox.h"
+#include "Particle/Modules/ParticleModuleLocationPrimitiveSphere.h"
+#include "Particle/Modules/ParticleModuleLocationPrimitiveCylinder.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
 #include "Particle/Modules/ParticleModuleRotation.h"
 #include "Particle/Modules/ParticleModuleRotationRate.h"
@@ -255,6 +258,9 @@ void RegisterUClasses()
 	UParticleModuleColorOverLife::StaticClass();
 	UParticleModuleLifeTime::StaticClass();
 	UParticleModuleLocation::StaticClass();
+	UParticleModuleLocationPrimitiveBox::StaticClass();
+	UParticleModuleLocationPrimitiveSphere::StaticClass();
+	UParticleModuleLocationPrimitiveCylinder::StaticClass();
 	UParticleModuleRequired::StaticClass();
 	UParticleModuleRotation::StaticClass();
 	UParticleModuleRotationRate::StaticClass();
