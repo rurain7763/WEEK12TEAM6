@@ -180,6 +180,9 @@ public:
     FParticleSystemSceneProxy(UParticleSystemComponent* InComponent);
     ~FParticleSystemSceneProxy() override;
 
+public:
+    void UpdateRenderState() override;
+
     void SubmitToRenderQueue(FRenderQueue& RenderQueue, const FViewBasis& View);
 
     void SetDynamicData(const TArray<FParticleEmitterRenderData>& InEmitterRenderDatas);

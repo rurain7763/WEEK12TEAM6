@@ -1,0 +1,7 @@
+Built-in image_gen; transparent_background=true.
+
+Use case: stylized-concept
+Asset type: square RGBA game particle sprite for validating standard source-alpha blending in a real-time engine.
+Primary request: one neutral white, softly translucent magical vapor disc, viewed exactly face-on, centered and isolated on a genuinely transparent background. A broad softly filled circular middle surrounded by a delicate, uneven smoke ring with wispy curls and fine organic edge detail. Use only neutral white/light gray RGB so that the engine can tint it cyan, magenta, or amber. The broad middle must visibly preserve partial transparency, with a gradual alpha falloff and several more opaque thin white strands. The outermost 12% border of the square is fully transparent. One single sprite, no atlas.
+Composition/framing: 1024x1024 square, centered, diameter about 76% of the image, no perspective.
+Constraints: real transparent alpha channel, smoothly varying intermediate alpha values; straight-alpha texture, no baked background, no checkerboard, no black matte, no text, no labels, no frame, no cast shadow, no colored glow. Keep the center broad and softly filled rather than hollow.
