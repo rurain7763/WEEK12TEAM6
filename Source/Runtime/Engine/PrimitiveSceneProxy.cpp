@@ -455,7 +455,7 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
                     if (Side.SizeSquared() < 1e-8f) Side = FVector::Cross(Dir, FVector(0, 1, 0));
                     Side = Side.Normalized() * (Strip.Width * 0.5f);
                     if (Strip.EdgeOffsets.Num() == N) Side = Strip.EdgeOffsets[i]; // AnimTrail: 저장된 칼날 방향·길이 (UE: Location ± Direction * Length)
-                    const float U = static_cast<float>(i) / (N - 1);
+                    const float U = Strip.TexU.Num() == N ? Strip.TexU[i] : static_cast<float>(i) / (N - 1);
 
                     FVertexPNCT& Top = V[Base + 2 * i];
                     FVertexPNCT& Bot = V[Base + 2 * i + 1];

@@ -1056,6 +1056,7 @@ void FRenderer::SetViewMode(const FViewRenderMode& Mode)
 		mTranslucentViewModeShaders[Skinning] = FRenderResourceManager::GetUberLitProgram(Mode, Skinning != 0, false, true);
 	}
 	mInstancedViewModeShader = FRenderResourceManager::GetUberLitProgram(Mode, false, true);
+	mSceneRasterizerState = Mode.ViewMode == EViewMode::Wireframe ? ERasterizerState::Wireframe : ERasterizerState::SolidBack;
 }
 
 void FRenderer::SetLighting(const FLightingConstants& GlobalLights,
@@ -1086,6 +1087,10 @@ void FRenderer::BindMaterial(UMaterial* Material, bool UseSkinning) {
 	}
 
 	RenderCommand::SetBlendState(Material->BlendState);
+
+	// 양면 머티리얼(리본·빔 띠)은 뒷면도 그린다. 와이어프레임 뷰에서는 와이어프레임을 유지한다
+	const bool bCullNone = Material->bTwoSided && mSceneRasterizerState != ERasterizerState::Wireframe;
+	RenderCommand::SetRasterizerState(bCullNone ? ERasterizerState::SolidNone : mSceneRasterizerState);
 
 	// 반투명은 뒤에 그려지는 Grid·다른 반투명을 가리지 않도록 깊이를 쓰지 않는다.
 	const bool bTranslucent = Material->BlendState != EBlendState::Opaque;

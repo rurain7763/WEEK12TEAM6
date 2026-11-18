@@ -31,6 +31,31 @@ void FParticleRibbonEmitterInstance::SpawnParticle(const FVector& InitLocation)
 	}
 	HeadSlot = NewSlot;
 
+	// 머리(최신)에서 꼬리로 갈수록 U가 커지도록 음수 (U=0이 칼 쪽인 기존 규칙 유지)
+	const UParticleModuleTypeDataRibbon* Ribbon = Cast<UParticleModuleTypeDataRibbon>(TypeDataModule);
+	if (Ribbon && Ribbon->GetTextureTileTime() > 0.f)
+	{
+		// 프레임 안에서 태어난 시각: 직전 프레임 끝(alpha 0) ~ 이번 프레임 끝(alpha 1)
+		const float BirthTime = RibbonTime - LastDeltaTime * (1.f - SpawnAlpha);
+		GetPayload(NewSlot)->TexU = -BirthTime / Ribbon->GetTextureTileTime();
+	}
+}
+
+void FParticleRibbonEmitterInstance::SpawnParticles(int32 Count, const FVector& InitLocation)
+{
+	for (int32 i = 0; i < Count; ++i)
+	{
+		SpawnAlpha = static_cast<float>(i + 1) / Count;   // 마지막 입자 = 1 (현재 프레임)
+		SpawnParticle(InitLocation);
+	}
+	SpawnAlpha = 1.f;
+}
+
+void FParticleRibbonEmitterInstance::Tick(float DeltaTime)
+{
+	RibbonTime += DeltaTime;
+	LastDeltaTime = DeltaTime;
+	FParticleEmitterInstance::Tick(DeltaTime);
 }
 
 void FParticleRibbonEmitterInstance::KillParticle(int32 Position)
@@ -74,6 +99,8 @@ void FParticleRibbonEmitterInstance::BuildRenderData(FParticleEmitterRenderData&
 
 	// AnimTrail이면 점마다 면의 반쪽 벡터도 넘긴다 (payload가 FAnimTrailTypeDataPayload)
 	const bool bAnimTrail = Cast<UParticleModuleTypeDataAnimTrail>(TypeDataModule) != nullptr;
+	const UParticleModuleTypeDataRibbon* Ribbon = Cast<UParticleModuleTypeDataRibbon>(TypeDataModule);
+	const bool bTiledU = Ribbon && Ribbon->GetTextureTileTime() > 0.f;
 
 	// 머리부터 Next를 따라간다 (출석부 순서가 아니라 태어난 순서)
 	int32 Slot = HeadSlot;
@@ -87,6 +114,10 @@ void FParticleRibbonEmitterInstance::BuildRenderData(FParticleEmitterRenderData&
 		{
 			const FAnimTrailTypeDataPayload* Trail = static_cast<const FAnimTrailTypeDataPayload*>(GetPayload(Slot));
 			Strip.EdgeOffsets.Add(SimulateToWorld.TransformVector(Trail->Direction * Trail->Length));
+		}
+		if (bTiledU)
+		{
+			Strip.TexU.Add(GetPayload(Slot)->TexU);
 		}
 
 		Slot = GetPayload(Slot)->NextSlot;

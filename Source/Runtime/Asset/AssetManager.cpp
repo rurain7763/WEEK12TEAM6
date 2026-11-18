@@ -429,6 +429,7 @@ void UAssetManager::CreateBeamMaterial()
 	BeamMat->Textures.Add(LoadTexture(ResourcePaths::DefaultBeamTexture));
 	BeamMat->BlendState = EBlendState::AlphaBlend;
 	BeamMat->DepthStencilState = EDepthStencilState::ReadOnly;
+	BeamMat->bTwoSided = true;   // Beam·Ribbon 띠는 앞뒤 어느 쪽에서 봐도 보이게 (CullNone)
 	BeamMat->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FMaterialParams));
 	RegisterAsset("BeamMaterial", BeamMat);
 

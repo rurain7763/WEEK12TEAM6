@@ -1,0 +1,7 @@
+{
+  "tool": "Built-in image_gen",
+  "edit_target": "WaterBreathing_Ribbon.png",
+  "output": "WaterBreathing_Ribbon_NoSidePadding.png",
+  "transparent_background": true,
+  "prompt": "Edit the provided Water Breathing ribbon texture. ONLY remove the LEFT and RIGHT empty margins: the visible blue water must extend all the way to x=0 and x=the last pixel, with NO transparent padding columns on either side. Reframe horizontally / extend the existing artwork so the left wave head meets and is slightly cropped by the left boundary, and the right cyan tail continues through the right boundary rather than stopping before it. Keep the original water artwork recognizable: same cobalt-blue and turquoise currents, same large white foam wave curls, same original anime painted style, same horizontal direction head LEFT tail RIGHT. Preserve the original top and bottom transparency and the overall heights of the wave shapes. Preserve actual RGBA transparency outside the water. Do not add a black background or checkerboard. No text, borders, new objects, new visual effects. Full-bleed left and right is the critical requirement: water visible at BOTH vertical image boundaries. Wide horizontal canvas."
+}

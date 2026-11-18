@@ -38,6 +38,7 @@ UMaterial* UMaterial::CreateInstance(const UMaterial* Source)
 	Instance->BlendState = Source->BlendState;
 	Instance->DepthStencilState = Source->DepthStencilState;
 	Instance->SamplerState = Source->SamplerState;
+	Instance->bTwoSided = Source->bTwoSided;
 	Instance->BaseColor = Source->BaseColor;
 	Instance->UVScrollSpeed = Source->UVScrollSpeed;
 	Instance->Shininess = Source->Shininess;

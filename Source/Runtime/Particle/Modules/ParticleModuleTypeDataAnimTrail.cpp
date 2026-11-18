@@ -1,11 +1,12 @@
 #include "EnginePCH.h"
 #include "Particle/Modules/ParticleModuleTypeDataAnimTrail.h"
 #include "Particle/ParticleTypes.h"
-#include "Particle/ParticleEmitterInstance.h"
+#include "Particle/ParticleRibbonEmitterInstance.h"
 #include "Particle/ParticleBoneLookup.h"
 
 void UParticleModuleTypeDataAnimTrail::Serialize(FStructuredArchive::FRecord Record)
 {
+	Super::Serialize(Record);
 	if (TOptional<FStructuredArchive::FSlot> Slot{ Record.TryEnterField("FirstSocketName", true) })
 	{
 		Slot.GetValue() << FirstSocketName;
@@ -44,6 +45,39 @@ void UParticleModuleTypeDataAnimTrail::Spawn(const FSpawnContext& Ctx)
 		const FVector Center = Ctx.Emitter->SimulateToWorld.TransformPosition(Ctx.Emitter->EmitterToSimulate.GetOrigin());
 		First = Center - FVector(0.f, 0.f, 0.5f);
 		Second = Center + FVector(0.f, 0.f, 0.5f);
+	}
+
+	// 한 프레임에 여러 입자를 만들면 직전 칼날 -> 현재 칼날 사이를 보간해 칸을 촘촘하게 채운다
+	// 끝점을 그대로 lerp하면 회전 중간에 칼날이 짧아지므로 중심·방향·길이를 따로 보간한다
+	// AnimTrail은 Ribbon의 CreateInstance를 물려받으므로 인스턴스는 항상 FParticleRibbonEmitterInstance
+	FParticleRibbonEmitterInstance* Ribbon = static_cast<FParticleRibbonEmitterInstance*>(Ctx.Emitter);
+	FVector Center = (First + Second) * 0.5f;
+	FVector Dir = Second - First;
+	float Half = Dir.Size() * 0.5f;
+	if (Half > 1e-6f)
+	{
+		Dir = Dir * (0.5f / Half);
+		if (Ribbon->bHasPrevTrail && Ribbon->SpawnAlpha < 1.f)
+		{
+			const float A = Ribbon->SpawnAlpha;
+			const FVector LerpDir = Ribbon->PrevTrailDir + (Dir - Ribbon->PrevTrailDir) * A;
+			if (LerpDir.SizeSquared() > 1e-8f) // 정반대로 뒤집힌 경우는 현재 칼날을 그대로 쓴다
+			{
+				Center = Ribbon->PrevTrailCenter + (Center - Ribbon->PrevTrailCenter) * A;
+				Half = Ribbon->PrevTrailHalfLength + (Half - Ribbon->PrevTrailHalfLength) * A;
+				Dir = LerpDir.Normalized();
+				First = Center - Dir * Half;
+				Second = Center + Dir * Half;
+			}
+		}
+		else if (Ribbon->SpawnAlpha >= 1.f)
+		{
+			// 이번 프레임의 마지막 입자 = 실제 칼날. 다음 프레임 보간의 시작점이 된다
+			Ribbon->bHasPrevTrail = true;
+			Ribbon->PrevTrailCenter = Center;
+			Ribbon->PrevTrailDir = Dir;
+			Ribbon->PrevTrailHalfLength = Half;
+		}
 	}
 
 	const FMatrix WorldToSimulate = Ctx.Emitter->SimulateToWorld.Inverse();

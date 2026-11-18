@@ -1,0 +1,28 @@
+{
+  "tool": "Built-in image_gen",
+  "prompts": {
+    "foam": "Use case: stylized-concept. Production transparent RGBA texture for a second AnimTrail emitter overlaying a blue Water Breathing sword ribbon. Flat horizontal 4:1 unwrapped texture, target 2048x512. ONLY white and pale ice-cyan foam crests on true transparency, NO blue solid water body. Three long smooth elegant foam currents extend horizontally almost full length, each stretches across at least half the width. Broad white strokes taper into finely feathered foamy edges, with subtle elongated wave lips and ripples. Top and bottom distribution roughly symmetric. Foam bands occupy V=0.12..0.35 and V=0.65..0.88, one fainter thin streak at mid-height; transparent negative space between bands so the existing water body remains visible beneath. Strongest white breaking foam on LEFT (new sword head); progressively softer on RIGHT, smoothly vanishing across final 30% width. NO tiny swirls, NO vertical stripes, NO zigzag electricity. Keep overall width constant, not a pointed slash. Near-transparent outside strokes, no opaque rectangular background, no smoky glow. At most a few small foam flecks near upper/lower edge. No text, people, sword, logo, black background or checkerboard.",
+    "spray": "Use case: stylized-concept. Production transparent RGBA texture for a third AnimTrail emitter providing airborne water spray over a blue sword water trail. Flat horizontal 4:1 unwrapped sheet, target 2048x512. Sparse elongated white and icy-cyan water droplets and fine spray streaks ONLY, on actual transparency, NO solid water body, NO fog glow. Center 50 percent of image height is almost entirely transparent. Two loose bands of clear tapered droplets and long wispy spray near the top and bottom edges, mirror-balanced approximately, between V=0.06..0.24 and V=0.76..0.94. Droplets elongated horizontally, forming 6-10 flowing groups with gentle curves; every streak longer than tall, crisp highlights with very short soft alpha edges. Strongest spray in LEFT half, increasingly sparse to right, disappears entirely across final quarter; feather left first 2 percent. Don't make tiny dot noise, vertical bars, little spiral waves, electric bolts, smoky cloud, pointed solid tail or opaque border. Colors white and light cyan, no gray/black. No scene, lettering, labels, watermark, checkerboard. This is a separate detail overlay, underlying blue water comes from another texture."
+  },
+  "spray_edit": "Remove broad milky background cloud; retain individual cyan-white droplets and transparency.",
+  "textures": [
+    "WaterBreathing_FoamCrests.png",
+    "WaterBreathing_EdgeSpray.png"
+  ],
+  "particle_asset": "Assets/Particles/Genji_WaterBreathing.particlesys",
+  "scene_binding": "Mercy.scene / Genji_Water / WaterTrail",
+  "layers": [
+    {
+      "name": "WaterBreathing_FoamCrests",
+      "life": 0.85,
+      "width": 1.06,
+      "alpha": 0.65
+    },
+    {
+      "name": "WaterBreathing_EdgeSpray",
+      "life": 0.4,
+      "width": 1.22,
+      "alpha": 0.3
+    }
+  ]
+}

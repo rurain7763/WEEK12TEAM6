@@ -161,6 +161,8 @@ struct FParticleStripRenderData
     TArray<FVector> Points;
     // AnimTrail: 점마다 면의 반쪽 벡터(Direction x Length, 월드). Points와 개수가 같으면 카메라 대신 이 방향으로 폭을 펼친다
     TArray<FVector> EdgeOffsets;
+    // Ribbon TextureTileTime: 점마다 고정된 U. Points와 개수가 같으면 i/(N-1) 대신 쓴다
+    TArray<float> TexU;
     float Width = 1.0f;
     FLinearColor Color = FLinearColor::White;
 };

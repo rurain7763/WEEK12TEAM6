@@ -100,6 +100,7 @@ struct FRibbonTypeDataPayload
 {
 	int32 NextSlot = -1;
 	int32 PrevSlot = -1;
+	float TexU = 0.f;   // TextureTileTime > 0일 때 태어난 시각으로 정한 U (이후 고정)
 };
 
 // UE: FAnimTrailTypeDataPayload (ParticleHelper.h). 입자 위치 = 두 소켓의 중앙 (simulate 공간)

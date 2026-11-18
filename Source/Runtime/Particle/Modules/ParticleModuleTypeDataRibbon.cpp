@@ -11,6 +11,14 @@ FParticleEmitterInstance* UParticleModuleTypeDataRibbon::CreateInstance(UParticl
 	return Instance;
 }
 
+void UParticleModuleTypeDataRibbon::Serialize(FStructuredArchive::FRecord Record)
+{
+	if (TOptional<FStructuredArchive::FSlot> Slot{ Record.TryEnterField("TextureTileTime", true) })
+	{
+		Slot.GetValue() << TextureTileTime;
+	}
+}
+
 uint32 UParticleModuleTypeDataRibbon::RequiredBytes() const
 {
 	return sizeof(FRibbonTypeDataPayload);

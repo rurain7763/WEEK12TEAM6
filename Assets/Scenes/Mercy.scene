@@ -188,7 +188,8 @@
                     ],
                     "Name": "Mercy",
                     "Properties": {
-                        "bAutoPossessPlayer": true
+                        "bAutoPossessPlayer": true,
+                        "bTickInEditor": false
                     },
                     "RootComponent": "DefaultSceneRoot"
                 },
@@ -233,7 +234,7 @@
                                 },
                                 "Transform": {
                                     "Location": {
-                                        "X": -189.35195922851562,
+                                        "X": -189.35195922851563,
                                         "Y": 350.2138671875,
                                         "Z": 182.80735778808594
                                     },
@@ -290,6 +291,7 @@
                             "Name": "UBillboardComponent",
                             "Parent": "UAmbientLightComponent",
                             "Properties": {
+                                "Material": null,
                                 "ShowBeginOverlapLog": false,
                                 "ShowEndOverlapLog": false,
                                 "ShowHitLog": false,
@@ -320,75 +322,10 @@
                         }
                     ],
                     "Name": "AAmbientLightActor_0",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "UAmbientLightComponent"
-                },
-                {
-                    "Class": "AStaticMeshActor",
-                    "Components": [
-                        {
-                            "Class": "USceneComponent",
-                            "Name": "DefaultSceneRoot",
-                            "Parent": "",
-                            "Properties": {
-                                "Transform": {
-                                    "Location": {
-                                        "X": 0.0,
-                                        "Y": 0.0,
-                                        "Z": 0.0
-                                    },
-                                    "Rotation": {
-                                        "Pitch": 0.0,
-                                        "Roll": 0.0,
-                                        "Yaw": 0.0
-                                    },
-                                    "Scale": {
-                                        "X": 10.0,
-                                        "Y": 10.0,
-                                        "Z": 1.0
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "Class": "UStaticMeshComponent",
-                            "Name": "UStaticMeshComponent",
-                            "OverrideMaterials": [],
-                            "Parent": "DefaultSceneRoot",
-                            "Properties": {
-                                "ShowBeginOverlapLog": false,
-                                "ShowEndOverlapLog": false,
-                                "ShowHitLog": false,
-                                "StaticMesh": "Cube",
-                                "Transform": {
-                                    "Location": {
-                                        "X": 0.0,
-                                        "Y": 0.0,
-                                        "Z": 0.0
-                                    },
-                                    "Rotation": {
-                                        "Pitch": 0.0,
-                                        "Roll": 0.0,
-                                        "Yaw": 0.0
-                                    },
-                                    "Scale": {
-                                        "X": 1.0,
-                                        "Y": 1.0,
-                                        "Z": 1.0
-                                    }
-                                },
-                                "bBlockComponet": false,
-                                "bCastShadow": true,
-                                "bGenerateOverlapEvents": true,
-                                "bReceiveShadow": true,
-                                "bReceivesDecals": true,
-                                "bVisible": true
-                            }
-                        }
-                    ],
-                    "Name": "AStaticMeshActor_0",
-                    "Properties": {},
-                    "RootComponent": "DefaultSceneRoot"
                 },
                 {
                     "Class": "ADirectionalLightActor",
@@ -492,6 +429,7 @@
                             "Name": "UBillboardComponent",
                             "Parent": "UDirectionalLightComponent",
                             "Properties": {
+                                "Material": null,
                                 "ShowBeginOverlapLog": false,
                                 "ShowEndOverlapLog": false,
                                 "ShowHitLog": false,
@@ -522,7 +460,9 @@
                         }
                     ],
                     "Name": "ADirectionalLightActor_0",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "UDirectionalLightComponent"
                 },
                 {
@@ -574,9 +514,9 @@
                                         "Yaw": 0.0
                                     },
                                     "Scale": {
-                                        "X": 0.4,
-                                        "Y": 0.4,
-                                        "Z": 0.4
+                                        "X": 0.4000000059604645,
+                                        "Y": 0.4000000059604645,
+                                        "Z": 0.4000000059604645
                                     }
                                 },
                                 "bBlockComponet": false,
@@ -597,7 +537,9 @@
                         }
                     ],
                     "Name": "HealBeacon",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "DefaultSceneRoot"
                 },
                 {
@@ -710,7 +652,9 @@
                         }
                     ],
                     "Name": "Genji",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "DefaultSceneRoot"
                 },
                 {
@@ -823,7 +767,9 @@
                         }
                     ],
                     "Name": "Genji_Water",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "DefaultSceneRoot"
                 },
                 {
@@ -936,7 +882,9 @@
                         }
                     ],
                     "Name": "Swordsman",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "DefaultSceneRoot"
                 },
                 {
@@ -949,14 +897,14 @@
                             "Properties": {
                                 "Transform": {
                                     "Location": {
-                                        "X": 9.0,
-                                        "Y": -5.0,
+                                        "X": 5.193289279937744,
+                                        "Y": 1.1879112720489502,
                                         "Z": 0.0
                                     },
                                     "Rotation": {
                                         "Pitch": 0.0,
                                         "Roll": 0.0,
-                                        "Yaw": 150.9
+                                        "Yaw": 150.89999389648438
                                     },
                                     "Scale": {
                                         "X": 1.0,
@@ -1021,7 +969,7 @@
                                 "ShowBeginOverlapLog": false,
                                 "ShowEndOverlapLog": false,
                                 "ShowHitLog": false,
-                                "Template": "Particles/Tanjiro_BladeTrail.particlesys",
+                                "Template": "Particles/Genji_WaterBreathing.particlesys",
                                 "Transform": {
                                     "Location": {
                                         "X": 0.0,
@@ -1049,7 +997,9 @@
                         }
                     ],
                     "Name": "Tanjiro",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "DefaultSceneRoot"
                 },
                 {
@@ -1062,14 +1012,14 @@
                             "Properties": {
                                 "Transform": {
                                     "Location": {
-                                        "X": 9.0,
-                                        "Y": 5.0,
+                                        "X": 4.9378485679626465,
+                                        "Y": -2.4916915893554688,
                                         "Z": 0.0
                                     },
                                     "Rotation": {
                                         "Pitch": 0.0,
                                         "Roll": 0.0,
-                                        "Yaw": -150.9
+                                        "Yaw": -150.89999389648438
                                     },
                                     "Scale": {
                                         "X": 1.0,
@@ -1162,7 +1112,9 @@
                         }
                     ],
                     "Name": "Zenitsu",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "DefaultSceneRoot"
                 }
             ],

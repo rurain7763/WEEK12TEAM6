@@ -50,6 +50,7 @@ public:
 	EBlendState BlendState = EBlendState::Opaque;
 	EDepthStencilState DepthStencilState = EDepthStencilState::Default;
 	ESamplerState SamplerState = ESamplerState::LinearClamp;
+	bool bTwoSided = false;   // true면 백페이스 컬링 없이 그린다 (CullNone)
 
 	// 셰이더가 텍스처와 그대로 곱하는 Linear 값 (언리얼 머티리얼 벡터 파라미터와 같다)
 	FLinearColor BaseColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);

@@ -1,0 +1,7 @@
+{
+  "output": "WaterBreathing_Ribbon_NoPadding.png",
+  "source": "WaterBreathing_Ribbon_NoSidePadding.png",
+  "artwork_tool": "Built-in image_gen",
+  "edit_attempt_prompt": "Edit this exact Water Breathing texture by tightly cropping away the empty TRANSPARENT TOP and BOTTOM margins. The input already has NO left or right margins; preserve that. Reframe vertically to the bounding box of the visible water: the highest white foam crest MUST touch the top image boundary and the lowest foam crest MUST touch the bottom image boundary, with ZERO fully transparent padding rows above or below the artwork. Both left and right ends of the water must still touch their respective canvas edges. Preserve the existing composition, wave curl shapes, colors, white foam and original artwork as closely as possible; this is a tight framing/cropping edit, not a redesign or a new water pattern. Preserve actual transparency in the irregular spaces around the water silhouette, including above the narrow right-hand tail. Do not fill those interior silhouette spaces with a rectangular blue body. Keep the complete water body visible except at edges already touching the frame; do not add any margins or rescale the water smaller. Output a very wide horizontal tightly framed RGBA PNG. No black background, no checkerboard, no labels.",
+  "final_export": "Lossless vertical crop of the existing NoSidePadding source to alpha >= 3/255 bounds. No resampling; original colors/alpha and full image width preserved. Imagegen reframe was discarded because vertical margins remained."
+}

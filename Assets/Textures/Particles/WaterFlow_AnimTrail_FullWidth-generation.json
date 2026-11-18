@@ -1,0 +1,34 @@
+{
+  "tool": "Built-in image_gen",
+  "prompt": "Use case: stylized-concept\nAsset type: full-width game AnimTrail WATER SHEET texture, flat unwrapped rectangular ribbon, NOT an isolated tapered splash illustration.\nCreate a straight rectangular continuous body of stylized anime water with cobalt-blue depth, sky-blue currents and white foam. Target canvas 2048 x 512, very wide horizontal 4:1.\nCRITICAL SHAPE: water fills the entire vertical height from the TOP edge to the BOTTOM edge along the entire width. NO empty top/bottom margins. Every vertical column contains a full-height continuous sheet of water. It remains the SAME WIDTH at the right end. NO pointed tail. NO narrow stream. NO sinuous outer silhouette. NO isolated wave objects. NO black or transparent holes inside the water.\nLONGITUDINAL DETAIL: broad, smooth, extremely horizontally elongated water bands and white foam strokes; each main detail extends across at least one third of the image width. Layer long calm flowing filaments within a solid blue water sheet. Avoid little curls, whirlpools, vertical stripes, vertical white bars, circles, tiny repetitive detail. Approximately symmetric distribution across the top and bottom, no horizon, no ocean landscape. Left 0-15 percent has the strongest opaque rich blue water and several broad white foam streaks; middle stays full-bodied blue with white streaks continuing horizontally. Rightmost 30 percent retains full-height water artwork but gradually fades away ONLY through alpha, NOT through narrowing the silhouette. Leftmost 1-2 percent has a very short alpha fade in. Top/bottom edge softness occupies at most 3 percent. Minimal short edge glow, no foggy halo.\nTechnical: true straight-alpha RGBA on actual transparency, soft final alpha fading only at the end; all water stays connected, no internal transparency gaps. Blue RGB color bleed in transparent regions if supported. Flat 2D illustrated production texture. No text, frame, watermark, weapon, person, dragon, checkerboard or solid background. The full-bleed rectangular sheet geometry is more important than a decorative silhouette.",
+  "technical_export": {
+    "format": "Straight alpha RGBA PNG",
+    "size": [
+      2048,
+      512
+    ],
+    "RGB": "Generated artwork resampled in straight RGB. Near-zero alpha color bleed to blue (12,110,225); not premultiplied.",
+    "alpha": "Head fade over U=0..0.015; body 1.0 to 0.9; tail smooth fade over U=0.70..1.0; same alpha across V=0.025..0.975, no holes. 2.5% vertical edge softness, retaining 25% coverage at border (no transparent padding).",
+    "preview_background": [
+      10,
+      16,
+      28
+    ]
+  },
+  "files": {
+    "texture": "WaterFlow_AnimTrail_FullWidth.png",
+    "dark_preview": "WaterFlow_AnimTrail_FullWidth_Preview.png",
+    "alpha_preview": "WaterFlow_AnimTrail_FullWidth_Alpha.png"
+  },
+  "validation": {
+    "dimensions": "2048x512",
+    "internal_holes": 0,
+    "tail_alpha_monotonic": true,
+    "transparent_pixel_RGB": [
+      12,
+      110,
+      225
+    ]
+  },
+  "usage": "Use texture (not preview/alpha PNG) in AnimTrail material, LinearClamp, particle color white. Existing textures and particlesys values are unchanged."
+}

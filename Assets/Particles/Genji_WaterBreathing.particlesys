@@ -11,12 +11,91 @@
                         "Modules": [
                             {
                                 "ClassName": "UParticleModuleLifeTime",
-                                "LifeTime": 3.0
+                                "LifeTime": 1.0
                             },
                             {
                                 "ClassName": "UParticleModuleColor",
                                 "StartColor": {
                                     "A": 1.0,
+                                    "B": 1.0,
+                                    "G": 1.0,
+                                    "R": 1.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "BeamMaterial",
+                            "MaterialInstance": {
+                                "Base": "BeamMaterial",
+                                "Instance": {
+                                    "BaseColor": {
+                                        "A": 1.0,
+                                        "B": 1.0,
+                                        "G": 1.0,
+                                        "R": 1.0
+                                    },
+                                    "BlendState": "AlphaBlend",
+                                    "DecalColorBlendMode": "Alpha",
+                                    "MaterialDomain": "Surface",
+                                    "Properties": {},
+                                    "SamplerState": "LinearWrap",
+                                    "Shininess": 32.0,
+                                    "SpecularColor": {
+                                        "A": 1.0,
+                                        "B": 0.5,
+                                        "G": 0.5,
+                                        "R": 0.5
+                                    },
+                                    "Textures": [
+                                        "Assets/Textures/Particles/WaterBreathing_Ribbon_NoPadding.png"
+                                    ],
+                                    "UVScrollSpeed": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "bAffectBaseColor": true,
+                                    "bAffectNormal": true,
+                                    "bFlipNormalGreen": false
+                                }
+                            },
+                            "bUseLocalSpace": false,
+                            "isLit": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 1000.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataAnimTrail",
+                            "FirstSocketName": "Weapon_R",
+                            "SecondSocketName": "BladeTip",
+                            "TextureTileTime": 0.5,
+                            "Width": 1.5
+                        },
+                        "bEnable": true
+                    }
+                ],
+                "MaxParticleCount": 6000,
+                "ParticleSize": 124,
+                "bEnabled": true
+            },
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "WaterBreathing_FoamCrests",
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "A": 0.6499999761581421,
                                     "B": 1.0,
                                     "G": 1.0,
                                     "R": 1.0
@@ -48,7 +127,7 @@
                                         "R": 0.5
                                     },
                                     "Textures": [
-                                        "Assets/Textures/Particles/WaterBreathing_Ribbon.png"
+                                        "Assets/Textures/Particles/WaterBreathing_FoamCrests.png"
                                     ],
                                     "UVScrollSpeed": [
                                         0.0,
@@ -64,20 +143,100 @@
                         },
                         "SpawnModule": {
                             "ClassName": "UParticleModuleSpawn",
-                            "SpawnRate": 500.0
+                            "SpawnRate": 200.0
                         },
                         "TypeDataModule": {
                             "ClassName": "UParticleModuleTypeDataAnimTrail",
                             "FirstSocketName": "Weapon_R",
                             "SecondSocketName": "BladeTip",
-                            "Width": 3.0
+                            "TextureTileTime": 0.0,
+                            "Width": 1.059999942779541
                         },
                         "bEnable": true
                     }
                 ],
-                "MaxParticleCount": 3000,
-                "ParticleSize": 120,
-                "bEnabled": true
+                "MaxParticleCount": 1000,
+                "ParticleSize": 124,
+                "bEnabled": false
+            },
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "WaterBreathing_EdgeSpray",
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 1.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "A": 0.30000001192092896,
+                                    "B": 1.0,
+                                    "G": 1.0,
+                                    "R": 1.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "BeamMaterial",
+                            "MaterialInstance": {
+                                "Base": "BeamMaterial",
+                                "Instance": {
+                                    "BaseColor": {
+                                        "A": 1.0,
+                                        "B": 1.0,
+                                        "G": 1.0,
+                                        "R": 1.0
+                                    },
+                                    "BlendState": "AlphaBlend",
+                                    "DecalColorBlendMode": "Alpha",
+                                    "MaterialDomain": "Surface",
+                                    "Properties": {},
+                                    "SamplerState": "LinearClamp",
+                                    "Shininess": 32.0,
+                                    "SpecularColor": {
+                                        "A": 1.0,
+                                        "B": 0.5,
+                                        "G": 0.5,
+                                        "R": 0.5
+                                    },
+                                    "Textures": [
+                                        "Assets/Textures/Particles/WaterBreathing_EdgeSpray.png"
+                                    ],
+                                    "UVScrollSpeed": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "bAffectBaseColor": true,
+                                    "bAffectNormal": true,
+                                    "bFlipNormalGreen": false
+                                }
+                            },
+                            "bUseLocalSpace": false,
+                            "isLit": false
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 200.0
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataAnimTrail",
+                            "FirstSocketName": "Weapon_R",
+                            "SecondSocketName": "BladeTip",
+                            "TextureTileTime": 0.0,
+                            "Width": 1.2200000286102295
+                        },
+                        "bEnable": true
+                    }
+                ],
+                "MaxParticleCount": 1000,
+                "ParticleSize": 124,
+                "bEnabled": false
             }
         ],
         "LODDistanceCheckTime": 0.25,

@@ -211,6 +211,8 @@ private:
 	bool mShadowInstancesReady{};
 	FShaderProgram* mInstancedViewModeShader{};
 	FShaderProgram* mTranslucentViewModeShaders[2]{};
+	// 장면 패스의 기본 래스터 상태 (SetViewMode에서 정함). 양면 머티리얼이 아니면 이 값으로 되돌린다
+	ERasterizerState mSceneRasterizerState{ ERasterizerState::SolidBack };
 	FPipelineState mSurfaceInstancedPipeline{};
 	FPipelineState mShadowInstancedPipeline{};
 };
