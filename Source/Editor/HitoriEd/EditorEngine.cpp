@@ -522,7 +522,7 @@ void UEditorEngine::RenderViewports()
 		if (&ViewWorld == CapturedWorld)
 			return;
 		SCOPE_CYCLE_COUNTER(STAT_CaptureWorld);
-		RenderCollector.CaptureWorld(ViewWorld, SceneRenderSettings.bDrawSkeletalMeshes);
+		RenderCollector.CaptureWorld(ViewWorld, SceneRenderSettings.bDrawSkeletalMeshes, SceneRenderSettings.bDrawParticles);
 		CapturedWorld = &ViewWorld;
 	};
 
@@ -705,6 +705,7 @@ FSceneRenderSettings UEditorEngine::MakeSceneRenderSettings() const
 		.bDrawPrimitives = Settings.bDrawPrimitives,
 		.bDrawSkeletalMeshes = Settings.bDrawSkeletalMeshes,
 		.bDrawDecals = Settings.bDrawDecals,
+		.bDrawParticles = Settings.bDrawParticles,
 		.bDrawShadows = Settings.bDrawShadows,
 		.ShadowFilter = Filter,
 		.bExponentialHeightFog = Settings.bExponentialHeightFog,

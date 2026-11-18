@@ -12,6 +12,7 @@
 #include "Collision/CollisionShape.h"
 #include "Collision/PhysicsScene.h"
 #include "Math/Quat.h"
+#include "Core/Stats/ParticleStats.h"
 
 namespace
 {
@@ -50,6 +51,7 @@ bool UParticleModuleCollision::MoveParticle(FParticleEmitterInstance& Owner, FBa
 	const UStaticMesh* Mesh = MeshType ? MeshType->GetStaticMesh() : nullptr;
 
 	// 자기 Actor의 충돌체는 제외
+	FParticleStats::GetPending().CollisionTraces++;
 	FHitResult Hit;
 	FVector CenterOffset = FVector::ZeroVector; // 파티클 원점 → 박스 중심 (월드)
 	bool bHit = false;
@@ -91,6 +93,7 @@ bool UParticleModuleCollision::MoveParticle(FParticleEmitterInstance& Owner, FBa
 		Particle.Location += SimDelta;
 		return false;
 	}
+	FParticleStats::GetPending().CollisionHits++;
 
 	// 법선 방향 성분 반사 후 감쇠
 	const FVector Reflected = WorldVelocity - Normal * (2.f * IntoSurface);

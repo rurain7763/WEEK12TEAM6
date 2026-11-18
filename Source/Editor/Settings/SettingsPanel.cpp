@@ -44,6 +44,7 @@ void FSettingsPanel::OnRender()
 	ImGui::Checkbox("Primitives", &Settings.bDrawPrimitives);
 	ImGui::Checkbox("Skeletal Mesh", &Settings.bDrawSkeletalMeshes);
 	ImGui::Checkbox("Decals", &Settings.bDrawDecals);
+	ImGui::Checkbox("Particles", &Settings.bDrawParticles);
 	ImGui::Checkbox("Bounding Boxes", &Settings.bDrawBoundingBox);
 	ImGui::Checkbox("Object UUID", &Settings.bShowUUID);
 	ImGui::Checkbox("Exponential Height Fog", &Settings.bExponentialHeightFog);
@@ -192,6 +193,7 @@ bool FSettingsPanel::SaveSettings() const
 	File << "DrawPrimitives=" << Settings.bDrawPrimitives << "\n";
 	File << "DrawSkeletalMeshes=" << Settings.bDrawSkeletalMeshes << "\n";
 	File << "DrawDecals=" << Settings.bDrawDecals << '\n';
+	File << "DrawParticles=" << Settings.bDrawParticles << '\n';
 	File << "DrawBoundingBox=" << Settings.bDrawBoundingBox << "\n";
 	File << "ShowUUID=" << Settings.bShowUUID << "\n";
 	File << "ExponentialHeightFog=" << Settings.bExponentialHeightFog << "\n";
@@ -358,6 +360,7 @@ bool FSettingsPanel::LoadSettings()
 					Settings.bDrawSkeletalMeshes = ValueStr != "0";
 				}
 				else if (Key == "DrawDecals") Settings.bDrawDecals = std::stoi(ValueStr);
+				else if (Key == "DrawParticles") Settings.bDrawParticles = std::stoi(ValueStr);
 				else if (Key == "DrawBoundingBox") Settings.bDrawBoundingBox = std::stoi(ValueStr);
 				else if (Key == "ShowUUID") Settings.bShowUUID = std::stoi(ValueStr);
 				else if (Key == "DrawGrid") {

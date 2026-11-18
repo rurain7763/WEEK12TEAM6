@@ -8,6 +8,7 @@
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
 #include "Particle/Modules/ParticleModuleCollision.h"
 #include "Engine/PrimitiveSceneProxy.h"
+#include "Core/Stats/ParticleStats.h"
 
 
 FParticleEmitterInstance::~FParticleEmitterInstance()
@@ -113,6 +114,7 @@ void FParticleEmitterInstance::SpawnParticle(const FVector& InitLocation)
 	if (TypeDataModule) { Context.Offset = TypeDataOffset; TypeDataModule->Spawn(Context); }
 
 	ActiveParticles++;
+	FParticleStats::GetPending().Spawned++;
 }
 
 void FParticleEmitterInstance::KillParticle(int32 Position)
@@ -124,6 +126,7 @@ void FParticleEmitterInstance::KillParticle(int32 Position)
 
 	ActiveParticles--;
 	std::swap(ParticleIndices[Position], ParticleIndices[ActiveParticles]);
+	FParticleStats::GetPending().Killed++;
 }
 
 void FParticleEmitterInstance::UpdateTransforms()
