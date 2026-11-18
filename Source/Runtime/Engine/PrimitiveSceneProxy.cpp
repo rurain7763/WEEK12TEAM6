@@ -9,6 +9,7 @@
 #include "Engine/Scene.h"
 #include "Render/Buffer.h"
 #include "Core/Stats/SkinningStats.h"
+#include "Core/Stats/ParticleStats.h"
 #include "Component/ParticleSystemComponent.h"
 #include "Asset/AssetManager.h"
 #include "Camera/CameraTypes.h"
@@ -375,6 +376,8 @@ FParticleSystemSceneProxy::~FParticleSystemSceneProxy()
 
 void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, const FViewBasis& View)
 {
+    FParticleFrameStats& Stats = FParticleStats::GetPending();
+
     // Strip(Beam,Ribbon) 처리
     uint32 NumStripVertices = 0;
     uint32 NumStripIndices = 0;
@@ -406,6 +409,9 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
     // Beam을 삼각형화 해서 띠 모양으로 정점변환단계
     if (NumStripVertices > 0)
     {
+        Stats.DynamicUploadBytes +=
+            static_cast<int64>(NumStripVertices) * sizeof(FVertexPNCT) + static_cast<int64>(NumStripIndices) * sizeof(uint32);
+
         FVertexPNCT* V = static_cast<FVertexPNCT*>(RenderCommand::MapWriteDiscard(StripVB.get()));
         uint32* I = static_cast<uint32*>(RenderCommand::MapWriteDiscard(StripIB.get()));
         uint32 VertexCursor = 0;   // 지금까지 쓴 정점 수
@@ -450,6 +456,7 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
                 VertexCursor += N * 2;
 
                 FRenderPacket& Packet = RenderQueue.AddDefaulted_GetRef();
+                Stats.RenderPackets++;
                 Packet.Proxy = this;
                 Packet.Geometry.VertexBuffers[0] = StripVB.get();
                 Packet.Geometry.VertexBufferCount = 1;
@@ -498,6 +505,7 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
             FMatrix BillboardMatrix = View.BuildBillboardMatrix(Sprite.Location, Sprite.Size.X, Sprite.Size.Y, Sprite.Rotation);
 
             FRenderPacket& Packet = RenderQueue.AddDefaulted_GetRef();
+            Stats.RenderPackets++;
             Packet.Proxy = this;
             Packet.Geometry.VertexBuffers[0] = VB;
             Packet.Geometry.VertexBufferCount = 1;

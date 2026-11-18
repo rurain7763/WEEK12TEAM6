@@ -70,7 +70,7 @@ bool FStatOverlay::ExecCommand(const FString& CommandLine, FString& OutMessage)
 
 	if (Tokens.Num() < 2)
 	{
-		OutMessage = "Usage: stat <fps|memory|profile|shadow|decal|skinning|all|none>";
+		OutMessage = "Usage: stat <fps|memory|profile|shadow|decal|skinning|particle|all|none>";
 		return true;
 	}
 
@@ -85,7 +85,7 @@ bool FStatOverlay::ExecCommand(const FString& CommandLine, FString& OutMessage)
 
 	if (EqualsIgnoreCase(Arg, "all"))
 	{
-		Flags = EStatFlags::FPS | EStatFlags::Memory | EStatFlags::Profile | EStatFlags::Shadow | EStatFlags::Decal | EStatFlags::Skinning;
+		Flags = EStatFlags::FPS | EStatFlags::Memory | EStatFlags::Profile | EStatFlags::Shadow | EStatFlags::Decal | EStatFlags::Skinning | EStatFlags::Particle;
 		OutMessage = "stat all: all overlays enabled";
 		return true;
 	}
@@ -103,10 +103,12 @@ bool FStatOverlay::ExecCommand(const FString& CommandLine, FString& OutMessage)
 		Target = EStatFlags::Decal;
 	else if (EqualsIgnoreCase(Arg, "skinning"))
 		Target = EStatFlags::Skinning;
+	else if (EqualsIgnoreCase(Arg, "particle"))
+		Target = EStatFlags::Particle;
 
 	if (Target == EStatFlags::None)
 	{
-		OutMessage = std::format("stat: unknown stat '{}'. Available: fps, memory, profile, shadow, decal, skinning, all, none", Arg);
+		OutMessage = std::format("stat: unknown stat '{}'. Available: fps, memory, profile, shadow, decal, skinning, particle, all, none", Arg);
 		return true;
 	}
 

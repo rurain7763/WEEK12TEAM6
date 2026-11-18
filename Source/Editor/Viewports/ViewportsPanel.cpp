@@ -16,6 +16,7 @@
 
 #include "Core/Stats/EditorStats.h"
 #include "Core/Stats/SkinningStats.h"
+#include "Core/Stats/ParticleStats.h"
 #include "Component/SkinnedMeshComponent.h"
 
 namespace
@@ -807,6 +808,34 @@ void FViewportsPanel::DrawStatOverlay(ImDrawList* DrawList, const ImVec2& ViewMi
 			GPUBoneMs, static_cast<double>(Skin.GPUUploadBytes) / 1024.0), ValueColor });
 
 		Lines.Add({ std::format("  Scene GPU Time {:.2f} ms", FSkinningStats::GetSceneGPUMs()), ValueColor });
+	}
+
+	if (FStatOverlay::IsEnabled(EStatFlags::Particle))
+	{
+		const FParticleFrameStats& P = FParticleStats::Get();
+		const auto AvgMs = [](TStatId Id)
+		{
+			const FCycleStatData* Data = FStatRegistry::Find(Id);
+			return Data ? Data->GetRecentAverageMs() : 0.0;
+		};
+		const double TickMs = AvgMs(STAT_ParticleTick);
+		const double BuildMs = AvgMs(STAT_ParticleBuildRenderData);
+
+		Lines.Add({ "Particle", TitleColor });
+		Lines.Add({ std::format("  Systems {} / Emitters {}", P.Systems, P.Emitters), ValueColor });
+		Lines.Add({ std::format("  Active  Sprite {} / Mesh {} / Strip {}",
+			P.SpriteParticles, P.MeshParticles, P.StripParticles), ValueColor });
+		Lines.Add({ std::format("  Spawned {} / Killed {} (this frame)", P.Spawned, P.Killed), ValueColor });
+		Lines.Add({ std::format("  CPU  Tick {:.3f} ms + RenderData {:.3f} ms", TickMs, BuildMs), ValueColor });
+		Lines.Add({ std::format("  Memory  Data {:.1f} KB / Index {:.1f} KB",
+			static_cast<double>(P.ParticleDataBytes) / 1024.0, static_cast<double>(P.ParticleIndexBytes) / 1024.0), ValueColor });
+		Lines.Add({ std::format("  Packets {} -> Draw Calls {} (Instanced {}) (All Views)",
+			P.RenderPackets, P.DrawCalls, P.InstancedParticles), ValueColor });
+		Lines.Add({ std::format("  Dynamic Upload {:.1f} KB", static_cast<double>(P.DynamicUploadBytes) / 1024.0), ValueColor });
+		Lines.Add({ std::format("  LOD  0: {} / 1: {} / 2: {} / 3+: {}",
+			P.LODEmitters[0], P.LODEmitters[1], P.LODEmitters[2], P.LODEmitters[3]), ValueColor });
+		Lines.Add({ std::format("  Collision  Traces {} / Hits {} / Events {}",
+			P.CollisionTraces, P.CollisionHits, P.CollisionEvents), ValueColor });
 	}
 
 	struct FProfileStatLine

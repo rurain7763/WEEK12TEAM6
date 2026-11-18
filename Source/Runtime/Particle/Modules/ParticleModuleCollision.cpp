@@ -8,6 +8,7 @@
 #include "Collision/HitResult.h"
 #include "Particle/ParticleLODLevel.h"
 #include "Particle/Modules/ParticleModuleEventGenerator.h"
+#include "Core/Stats/ParticleStats.h"
 
 namespace
 {
@@ -42,6 +43,7 @@ bool UParticleModuleCollision::MoveParticle(FParticleEmitterInstance& Owner, FBa
 	const FVector WorldDelta = SimToWorld.TransformVector(SimDelta);
 
 	// 자기 Actor의 충돌체는 제외
+	FParticleStats::GetPending().CollisionTraces++;
 	FHitResult Hit;
 	if (!World->GetPhysicsScene().LineTraceSingle(WorldStart, WorldDelta, Component->GetOwner(), Hit))
 	{
@@ -58,6 +60,7 @@ bool UParticleModuleCollision::MoveParticle(FParticleEmitterInstance& Owner, FBa
 		Particle.Location += SimDelta;
 		return false;
 	}
+	FParticleStats::GetPending().CollisionHits++;
 
 	// 법선 방향 성분 반사 후 감쇠
 	const FVector Reflected = WorldVelocity - Normal * (2.f * IntoSurface);

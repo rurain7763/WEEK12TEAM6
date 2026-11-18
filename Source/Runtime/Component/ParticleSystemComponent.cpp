@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Actor/ParticleEventManager.h"
+#include "Core/Stats/ParticleStats.h"
 
 
 UParticleSystemComponent::UParticleSystemComponent()
@@ -53,14 +54,19 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
 
 	UpdateAutomaticLOD(DeltaTime);
 
-	for (FParticleEmitterInstance* Instance : EmitterInstances)
 	{
-		Instance->Tick(DeltaTime);
+		SCOPE_CYCLE_COUNTER(STAT_ParticleTick);
+		for (FParticleEmitterInstance* Instance : EmitterInstances)
+		{
+			Instance->Tick(DeltaTime);
+		}
 	}
 
 	// 모든 이미터 갱신 후 충돌 이벤트를 한 번에 전달
 	if (!CollisionEvents.IsEmpty())
 	{
+		FParticleStats::GetPending().CollisionEvents += CollisionEvents.Num();
+
 		UWorld* World = GetWorld();
 		AParticleEventManager* EventManager = World ? World->GetParticleEventManager() : nullptr;
 		if (EventManager)
@@ -289,10 +295,35 @@ void UParticleSystemComponent::UpdateDynamicData()
 
 	TArray<FParticleEmitterRenderData> RenderDatas;
 	RenderDatas.SetNum(EmitterInstances.Num());
+	{
+		SCOPE_CYCLE_COUNTER(STAT_ParticleBuildRenderData);
+		for (int32 i = 0; i < EmitterInstances.Num(); i++)
+		{
+			FParticleEmitterInstance* Instance = EmitterInstances[i];
+			Instance->BuildRenderData(RenderDatas[i]);
+		}
+	}
+
+	// 이번 프레임 상태 (개수·메모리·LOD) 기록
+	FParticleFrameStats& Stats = FParticleStats::GetPending();
+	Stats.Systems++;
 	for (int32 i = 0; i < EmitterInstances.Num(); i++)
 	{
-		FParticleEmitterInstance* Instance = EmitterInstances[i];
-		Instance->BuildRenderData(RenderDatas[i]);
+		const FParticleEmitterInstance* Instance = EmitterInstances[i];
+		Stats.Emitters++;
+
+		switch (RenderDatas[i].DynamicEmitterType)
+		{
+		case EDynamicEmitterType::Sprite: Stats.SpriteParticles += Instance->ActiveParticles; break;
+		case EDynamicEmitterType::Mesh:   Stats.MeshParticles += Instance->ActiveParticles; break;
+		default:                          Stats.StripParticles += Instance->ActiveParticles; break;
+		}
+
+		Stats.ParticleDataBytes += static_cast<int64>(Instance->MaxActiveParticles) * Instance->ParticleStride;
+		Stats.ParticleIndexBytes += static_cast<int64>(Instance->MaxActiveParticles) * sizeof(uint16);
+
+		const int32 LODBucket = std::clamp(Instance->CurrentLODLevelIndex, 0, FParticleFrameStats::MaxLODBuckets - 1);
+		Stats.LODEmitters[LODBucket]++;
 	}
 
 	Proxy->SetDynamicData(RenderDatas);
