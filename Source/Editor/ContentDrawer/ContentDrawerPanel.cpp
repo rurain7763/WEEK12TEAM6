@@ -93,7 +93,6 @@ void FContentDrawerPanel::OnRender()
 		float panelWidth = ImGui::GetContentRegionAvail().x;
 		int ColumnCount = static_cast<int>(panelWidth / cellSize);
 		if (ColumnCount < 1) ColumnCount = 1;
-		DrawMaterialAssets(ColumnCount, thumbnailSize);
 
 		// 테이블 기반 그리드 시작
 		if (ImGui::BeginTable("AssetGridTable", ColumnCount))
@@ -235,40 +234,6 @@ void FContentDrawerPanel::OnRender()
 	}
 	ImGui::EndChild();
 	ImGui::End();
-}
-
-void FContentDrawerPanel::DrawMaterialAssets(int32 ColumnCount, float ThumbnailSize) {
-	if (!ImGui::CollapsingHeader("Materials")) {
-		return;
-	}
-	TArray<UMaterial*> Materials{};
-	for (TObjectIterator<UMaterial> It{}; It; ++It) {
-		UMaterial* Material{ *It };
-		if (!Material->GetPath().empty() && UAssetManager::GetAssetByPath<UMaterial>(Material->GetPath()) == Material) {
-			Materials.Add(Material);
-		}
-	}
-	std::sort(Materials.begin(), Materials.end(), [](const UMaterial* First, const UMaterial* Second) {
-		return First->GetPath() < Second->GetPath();
-	});
-	if (ImGui::BeginTable("MaterialAssets", ColumnCount)) {
-		for (UMaterial* Material : Materials) {
-			ImGui::TableNextColumn();
-			ImGui::PushID(Material);
-			ImGui::Button("Material", ImVec2{ ThumbnailSize, ThumbnailSize });
-			if (ImGui::BeginDragDropSource()) {
-				ImGui::SetDragDropPayload(EditorDragDrop::Material, &Material, sizeof(Material));
-				ImGui::TextUnformatted(Material->GetPath().c_str());
-				ImGui::EndDragDropSource();
-			}
-			ImGui::SetItemTooltip("%s", Material->GetPath().c_str());
-			const FString Name{ PathUtils::ToUtf8(PathUtils::FromUtf8(Material->GetPath()).filename()) };
-			ImGui::TextWrapped("%s", Name.c_str());
-			ImGui::PopID();
-		}
-		ImGui::EndTable();
-	}
-	ImGui::Separator();
 }
 
 void FContentDrawerPanel::CreateParticleSystemFile() {

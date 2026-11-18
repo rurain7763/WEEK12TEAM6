@@ -39,7 +39,6 @@ private:
 	void CreateLevelSequenceFile();
 	void CreateAnimGraphFile();
 	void CreateParticleSystemFile();
-	void DrawMaterialAssets(int32 ColumnCount, float ThumbnailSize);
 
 private:
 	fs::path AssetRootPath = "Assets";

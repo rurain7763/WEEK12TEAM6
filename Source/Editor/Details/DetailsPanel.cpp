@@ -1012,17 +1012,7 @@ namespace
 			}
 			ImGui::EndCombo();
 		}
-		ImGui::SetItemTooltip("Choose a material or drop one from the Content Drawer.");
-		if (ImGui::BeginDragDropTarget()) {
-			const ImGuiPayload* ActivePayload{ ImGui::GetDragDropPayload() };
-			if (ActivePayload && ActivePayload->IsDataType(EditorDragDrop::Material) && ActivePayload->DataSize == sizeof(UMaterial*)) {
-				UMaterial* Material{ *static_cast<UMaterial* const*>(ActivePayload->Data) };
-				if (IsParticleMaterialAsset(Material) && ImGui::AcceptDragDropPayload(EditorDragDrop::Material)) {
-					Selected = Material;
-				}
-			}
-			ImGui::EndDragDropTarget();
-		}
+		ImGui::SetItemTooltip("Choose a material.");
 		if (Selected == Current) {
 			return false;
 		}
