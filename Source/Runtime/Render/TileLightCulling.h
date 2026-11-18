@@ -25,7 +25,9 @@ class FTileLightCulling
 {
 public:
     void Init();
+    // Computes tile lists and clears CS bindings; does not bind the results to PS.
     void Dispatch(const FLocalLight& Lights, const FMatrix& ViewProjection, uint32 Width, uint32 Height, bool bVisualizeLightCount);
+    // Shading passes own the PS t8-t11 / b4 binding lifetime.
     void BindForShading(const FLocalLight& Lights);
     void UnbindForShading();
     

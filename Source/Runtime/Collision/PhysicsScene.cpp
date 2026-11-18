@@ -125,6 +125,53 @@ void FPhysicsScene::QueueHit(const FPendingHitEvent& Event)
 	PendingHits.Add(Event);
 }
 
+bool FPhysicsScene::LineTraceSingle(const FVector& Start, const FVector& Delta,
+	const AActor* IgnoreActor, FHitResult& OutHit) const
+{
+	OutHit = FHitResult();
+	OutHit.FaceIndex = -1;
+	OutHit.PenetrationDepth = 0.f;
+	OutHit.TraceStart = Start;
+	OutHit.TraceEnd = Start + Delta;
+
+	// 경로 전체의 AABB로 멀리 떨어진 형상 제외
+	FBox TraceBounds{ Start, Start };
+	TraceBounds.Expand(Start + Delta);
+
+	bool bFound = false;
+	for (UPrimitiveComponent* Component : CollisionComponents)
+	{
+		if ((IgnoreActor && Component->GetOwner() == IgnoreActor) || !Component->IsBlockComponent())
+		{
+			continue;
+		}
+
+		const FCollisionShape Shape = Component->GetCollisionShape();
+		const FVector Location = Component->GetWorldLocation();
+		const FRotator Rotation = Component->GetWorldRotation();
+		if (!TraceBounds.Intersects(FPhysicsInterface::CalcShapeBounds(Shape, Location, Rotation)))
+		{
+			continue;
+		}
+
+		// 첫 Hit는 끝점(Time == 1)도 허용. 이후에는 더 이른 Hit만 선택
+		FHitResult Hit;
+		if (FPhysicsInterface::LineTraceTest(Start, Delta, Shape, Location, Rotation, Hit)
+			&& (!bFound || Hit.Time < OutHit.Time))
+		{
+			OutHit = Hit;
+			OutHit.HitComponent = Component;
+			bFound = true;
+			if (Hit.Time == 0.f)
+			{
+				break;
+			}
+		}
+	}
+
+	return bFound;
+}
+
 bool FPhysicsScene::ComponentSweepSingle(UPrimitiveComponent* Mover, const FVector& Delta, const FRotator& Rot, FHitResult& OutHit)
 {
 	AActor* Owner = Mover->GetOwner();
@@ -170,7 +217,7 @@ bool FPhysicsScene::SweepSingleByShape(const UWorld& World, const FCollisionShap
 			}
 
 			//이번에 Temp 결과가 더 가깝다
-			if (Temp.Time < Best.Time)
+			if (!bFound || Temp.Time < Best.Time)
 			{
 				Best = Temp;
 				Best.HitComponent = Comp;

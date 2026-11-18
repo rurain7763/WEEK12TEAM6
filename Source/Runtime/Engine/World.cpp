@@ -5,6 +5,7 @@
 #include "Core/EngineStatics.h"
 #include "GameFramework/Actor/StaticMeshActor.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/Actor/ParticleEventManager.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/DefaultPawn.h"
 #include "GameFramework/PlayerStart.h"
@@ -247,6 +248,7 @@ void UWorld::ClearWorld()
 	}
 	
 	PlayerController = nullptr;
+	ParticleEventManager = nullptr;
 	bHasPlayerStart = false;
 
 	HTR_LOG(Info, "{} : ", PersistentLevel->GetActorNum());
@@ -366,13 +368,13 @@ void UWorld::GatherRenderPackets(FRenderQueue& RenderQueue, const FViewBasis& Vi
 			{
 				FGatherChunk& Out = GatherChunks[ChunkIndex];      // 이 조각 전용. 다른 스레드는 절대 안 건드림
 				// 같은 머티리얼, 버퍼와 인덱스 범위를 공유한다.
-				const auto FindGroup = [&Out](UMaterial* Material, FVertexBuffer* const* VertexBuffers, int32 VertexBufferCount, FIndexBuffer* IndexBuffer, uint32 StartIndex, uint32 IndexCount, bool bReceiveShadow, bool bUseSkinning) -> FMeshDrawGroup&
+				const auto FindGroup = [&Out](UMaterial* Material, FVertexBuffer* const* VertexBuffers, int32 VertexBufferCount, FIndexBuffer* IndexBuffer, uint32 StartIndex, uint32 IndexCount, bool bUseSkinning) -> FMeshDrawGroup&
 					{
 						if (Out.LastGroup < Out.Groups.size())
 						{
 							FMeshDrawGroup& Last = Out.Groups[Out.LastGroup];
 
-							if (Last.Material == Material && Last.Geometry.HasSameBuffers(VertexBuffers, VertexBufferCount, IndexBuffer) && Last.Geometry.StartIndex == StartIndex && Last.Geometry.IndexCount == IndexCount && Last.bReceiveShadow == bReceiveShadow && Last.bUseSkinning == bUseSkinning)
+							if (Last.Material == Material && Last.Geometry.HasSameBuffers(VertexBuffers, VertexBufferCount, IndexBuffer) && Last.Geometry.StartIndex == StartIndex && Last.Geometry.IndexCount == IndexCount && Last.bUseSkinning == bUseSkinning)
 							{
 								return Last;
 							}
@@ -380,7 +382,7 @@ void UWorld::GatherRenderPackets(FRenderQueue& RenderQueue, const FViewBasis& Vi
 						for (uint32 g = 0; g < Out.Groups.size(); ++g)
 						{
 							FMeshDrawGroup& Group = Out.Groups[g];
-							if (Group.Material == Material && Group.Geometry.HasSameBuffers(VertexBuffers, VertexBufferCount, IndexBuffer) && Group.Geometry.StartIndex == StartIndex && Group.Geometry.IndexCount == IndexCount && Group.bReceiveShadow == bReceiveShadow && Group.bUseSkinning == bUseSkinning)
+							if (Group.Material == Material && Group.Geometry.HasSameBuffers(VertexBuffers, VertexBufferCount, IndexBuffer) && Group.Geometry.StartIndex == StartIndex && Group.Geometry.IndexCount == IndexCount && Group.bUseSkinning == bUseSkinning)
 							{
 								Out.LastGroup = g;
 								return Group;
@@ -389,7 +391,6 @@ void UWorld::GatherRenderPackets(FRenderQueue& RenderQueue, const FViewBasis& Vi
 						Out.LastGroup = static_cast<uint32>(Out.Groups.size());
 						FMeshDrawGroup& Group = Out.Groups.emplace_back();
 						Group.Material = Material;
-						Group.bReceiveShadow = bReceiveShadow;
 						Group.bUseSkinning = bUseSkinning;
 						Group.Geometry.SetVertexBuffers(VertexBuffers, VertexBufferCount);
 						Group.Geometry.IndexBuffer = IndexBuffer;
@@ -431,7 +432,7 @@ void UWorld::GatherRenderPackets(FRenderQueue& RenderQueue, const FViewBasis& Vi
 
 						if (bMeshDrawGroups && Section.Material && Section.Material->BlendState == EBlendState::Opaque)
 						{
-						FMeshDrawGroup& Group = FindGroup(Section.Material, CachedLOD.VertexBuffers, CachedLOD.VertexBufferCount, CachedLOD.IndexBuffer, Section.StartIndex, Section.IndexCount, Proxy->IsReceiveShadow(), Proxy->IsUsingSkinning());
+						FMeshDrawGroup& Group = FindGroup(Section.Material, CachedLOD.VertexBuffers, CachedLOD.VertexBufferCount, CachedLOD.IndexBuffer, Section.StartIndex, Section.IndexCount, Proxy->IsUsingSkinning());
 							Group.Items.Add({ Proxy, ObjectConstantSlot, bOccludedByGpu ? 1u : 0u });
 							Group.Instances.Add({ Proxy->GetLocalToWorld(), Proxy->GetNormalMatrix(), FLinearColor::White });
 							++Out.MeshDrawCount;
@@ -645,6 +646,11 @@ bool UWorld::DestroyActor(AActor* Actor)
 		PlayerController = nullptr;
 	}
 
+	if (Actor == ParticleEventManager)
+	{
+		ParticleEventManager = nullptr;
+	}
+
 	if (PlayerController)
 	{
 		PlayerController->NotifyActorDestroyed(Actor);
@@ -746,6 +752,7 @@ bool UWorld::LineTraceSingle(const FRay& WorldRay, FHitResult& OutHit,
 void UWorld::BeginPlay()
 {
 	SpawnPlayerController();
+	SpawnParticleEventManager();
 	RestartPlayer();
 }
 
@@ -858,6 +865,12 @@ void UWorld::SpawnPlayerController()
 {
 	PlayerController = SpawnActor<APlayerController>(FName("PlayerController"));
 	PlayerController->SetFlags(EObjectFlags::RF_Transient);
+}
+
+void UWorld::SpawnParticleEventManager()
+{
+	ParticleEventManager = SpawnActor<AParticleEventManager>(FName("ParticleEventManager"));
+	ParticleEventManager->SetFlags(EObjectFlags::RF_Transient);
 }
 
 // 우선순위: Auto Possess Pawn > PlayerStart > 원점

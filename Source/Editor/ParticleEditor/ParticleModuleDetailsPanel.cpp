@@ -2,9 +2,65 @@
 #include "ParticleModuleDetailsPanel.h"
 #include "Editor/Details/DetailsPanel.h"
 #include "Particle/ParticleSystem.h"
+#include "Particle/Modules/ParticleModuleCollision.h"
+#include "Particle/Modules/ParticleModuleEventGenerator.h"
 
 #include <cmath>
 #include <limits>
+
+namespace {
+	// 리플렉션 미지원 enum이라 직접 콤보로 그림
+	bool DrawCollisionOptions(UParticleModuleCollision* Collision) {
+		const char* Items[]{ "Kill", "Freeze" };
+		int Index{ static_cast<int>(Collision->CompletionOption) };
+		if (ImGui::Combo("Completion Option", &Index, Items, IM_ARRAYSIZE(Items))) {
+			Collision->CompletionOption = static_cast<EParticleCollisionComplete>(Index);
+			return true;
+		}
+		return false;
+	}
+
+	// 리플렉션 미지원 배열이라 규칙마다 직접 그림
+	bool DrawEventGeneratorRules(UParticleModuleEventGenerator* Generator) {
+		bool Changed{};
+		int32 RemoveIndex{ -1 };
+
+		ImGui::SeparatorText("Events");
+		for (int32 Index{}; Index < Generator->Events.Num(); ++Index) {
+			FParticleEventGeneratorInfo& Info{ Generator->Events[Index] };
+			ImGui::PushID(Index);
+
+			char Buffer[256]{};
+			strncpy_s(Buffer, Info.EventName.c_str(), sizeof(Buffer) - 1);
+			if (ImGui::InputText("Event Name", Buffer, sizeof(Buffer))) {
+				Info.EventName = Buffer;
+				Changed = true;
+			}
+			if (ImGui::DragInt("Frequency", &Info.Frequency, 1.0f, 1, 1000)) {
+				Changed = true;
+			}
+			Changed |= ImGui::Checkbox("First Time Only", &Info.bFirstTimeOnly);
+			Changed |= ImGui::Checkbox("Last Time Only", &Info.bLastTimeOnly);
+
+			// 순회 중 삭제하면 인덱스가 밀리므로 루프 후 삭제
+			if (ImGui::Button("Remove")) {
+				RemoveIndex = Index;
+			}
+			ImGui::Separator();
+			ImGui::PopID();
+		}
+
+		if (RemoveIndex >= 0) {
+			Generator->Events.RemoveAt(RemoveIndex);
+			Changed = true;
+		}
+		if (ImGui::Button("Add Rule")) {
+			Generator->Events.Add(FParticleEventGeneratorInfo{});
+			Changed = true;
+		}
+		return Changed;
+	}
+}
 
 FParticleModuleDetailsPanel::FParticleModuleDetailsPanel(FString PanelName, FChangeCallback ChangeCallback)
 	: mPanelName{ std::move(PanelName) },
@@ -70,6 +126,10 @@ void FParticleModuleDetailsPanel::OnRender() {
 			bool Changed{ FDetailsPanel::DrawObjectProperties(mTarget) };
 			if (UParticleSystem* ParticleSystem{ Cast<UParticleSystem>(mTarget) }) {
 				Changed |= DrawParticleSystemProperties(ParticleSystem);
+			} else if (UParticleModuleCollision* Collision{ Cast<UParticleModuleCollision>(mTarget) }) {
+				Changed |= DrawCollisionOptions(Collision);
+			} else if (UParticleModuleEventGenerator* Generator{ Cast<UParticleModuleEventGenerator>(mTarget) }) {
+				Changed |= DrawEventGeneratorRules(Generator);
 			}
 			if (Changed && mChangeCallback) {
 				mChangeCallback();

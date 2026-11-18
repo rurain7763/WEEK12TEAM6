@@ -175,7 +175,7 @@ void UBillboardComponent::SubmitToRenderQueue(FRenderQueue& RenderQueue, const F
 	{
 		if (const ULightComponentBase* LightParent = Cast<ULightComponentBase>(AttachParent))
 		{
-			SpriteParams.TintColor = LightParent->GetLightColor().ReinterpretAsLinear();
+			TintColor = LightParent->GetLightColor().ReinterpretAsLinear();
 		}
 	}
 
@@ -188,7 +188,7 @@ void UBillboardComponent::SubmitToRenderQueue(FRenderQueue& RenderQueue, const F
 	Packet.Material = Material;
 	Packet.Model = RenderQueue.StoreWorldMatrix(GetBillboardMatrix(View));
 	Packet.CameraDistanceSquared = (GetWorldLocation() - View.Location).SizeSquared();
-	Packet.ColorMultiplier = SpriteParams.TintColor;
+	Packet.ColorMultiplier = TintColor;
 
 	RenderQueue.Add(Packet);
 }

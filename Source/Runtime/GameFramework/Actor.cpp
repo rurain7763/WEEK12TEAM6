@@ -12,6 +12,7 @@
 #include "UObject/Object.h"
 #include "Component/ScriptComponent.h"
 #include "Component/PrimitiveComponent.h"
+#include "Component/ParticleSystemComponent.h"
 #include "Component/MovementComponent.h"
 #include "Camera/CameraTypes.h"
 
@@ -88,8 +89,14 @@ void AActor::BeginPlay()
 			Primitive->OnBeginOverlap.AddRaw(ScriptComp, &UScriptComponent::HanldeOnCollisionEnter);
 			Primitive->OnEndOverlap.AddRaw(ScriptComp, &UScriptComponent::HanldeOnCollisionExit);
 			Primitive->OnHit.AddRaw(ScriptComp, &UScriptComponent::HanldeOnCollisionHit);
+
+			// 파티클 충돌 이벤트도 스크립트의 OnParticleCollide로 전달
+			if (UParticleSystemComponent* ParticleComp = Cast<UParticleSystemComponent>(Primitive))
+			{
+				ParticleComp->OnParticleCollide.AddRaw(ScriptComp, &UScriptComponent::HandleOnParticleCollide);
+			}
 		}
-	}	
+	}
 }
 
 void AActor::EndPlay()

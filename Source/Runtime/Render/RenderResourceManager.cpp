@@ -6,6 +6,7 @@
 
 #include "RenderUtil.h"
 #include "Asset/ModelData.h"
+#include "RenderPacket.h"
 #include <cstddef>
 
 void FRenderResourceManager::ScanShaders(const fs::path& ShaderRoot)
@@ -26,6 +27,7 @@ void FRenderResourceManager::ScanShaders(const fs::path& ShaderRoot)
 		if (Entry.path().filename() == "TileLightCulling.hlsl") continue;
 		if (Entry.path().filename() == "ShadowShader.hlsl") continue;
 		if (Entry.path().filename() == "SurfaceShader.hlsl") continue;
+		if (Entry.path().filename() == "TransparentUber.hlsl") continue;
 		// 현재 DBuffer 경로와 함께 실행하지 않는 이전 자체 조명 셰이더 제외
 		if (Entry.path().filename() == "ScreenSpaceDecal.hlsl")
 		{
@@ -147,7 +149,7 @@ namespace
 	const char* const Digits[] = { "0", "1", "2", "3"};
 }
 
-FString FRenderResourceManager::GetUberLitSuffix(const FViewRenderMode& Mode, bool bHasNormalMap, bool bReceiveShadow, bool bUseSkinning)
+FString FRenderResourceManager::GetUberLitSuffix(const FViewRenderMode& Mode, bool bUseSkinning)
 {
 	const FString SkinSuffix = bUseSkinning ? "_SKINNED" : "_STATIC";
 	switch (Mode.ViewMode)
@@ -156,22 +158,19 @@ FString FRenderResourceManager::GetUberLitSuffix(const FViewRenderMode& Mode, bo
 	case EViewMode::Wireframe:
 		return FString("_UNLIT") + SkinSuffix;
 	case EViewMode::WorldNormal:
-		return FString("_WORLDNORMAL")+ "_NM" + Digits[static_cast<int32>(bHasNormalMap)] + SkinSuffix;
+		return FString("_WORLDNORMAL") + SkinSuffix;
 	default:
 		break;
 	}
 
-	const bool bUseNormalMap = (Mode.ShadingModel == EShadingModel::Phong && bHasNormalMap);
-
 	return FString("_LM") + Digits[static_cast<int32>(Mode.LightingModel)]
 		+ "_SM" + Digits[static_cast<int32>(Mode.ShadingModel)]
-		+ "_NM" + Digits[static_cast<int32>(bUseNormalMap)]
-		+ "_RS" + Digits[static_cast<int32>(bReceiveShadow)] + SkinSuffix;
+		+ SkinSuffix;
 }
 
-FShaderProgram* FRenderResourceManager::GetUberLitProgram(const FViewRenderMode& Mode, bool bHasNormalMap, bool bReceiveShadow, bool bUseSkinning)
+FShaderProgram* FRenderResourceManager::GetUberLitProgram(const FViewRenderMode& Mode, bool bUseSkinning)
 {
-	return GetShaderProgram(UberLitPath + GetUberLitSuffix(Mode, bHasNormalMap, bReceiveShadow, bUseSkinning));
+	return GetShaderProgram(UberLitPath + GetUberLitSuffix(Mode, bUseSkinning));
 }
 
 void FRenderResourceManager::LoadUberLitPermutations()
@@ -199,41 +198,97 @@ void FRenderResourceManager::LoadUberLitPermutations()
 			{ "VIEWMODE", Digits[static_cast<int32>(EViewMode::Unlit)] },
 			{ nullptr, nullptr }          // 배열 끝
 		};
-		LoadOrCompileShader(UberLitPath, GetUberLitSuffix({ EViewMode::Unlit }, false, true, bUseSkinning), UnlitDefines, Layout);
+		LoadOrCompileShader(UberLitPath, GetUberLitSuffix({ EViewMode::Unlit }, bUseSkinning), UnlitDefines, Layout);
 
-		for (int32 NM = 0; NM < 2; ++NM)
-		{
-			const D3D_SHADER_MACRO WorldNormalDefines[] = {
-				{ "USE_SKINNING", Digits[Skin] },
-				{ "VIEWMODE",       Digits[static_cast<int32>(EViewMode::WorldNormal)] },
-				{ "HAS_NORMAL_MAP", Digits[NM] },
-				{ nullptr, nullptr }
-			};
-			LoadOrCompileShader(UberLitPath, GetUberLitSuffix({ EViewMode::WorldNormal }, NM, true, bUseSkinning), WorldNormalDefines, Layout);
-		}
+		const D3D_SHADER_MACRO WorldNormalDefines[] = {
+			{ "USE_SKINNING", Digits[Skin] },
+			{ "VIEWMODE",       Digits[static_cast<int32>(EViewMode::WorldNormal)] },
+			{ nullptr, nullptr }
+		};
+		LoadOrCompileShader(UberLitPath, GetUberLitSuffix({ EViewMode::WorldNormal }, bUseSkinning), WorldNormalDefines, Layout);
 
 		for (int32 LM = 0; LM < 3; ++LM)          // Lambert, Phong, Blinn-Phong
 		{
 			for (int32 SM = 0; SM < 2; ++SM)      // Gouraud, Phong
 			{
-				for (int32 NM = 0; NM < 2; ++NM)
-				{
-					for (int32 RS = 0; RS < 2; ++RS) {
-						if (SM == 0 && NM == 1) continue; // Gouraud shading + Normal Map 스킵
-						const D3D_SHADER_MACRO Defines[] = {
-							{ "USE_SKINNING", Digits[Skin] },
-							{ "VIEWMODE",       Digits[static_cast<int32>(EViewMode::Lit)] },
-							{ "LIGHTING_MODEL", Digits[LM] },
-							{ "SHADING_MODEL",  Digits[SM] },
-							{ "HAS_NORMAL_MAP", Digits[NM] },
-							{ "RECEIVE_SHADOW", Digits[RS] },
-							{ nullptr, nullptr }
-						};
-						const FViewRenderMode Mode{ EViewMode::Lit, static_cast<ELightingModel>(LM), static_cast<EShadingModel>(SM) };
-						LoadOrCompileShader(UberLitPath, GetUberLitSuffix(Mode, NM, RS, bUseSkinning), Defines, Layout);
-					}
-				}
+				const D3D_SHADER_MACRO Defines[] = {
+					{ "USE_SKINNING", Digits[Skin] },
+					{ "VIEWMODE",       Digits[static_cast<int32>(EViewMode::Lit)] },
+					{ "LIGHTING_MODEL", Digits[LM] },
+					{ "SHADING_MODEL",  Digits[SM] },
+					{ nullptr, nullptr }
+				};
+				const FViewRenderMode Mode{ EViewMode::Lit, static_cast<ELightingModel>(LM), static_cast<EShadingModel>(SM) };
+				LoadOrCompileShader(UberLitPath, GetUberLitSuffix(Mode, bUseSkinning), Defines, Layout);
 			}
 		}
 	}
+}
+
+void FRenderResourceManager::LoadTransparentUberShaders()
+{
+	FShaderProgramDesc Desc;
+	Desc.Path = "Resources/Shader/TransparentUber.hlsl";
+	Desc.InputLayout = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, static_cast<UINT>(offsetof(FVertexPNCT, Position)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, static_cast<UINT>(offsetof(FVertexPNCT, Normal)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TANGENT",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, static_cast<UINT>(offsetof(FVertexPNCT, Tangent)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, static_cast<UINT>(offsetof(FVertexPNCT, Color)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, static_cast<UINT>(offsetof(FVertexPNCT, UV)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "INSTANCE_MODEL",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, Model) +  0), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_MODEL",  1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, Model) + 16), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_MODEL",  2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, Model) + 32), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_MODEL",  3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, Model) + 48), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, NormalMatrix) +  0), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_NORMAL", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, NormalMatrix) + 16), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_NORMAL", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, NormalMatrix) + 32), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_NORMAL", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, NormalMatrix) + 48), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_COLOR",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, Color)), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_MASK",   0, DXGI_FORMAT_R32_UINT,           1, static_cast<UINT>(offsetof(FObjectInstance, ObjectMask)), D3D11_INPUT_PER_INSTANCE_DATA, 1 }
+	};
+
+	Desc.Defines = {
+		{ "USE_SKINNING", "0" },
+		{ "VIEWMODE", "0" }
+	};
+	RegisterProgram("TransparentUber_Static_Lit", Desc);
+
+	Desc.Defines = {
+		{ "USE_SKINNING", "0" },
+		{ "VIEWMODE", "1" }
+	};
+	RegisterProgram("TransparentUber_Static_Unlit", Desc);
+
+	Desc.InputLayout = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, static_cast<UINT>(offsetof(FVertexPNCT, Position)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, static_cast<UINT>(offsetof(FVertexPNCT, Normal)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TANGENT",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, static_cast<UINT>(offsetof(FVertexPNCT, Tangent)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, static_cast<UINT>(offsetof(FVertexPNCT, Color)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, static_cast<UINT>(offsetof(FVertexPNCT, UV)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_SINT, 1, static_cast<UINT>(offsetof(FModelVertexInfluences, BoneIndices)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FModelVertexInfluences, Weights)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "BONECOUNT", 0, DXGI_FORMAT_R32_SINT, 1, static_cast<UINT>(offsetof(FModelVertexInfluences, InfluenceCount)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "INSTANCE_MODEL",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 2, static_cast<UINT>(offsetof(FObjectInstance, Model) +  0), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_MODEL",  1, DXGI_FORMAT_R32G32B32A32_FLOAT, 2, static_cast<UINT>(offsetof(FObjectInstance, Model) + 16), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_MODEL",  2, DXGI_FORMAT_R32G32B32A32_FLOAT, 2, static_cast<UINT>(offsetof(FObjectInstance, Model) + 32), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_MODEL",  3, DXGI_FORMAT_R32G32B32A32_FLOAT, 2, static_cast<UINT>(offsetof(FObjectInstance, Model) + 48), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 2, static_cast<UINT>(offsetof(FObjectInstance, NormalMatrix) +  0), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_NORMAL", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 2, static_cast<UINT>(offsetof(FObjectInstance, NormalMatrix) + 16), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_NORMAL", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 2, static_cast<UINT>(offsetof(FObjectInstance, NormalMatrix) + 32), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_NORMAL", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 2, static_cast<UINT>(offsetof(FObjectInstance, NormalMatrix) + 48), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_COLOR",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 2, static_cast<UINT>(offsetof(FObjectInstance, Color)), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "INSTANCE_MASK",   0, DXGI_FORMAT_R32_UINT,           2, static_cast<UINT>(offsetof(FObjectInstance, ObjectMask)), D3D11_INPUT_PER_INSTANCE_DATA, 1 }
+	};
+
+	Desc.Defines = {
+		{ "USE_SKINNING", "1" },
+		{ "VIEWMODE", "0" }
+	};
+	RegisterProgram("TransparentUber_Skinned_Lit", Desc);
+
+	Desc.Defines = {
+		{ "USE_SKINNING", "1" },
+		{ "VIEWMODE", "1" }
+	};
+	RegisterProgram("TransparentUber_Skinned_Unlit", Desc);
 }

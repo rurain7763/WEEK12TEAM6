@@ -18,5 +18,4 @@
 #include "Particle/Modules/ParticleModuleColor.h"
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
-#include "Component/FXSystemComponent.h"
-#include "Component/ParticleSystemComponent.h"
+

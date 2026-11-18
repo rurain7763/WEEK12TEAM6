@@ -1,6 +1,7 @@
 #include "EnginePCH.h"
 #include "LuaScriptInstance.h"
 #include "Core/PathUtils.h"
+#include "Particle/ParticleTypes.h"
 #include <fstream>
 #include <iterator>
 
@@ -89,6 +90,7 @@ void FLuaScriptInstance::Load(sol::state& LuaState, AActor* InOwner, const FStri
     OnComponentBeginOverlapFunc = Environment["OnComponentBeginOverlap"];
     OnComponentEndOverlapFunc = Environment["OnComponentEndOverlap"];
     OnComponentHitFunc = Environment["OnComponentHit"];
+    OnParticleCollideFunc = Environment["OnParticleCollide"];
 
     bLoaded = true;
     bHasBegunPlay = false;
@@ -144,6 +146,7 @@ void FLuaScriptInstance::Reload(sol::state& LuaState)
     OnComponentBeginOverlapFunc = Environment["OnComponentBeginOverlap"];
     OnComponentEndOverlapFunc = Environment["OnComponentEndOverlap"];
     OnComponentHitFunc = Environment["OnComponentHit"];
+    OnParticleCollideFunc = Environment["OnParticleCollide"];
 
     Init();
 }
@@ -273,5 +276,20 @@ void FLuaScriptInstance::OnComponentHit(UPrimitiveComponent* Other, FHitResult& 
     {
         sol::error e = Result;
         HTR_LOG(Error, "[Lua] EndPlay failed: {}, Error: {}", ScriptPath, e.what());
+    }
+}
+
+void FLuaScriptInstance::OnParticleCollide(const FParticleEventCollideData& Event)
+{
+    if (!OnParticleCollideFunc)
+    {
+        return;
+    }
+
+    sol::protected_function_result Result = OnParticleCollideFunc(Event);
+    if (!Result.valid())
+    {
+        sol::error e = Result;
+        HTR_LOG(Error, "[Lua] OnParticleCollide failed: {}, Error: {}", ScriptPath, e.what());
     }
 }

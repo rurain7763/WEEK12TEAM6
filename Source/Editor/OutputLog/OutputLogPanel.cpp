@@ -3,6 +3,7 @@
 
 #include "Core/StatOverlay.h"
 #include "Engine/Scene.h"
+#include "Core/Windows/WindowsPlatformMisc.h"
 
 static int TextEditCallbackStub(ImGuiInputTextCallbackData* data)
 {
@@ -26,6 +27,7 @@ bool FOutputLogPanel::Init()
 	Commands.Add("HISTORY");
 	Commands.Add("CLEAR");
 	Commands.Add("STAT");
+	Commands.Add("CAUSECRASH");
 
 	HistoryPos = -1;
 	InputBuf[0] = '\0';
@@ -208,6 +210,10 @@ void FOutputLogPanel::ExecCommand(const FString& CommandLine)
 		int first = History.Num() - 10;
 		for (int i = first > 0 ? first : 0; i < History.Num(); i++)
 			FLog::Log(ELogVerbosity::Info, "{:03d}: {}\n", i, History[i]);
+	}
+	else if (EqualsIgnoreCase(CommandLine, "CAUSECRASH"))
+	{
+		FWindowsPlatformMisc::RaiseException(0xe0000001);
 	}
 	else
 	{

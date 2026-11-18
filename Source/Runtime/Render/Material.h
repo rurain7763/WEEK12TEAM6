@@ -15,15 +15,12 @@ enum class EMaterialDomain : uint8
 	Decal
 };
 
-enum class EMaterialParamLayout
+enum EMaterialTextureBindFlags : uint32
 {
-	None,
-	Surface,
-	ParticleSubUV,
-	Sprite
+	MTBF_NormalMap = 0x1u
 };
 
-struct FSurfaceMaterialParams
+struct FMaterialParams
 {
 	FLinearColor BaseColor;
 	FVector2 UVScrollOffset;
@@ -32,15 +29,10 @@ struct FSurfaceMaterialParams
 	FVector SpecularColor;
 	uint32 bFlipNormalGreen;
 	uint32 DecalColorBlendMode;
-	uint32 MaterialPadding[3];
+	uint32 TextureBindFlags;
+	uint32 MaterialPadding[2];
 };
-static_assert(sizeof(FSurfaceMaterialParams) == 64);
-
-struct FSpriteMaterialParams
-{
-	FLinearColor TintColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
-};
-static_assert(sizeof(FSpriteMaterialParams) == 16);
+static_assert(sizeof(FMaterialParams) == 64);
 
 class UMaterial : public UMaterialInterface
 {
@@ -50,7 +42,8 @@ public:
 	UMaterial() :SortID(NextSortID++) {};
 	virtual ~UMaterial() override = default;
 	EMaterialDomain MaterialDomain = EMaterialDomain::Surface;
-	EMaterialParamLayout ParamLayout = EMaterialParamLayout::None;
+	// Select view-mode variants of UberLit instead of the explicitly assigned shader.
+	bool bUseViewModeShader = false;
 	FShaderProgram* Shader = nullptr;
 	TArray<UTexture2D*> Textures;
 	TUniquePtr<FConstantBuffer> ParamBuffer;

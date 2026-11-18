@@ -40,9 +40,9 @@ public:
 	virtual const FModelMeshData* GetMeshData() const override { return QuadMesh ? &QuadMesh->GetMeshData() : nullptr; }
 	virtual FBox CalcLocalBounds() const override;
 
-	void SetTintColor(const FLinearColor& InColor) { SpriteParams.TintColor = InColor; bFollowLightColor = false; }
-	void SetTintColor(const FColor& InColor) { SpriteParams.TintColor = InColor.ReinterpretAsLinear(); bFollowLightColor = false; }
-	const FLinearColor& GetTintColor() const { return SpriteParams.TintColor; }
+	void SetTintColor(const FLinearColor& InColor) { TintColor = InColor; bFollowLightColor = false; }
+	void SetTintColor(const FColor& InColor) { TintColor = InColor.ReinterpretAsLinear(); bFollowLightColor = false; }
+	const FLinearColor& GetTintColor() const { return TintColor; }
 
 	void SetFollowLightColor(bool bFollow) { bFollowLightColor = bFollow; }
 	bool IsFollowingLightColor() const { return bFollowLightColor; }
@@ -69,7 +69,7 @@ protected:
 	
 	UMaterial* Material = nullptr;
 	UStaticMesh* QuadMesh = nullptr;
-	FSpriteMaterialParams SpriteParams;
+	FLinearColor TintColor = FLinearColor::White;
 	FString TexturePath;
 
 	bool bFollowLightColor = true;

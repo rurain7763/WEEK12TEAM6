@@ -147,7 +147,7 @@ private:
 	void DrawTranslucentMeshGroups();
 	void UpdatePerObjectConstants(const FMatrix& World, const FMatrix& NormalMatrix, uint32 ObjectMask);
 
-	void BindMaterial(UMaterial* material, bool bReceiveShadow, bool bUseSkinning);
+	void BindMaterial(UMaterial* Material, bool UseSkinning);
 	void UpdateMaterialParams(UMaterial* Material, const FLinearColor& ColorMultiplier = FLinearColor::White);
 	void UpdatePerObjectConstants(const FRenderPacket& RenderPacket);
 	void EnsurePerObjectSlotCapacity(uint32 SlotCount);
@@ -176,7 +176,7 @@ private:
 	FPipelineState ShadowStaticPipeline;
 	FPipelineState ShadowSkinningPipeline;
 
-	FShaderProgram* ViewModeShaders[2][2][2] = {};
+	FShaderProgram* ViewModeShaders[2] = {};
 	FPipelineState SurfaceStaticPipeline;
 	FPipelineState SurfaceSkinningPipeline;
 
@@ -197,5 +197,5 @@ private:
 	// Init()에서 CreateConstantBuffer(sizeof(FMatrix))
 	TUniquePtr<FConstantBuffer> ShadowViewCB;
 
-	TUniquePtr<FStructuredBuffer> ObjectInstanceSB;
+	TUniquePtr<FVertexBuffer> ObjectInstanceVB;
 };

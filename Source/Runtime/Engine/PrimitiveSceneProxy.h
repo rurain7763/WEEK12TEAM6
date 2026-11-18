@@ -147,7 +147,7 @@ struct FParticleSpriteRenderData
     FVector Location;
     FVector Size;
     float Rotation;
-    FSpriteMaterialParams MaterialParams;
+    FLinearColor TintColor = FLinearColor::White;
 };
 enum class EDynamicEmitterType 
 {
@@ -162,6 +162,7 @@ struct FParticleStripRenderData
     float Width = 1.0f;
     FLinearColor Color = FLinearColor::White;
 };
+
 struct FParticleEmitterRenderData
 {
     FMatrix SimulateToWorld;

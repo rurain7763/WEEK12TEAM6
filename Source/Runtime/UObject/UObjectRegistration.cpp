@@ -75,6 +75,7 @@
 #include "GameFramework/Actor/FakeSpotLightActor.h"
 #include "GameFramework/Actor/LuaTestActor.h"
 #include "GameFramework/Actor/ParticleActor.h"
+#include "GameFramework/Actor/ParticleEventManager.h"
 #include "GameFramework/Actor/PlayerActor.h"
 #include "GameFramework/Actor/PointLightActor.h"
 #include "GameFramework/Actor/RootMotionTestActor.h"
@@ -88,6 +89,12 @@
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Particle/Modules/ParticleModuleColor.h"
+#include "Particle/Modules/ParticleModuleAccelerationBase.h"
+#include "Particle/Modules/ParticleModuleAccelerationConstant.h"
+#include "Particle/Modules/ParticleModuleCollisionBase.h"
+#include "Particle/Modules/ParticleModuleCollision.h"
+#include "Particle/Modules/ParticleModuleEventBase.h"
+#include "Particle/Modules/ParticleModuleEventGenerator.h"
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
 #include "Particle/Modules/ParticleModuleLifeTime.h"
 #include "Particle/Modules/ParticleModuleLocation.h"
@@ -220,6 +227,7 @@ void RegisterUClasses()
 	AFakeSpotLightActor::StaticClass();
 	ALuaTestActor::StaticClass();
 	AParticleActor::StaticClass();
+	AParticleEventManager::StaticClass();
 	APlayerActor::StaticClass();
 	APointLightActor::StaticClass();
 	ARootMotionTestActor::StaticClass();
@@ -234,6 +242,12 @@ void RegisterUClasses()
 	USpringArmComponent::StaticClass();
 
 	// Particle
+	UParticleModuleAccelerationBase::StaticClass();
+	UParticleModuleAccelerationConstant::StaticClass();
+	UParticleModuleCollisionBase::StaticClass();
+	UParticleModuleCollision::StaticClass();
+	UParticleModuleEventBase::StaticClass();
+	UParticleModuleEventGenerator::StaticClass();
 	UParticleModuleColor::StaticClass();
 	UParticleModuleColorOverLife::StaticClass();
 	UParticleModuleLifeTime::StaticClass();

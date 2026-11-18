@@ -77,7 +77,6 @@ void FTileLightCulling::Dispatch(const FLocalLight& Lights, const FMatrix& ViewP
 	Context->CSSetConstantBuffers(0, 1, &NullBuffer);
 	Context->CSSetShader(nullptr, nullptr, 0);
 
-	BindForShading(Lights);
 }
 
 void FTileLightCulling::BindForShading(const FLocalLight& Lights)
