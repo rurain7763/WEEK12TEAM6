@@ -1,0 +1,425 @@
+{
+  "Version": 1,
+  "ParticleSystem": {
+    "LODMethod": 0,
+    "LODDistanceCheckTime": 0.25,
+    "Emitters": [
+      {
+        "ClassName": "UParticleEmitter",
+        "ParticleSize": 96,
+        "bEnabled": true,
+        "MaxParticleCount": 43,
+        "LODLevels": [
+          {
+            "Modules": [
+              {
+                "LifeTime": 3,
+                "ClassName": "UParticleModuleLifeTime",
+                "Properties": {}
+              },
+              {
+                "Properties": {},
+                "MinVelocity": 0,
+                "ClassName": "UParticleModuleVelocity",
+                "StartVelocity": {
+                  "Z": 1,
+                  "X": 0,
+                  "Y": 0
+                },
+                "MaxVelocity": 0,
+                "bHasRandomValue": false
+              },
+              {
+                "StartSize": {
+                  "Z": 0.18,
+                  "X": 0.18,
+                  "Y": 0.18
+                },
+                "ClassName": "UParticleModuleSize",
+                "Properties": {}
+              },
+              {
+                "OuterAngle": 32,
+                "Properties": {},
+                "InnerAngle": 0,
+                "Direction": {
+                  "Z": 1,
+                  "X": 0,
+                  "Y": 0
+                },
+                "ClassName": "UParticleModuleVelocityCone",
+                "Speed": 4
+              },
+              {
+                "ClassName": "UParticleModuleAccelerationConstant",
+                "Acceleration": {
+                  "Z": "-4.5",
+                  "X": 0,
+                  "Y": 0
+                },
+                "Properties": {},
+                "bAlwaysInWorldSpace": true
+              },
+              {
+                "ClassName": "UParticleModuleRotationRate",
+                "Properties": {},
+                "StartRotationRate": 3
+              },
+              {
+                "StartColor": {
+                  "B": 0.22,
+                  "G": 0.55,
+                  "A": 1,
+                  "R": 0.9
+                },
+                "ClassName": "UParticleModuleColor",
+                "Properties": {}
+              },
+              {
+                "Properties": {},
+                "CompletionOption": 0,
+                "ClassName": "UParticleModuleCollision",
+                "MaxCollisions": 3,
+                "RotationDampingFactor": 0.6,
+                "DampingFactor": {
+                  "Z": 0.62,
+                  "X": 0.7,
+                  "Y": 0.7
+                }
+              },
+              {
+                "ClassName": "UParticleModuleEventGenerator",
+                "Properties": {},
+                "Events": [
+                  {
+                    "bFirstTimeOnly": true,
+                    "bLastTimeOnly": false,
+                    "EventName": "GalleryHit",
+                    "Frequency": 5
+                  }
+                ]
+              }
+            ],
+            "ClassName": "UParticleLODLevel",
+            "RequiredModule": {
+              "MaterialInstance": {
+                "Instance": {
+                  "Textures": [
+                    "Assets/Textures/Rock/Rock064_1K-PNG_Color.png"
+                  ],
+                  "bFlipNormalGreen": false,
+                  "bAffectBaseColor": true,
+                  "SpecularColor": {
+                    "B": 0.25,
+                    "G": 0.25,
+                    "A": 1,
+                    "R": 0.25
+                  },
+                  "UVScrollSpeed": [
+                    0,
+                    0
+                  ],
+                  "BaseColor": {
+                    "B": 1,
+                    "G": 1,
+                    "A": 1,
+                    "R": 1
+                  },
+                  "SamplerState": "LinearClamp",
+                  "BlendState": "AlphaBlend",
+                  "Shininess": 32,
+                  "DecalColorBlendMode": "Alpha",
+                  "Properties": {},
+                  "MaterialDomain": "Surface",
+                  "bAffectNormal": true
+                },
+                "Base": "DefaultMaterial"
+              },
+              "Properties": {},
+              "ClassName": "UParticleModuleRequired",
+              "isLit": true,
+              "bUseLocalSpace": false,
+              "Material": "DefaultMaterial"
+            },
+            "bEnable": true,
+            "Level": 0,
+            "TypeDataModule": {
+              "StaticMesh": "Models/SpikeBall/SpikeBall.obj",
+              "ClassName": "UParticleModuleTypeDataMesh",
+              "Properties": {}
+            },
+            "SpawnModule": {
+              "SpawnRate": 9,
+              "ClassName": "UParticleModuleSpawn",
+              "Properties": {}
+            }
+          }
+        ],
+        "EmitterName": "Gallery"
+      },
+      {
+        "ClassName": "UParticleEmitter",
+        "ParticleSize": 96,
+        "bEnabled": true,
+        "MaxParticleCount": 32,
+        "LODLevels": [
+          {
+            "Level": 0,
+            "ClassName": "UParticleLODLevel",
+            "bEnable": true,
+            "TypeDataModule": {
+              "ClassName": ""
+            },
+            "Modules": [
+              {
+                "LifeTime": 1.8,
+                "ClassName": "UParticleModuleLifeTime",
+                "Properties": {}
+              },
+              {
+                "StartColor": {
+                  "B": 1,
+                  "G": 0.75,
+                  "A": 1,
+                  "R": 0.15
+                },
+                "ClassName": "UParticleModuleColor",
+                "Properties": {}
+              },
+              {
+                "Properties": {},
+                "MinVelocity": 0,
+                "ClassName": "UParticleModuleVelocity",
+                "StartVelocity": {
+                  "Z": 0.3,
+                  "X": 0,
+                  "Y": 0
+                },
+                "MaxVelocity": 0,
+                "bHasRandomValue": false
+              },
+              {
+                "StartSize": {
+                  "Z": 1,
+                  "X": 1,
+                  "Y": 1
+                },
+                "ClassName": "UParticleModuleSize",
+                "Properties": {}
+              },
+              {
+                "EndScale": 2.5,
+                "ClassName": "UParticleModuleSizeOfLifeTime",
+                "Properties": {},
+                "StartScale": 0.3
+              },
+              {
+                "StartColor": {
+                  "B": 0.12,
+                  "G": 0.38,
+                  "A": 0.17,
+                  "R": 0.7
+                },
+                "EndColor": {
+                  "B": 0.12,
+                  "G": 0.38,
+                  "A": 0,
+                  "R": 0.7
+                },
+                "ClassName": "UParticleModuleColorOverLife",
+                "Properties": {}
+              }
+            ],
+            "RequiredModule": {
+              "MaterialInstance": {
+                "Instance": {
+                  "Textures": [
+                    "Assets/Particles/AlphaBlendLab/T_TranslucentVapor.png"
+                  ],
+                  "bFlipNormalGreen": false,
+                  "bAffectBaseColor": true,
+                  "SpecularColor": {
+                    "B": 0.25,
+                    "G": 0.25,
+                    "A": 1,
+                    "R": 0.25
+                  },
+                  "UVScrollSpeed": [
+                    0,
+                    0
+                  ],
+                  "BaseColor": {
+                    "B": 1,
+                    "G": 1,
+                    "A": 1,
+                    "R": 1
+                  },
+                  "SamplerState": "LinearClamp",
+                  "BlendState": "AlphaBlend",
+                  "Shininess": 32,
+                  "DecalColorBlendMode": "Alpha",
+                  "Properties": {},
+                  "MaterialDomain": "Surface",
+                  "bAffectNormal": true
+                },
+                "Base": "SpriteMaterial"
+              },
+              "Properties": {},
+              "ClassName": "UParticleModuleRequired",
+              "isLit": false,
+              "bUseLocalSpace": true,
+              "Material": "SpriteMaterial"
+            },
+            "SpawnModule": {
+              "SpawnRate": 6,
+              "ClassName": "UParticleModuleSpawn",
+              "Properties": {}
+            }
+          }
+        ],
+        "EmitterName": "Gallery"
+      },
+      {
+        "ClassName": "UParticleEmitter",
+        "ParticleSize": 96,
+        "bEnabled": true,
+        "MaxParticleCount": 43,
+        "LODLevels": [
+          {
+            "Level": 0,
+            "ClassName": "UParticleLODLevel",
+            "bEnable": true,
+            "TypeDataModule": {
+              "ClassName": ""
+            },
+            "Modules": [
+              {
+                "LifeTime": 1.5,
+                "ClassName": "UParticleModuleLifeTime",
+                "Properties": {}
+              },
+              {
+                "StartColor": {
+                  "B": 1,
+                  "G": 0.75,
+                  "A": 1,
+                  "R": 0.15
+                },
+                "ClassName": "UParticleModuleColor",
+                "Properties": {}
+              },
+              {
+                "Properties": {},
+                "MinVelocity": 0,
+                "ClassName": "UParticleModuleVelocity",
+                "StartVelocity": {
+                  "Z": 1,
+                  "X": 0,
+                  "Y": 0
+                },
+                "MaxVelocity": 0,
+                "bHasRandomValue": false
+              },
+              {
+                "StartSize": {
+                  "Z": 0.1,
+                  "X": 0.1,
+                  "Y": 0.16
+                },
+                "ClassName": "UParticleModuleSize",
+                "Properties": {}
+              },
+              {
+                "OuterAngle": 40,
+                "Properties": {},
+                "InnerAngle": 0,
+                "Direction": {
+                  "Z": 1,
+                  "X": 0,
+                  "Y": 0
+                },
+                "ClassName": "UParticleModuleVelocityCone",
+                "Speed": 3.5
+              },
+              {
+                "ClassName": "UParticleModuleAccelerationConstant",
+                "Acceleration": {
+                  "Z": "-4",
+                  "X": 0,
+                  "Y": 0
+                },
+                "Properties": {},
+                "bAlwaysInWorldSpace": true
+              },
+              {
+                "StartColor": {
+                  "B": 0.12,
+                  "G": 0.6,
+                  "A": 1,
+                  "R": 1
+                },
+                "EndColor": {
+                  "B": 0.12,
+                  "G": 0.6,
+                  "A": 0,
+                  "R": 1
+                },
+                "ClassName": "UParticleModuleColorOverLife",
+                "Properties": {}
+              }
+            ],
+            "RequiredModule": {
+              "MaterialInstance": {
+                "Instance": {
+                  "Textures": [
+                    "Assets/Textures/Particles/circle_05.png"
+                  ],
+                  "bFlipNormalGreen": false,
+                  "bAffectBaseColor": true,
+                  "SpecularColor": {
+                    "B": 0.25,
+                    "G": 0.25,
+                    "A": 1,
+                    "R": 0.25
+                  },
+                  "UVScrollSpeed": [
+                    0,
+                    0
+                  ],
+                  "BaseColor": {
+                    "B": 1,
+                    "G": 1,
+                    "A": 1,
+                    "R": 1
+                  },
+                  "SamplerState": "LinearClamp",
+                  "BlendState": "AlphaBlend",
+                  "Shininess": 32,
+                  "DecalColorBlendMode": "Alpha",
+                  "Properties": {},
+                  "MaterialDomain": "Surface",
+                  "bAffectNormal": true
+                },
+                "Base": "SpriteMaterial"
+              },
+              "Properties": {},
+              "ClassName": "UParticleModuleRequired",
+              "isLit": false,
+              "bUseLocalSpace": true,
+              "Material": "SpriteMaterial"
+            },
+            "SpawnModule": {
+              "SpawnRate": 18,
+              "ClassName": "UParticleModuleSpawn",
+              "Properties": {}
+            }
+          }
+        ],
+        "EmitterName": "Gallery"
+      }
+    ],
+    "LODDistances": [
+      0
+    ]
+  }
+}
