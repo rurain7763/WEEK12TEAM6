@@ -102,6 +102,7 @@
 #include "Particle/Modules/ParticleModuleRotation.h"
 #include "Particle/Modules/ParticleModuleRotationRate.h"
 #include "Particle/Modules/ParticleModuleSize.h"
+#include "Particle/Modules/ParticleModuleSizeScaleBySpeed.h"
 #include "Particle/Modules/ParticleModuleSizeOfLifeTime.h"
 #include "Particle/Modules/ParticleModuleSpawn.h"
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
@@ -258,6 +259,7 @@ void RegisterUClasses()
 	UParticleModuleRotation::StaticClass();
 	UParticleModuleRotationRate::StaticClass();
 	UParticleModuleSize::StaticClass();
+	UParticleModuleSizeScaleBySpeed::StaticClass();
 	UParticleModuleSizeOfLifeTime::StaticClass();
 	UParticleModuleSpawn::StaticClass();
 	UParticleModuleTypeDataBase::StaticClass();
