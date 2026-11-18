@@ -392,19 +392,34 @@ void FRenderer::DrawTranslucentMeshGroups()
 		RenderCommand::BindVertexBuffers(Group.Geometry.VertexBuffers, Group.Geometry.VertexBufferCount);
 		RenderCommand::BindIndexBuffer(Group.Geometry.IndexBuffer);
 
-		uint32 InstanceCount = Group.Instances.Num();
-		uint32 InstanceDataSize = InstanceCount * sizeof(FObjectInstance);
+		const bool bReceiveShadow = Group.bReceiveShadow;
+		const bool bUseSkinning = Group.bUseSkinning;
+		BindMaterial(Group.Material, bReceiveShadow, bUseSkinning);
 
-		if (!ObjectInstanceSB || ObjectInstanceSB->GetBufferSize() < InstanceDataSize)
-		{
+		if (Group.Material->ParamLayout == EMaterialParamLayout::Surface) {
+			RenderCommand::BindConstantBuffer(3, LightingCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
+			RenderCommand::BindConstantBuffer(2, PerObjectCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
+
+			for (int32 Index{}; Index < Group.Instances.Num(); ++Index) {
+				const FObjectInstance& Instance{ Group.Instances[Index] };
+				const FPrimitiveSceneProxy* Proxy{ Group.Items[Index].Proxy };
+				UpdateMaterialParams(Group.Material, Instance.Color);
+				UpdatePerObjectConstants(Instance.Model, Instance.NormalMatrix, Proxy ? Proxy->GetObjectMask() : 0u);
+				if (Proxy) {
+					BindSurfaceSkinningResources(Proxy);
+				}
+				RenderCommand::DrawIndexed(Group.Geometry.IndexCount, Group.Geometry.StartIndex);
+			}
+			continue;
+		}
+
+		const uint32 InstanceCount{ static_cast<uint32>(Group.Instances.Num()) };
+		const uint32 InstanceDataSize{ InstanceCount * sizeof(FObjectInstance) };
+		if (!ObjectInstanceSB || ObjectInstanceSB->GetBufferSize() < InstanceDataSize) {
 			ObjectInstanceSB = RenderCommand::CreateStructuredBuffer<FObjectInstance>(Group.Instances.Num());
 		}
 
 		RenderCommand::UpdateBufferSubresource(ObjectInstanceSB.get(), Group.Instances.GetData(), InstanceDataSize);
-
-		const bool bReceiveShadow = Group.bReceiveShadow;
-		const bool bUseSkinning = Group.bUseSkinning;
-		BindMaterial(Group.Material, bReceiveShadow, bUseSkinning);
 		UpdateMaterialParams(Group.Material);
 
 		if (Group.Material->Textures.Num())
@@ -552,6 +567,7 @@ void FRenderer::DrawPackets(uint32 Begin, uint32 End)
 	LastMaterial = nullptr;
 	int8 LastReceiveShadow = -1;
 	int8 LastUseSkinning = -1;
+	FLinearColor LastColor{ FLinearColor::White };
 
 	RenderCommand::BindConstantBuffer(0, ViewCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
 	RenderCommand::BindConstantBuffer(3, LightingCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
@@ -582,9 +598,10 @@ void FRenderer::DrawPackets(uint32 Begin, uint32 End)
 			BindMaterial(RenderPacket.Material, bReceiveShadow, bUseSkinning);
 		}
 
-		if (RenderPacket.Material != LastMaterial)
-		{
-			UpdateMaterialParams(RenderPacket.Material);
+		const FLinearColor& Color{ RenderPacket.ColorMultiplier };
+		if (RenderPacket.Material != LastMaterial || Color.R != LastColor.R || Color.G != LastColor.G || Color.B != LastColor.B || Color.A != LastColor.A) {
+			UpdateMaterialParams(RenderPacket.Material, Color);
+			LastColor = Color;
 		}
 
 		if (bUsePerObjectSlots && RenderPacket.ObjectConstantSlot != InvalidObjectConstantSlot)
@@ -868,8 +885,7 @@ void FRenderer::BindMaterial(UMaterial* Material, bool bReceiveShadow, bool bUse
 }
 
 // b1 내용 채우고 꽂기
-void FRenderer::UpdateMaterialParams(UMaterial* Material)
-{
+void FRenderer::UpdateMaterialParams(UMaterial* Material, const FLinearColor& ColorMultiplier) {
 	switch (Material->ParamLayout)
 	{
 	case EMaterialParamLayout::Surface:
@@ -880,6 +896,10 @@ void FRenderer::UpdateMaterialParams(UMaterial* Material)
 
 		FSurfaceMaterialParams Params{};
 		Params.BaseColor = ColorWorkflow::ToShaderColor(Material->BaseColor);
+		Params.BaseColor.R *= ColorMultiplier.R;
+		Params.BaseColor.G *= ColorMultiplier.G;
+		Params.BaseColor.B *= ColorMultiplier.B;
+		Params.BaseColor.A *= ColorMultiplier.A;
 		Params.UVScrollOffset = Material->UVScrollSpeed * TotalTime;
 		Params.bOpaque = Material->BlendState == EBlendState::Opaque ? 1u : 0u;
 		Params.Shininess = Material->Shininess;

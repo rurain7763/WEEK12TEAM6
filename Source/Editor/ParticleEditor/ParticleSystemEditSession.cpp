@@ -19,6 +19,9 @@
 #include "Particle/Modules/ParticleModuleSizeOfLifeTime.h"
 #include "Particle/Modules/ParticleModuleColorOverLife.h"
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
+#include "Particle/Modules/ParticleModuleTypeDataBeam.h"
+#include "Particle/Modules/ParticleModuleTypeDataRibbon.h"
+#include "Particle/Modules/ParticleModuleTypeDataMesh.h"
 #include "Serialization/JsonArchive.h"
 #include "Serialization/MemoryReader.h"
 #include "Serialization/MemoryWriter.h"
@@ -321,6 +324,45 @@ bool FParticleSystemEditSession::MoveEmitter(UParticleEmitter* Emitter, int32 Ta
 	} else {
 		std::rotate(mWorkingCopy->Emitters.begin() + TargetIndex, mWorkingCopy->Emitters.begin() + SourceIndex, mWorkingCopy->Emitters.begin() + SourceIndex + 1);
 	}
+	return true;
+}
+
+bool FParticleSystemEditSession::SetEmitterTypeData(UParticleEmitter* Emitter, UClass* ModuleClass, FString& Error) {
+	Error.clear();
+	if (!GetEditableLOD(Emitter, Error)) {
+		return false;
+	}
+	if (!mWorkingCopy->ValidateLODLevels()) {
+		Error = "A valid particle system is required to change Type Data.";
+		return false;
+	}
+	if (ModuleClass && ModuleClass != UParticleModuleTypeDataMesh::StaticClass() && ModuleClass != UParticleModuleTypeDataBeam::StaticClass() && ModuleClass != UParticleModuleTypeDataRibbon::StaticClass()) {
+		Error = "Choose Sprite, Mesh, Beam, or Ribbon for this emitter's Type Data.";
+		return false;
+	}
+
+	std::vector<TUniquePtr<UParticleModuleTypeDataBase>> NewModules{};
+	NewModules.reserve(Emitter->LODLevels.Num());
+	bool Changed{};
+	for (UParticleLODLevel* LOD : Emitter->LODLevels) {
+		UClass* CurrentClass{ LOD->TypeDataModule ? LOD->TypeDataModule->GetClass() : nullptr };
+		const bool Replace{ CurrentClass != ModuleClass };
+		NewModules.emplace_back(Replace && ModuleClass ? NewObject<UParticleModuleTypeDataBase>(LOD, ModuleClass) : nullptr);
+		Changed |= Replace;
+	}
+	if (!Changed) {
+		return false;
+	}
+
+	for (int32 Index{}; Index < Emitter->LODLevels.Num(); ++Index) {
+		UParticleLODLevel* LOD{ Emitter->LODLevels[Index] };
+		UClass* CurrentClass{ LOD->TypeDataModule ? LOD->TypeDataModule->GetClass() : nullptr };
+		if (CurrentClass != ModuleClass) {
+			delete LOD->TypeDataModule;
+			LOD->TypeDataModule = NewModules[Index].release();
+		}
+	}
+	Emitter->CacheEmitterModuleInfo();
 	return true;
 }
 

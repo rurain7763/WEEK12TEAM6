@@ -3,6 +3,7 @@
         "Emitters": [
             {
                 "ClassName": "UParticleEmitter",
+                "EmitterName": "Emitter 1",
                 "LODLevels": [
                     {
                         "ClassName": "UParticleLODLevel",
@@ -37,7 +38,91 @@
                     }
                 ],
                 "MaxParticleCount": 100,
-                "ParticleSize": 308
+                "ParticleSize": 308,
+                "bEnabled": true
+            },
+            {
+                "ClassName": "UParticleEmitter",
+                "EmitterName": "Emitter 2",
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 5.0
+                            },
+                            {
+                                "ClassName": "UParticleModuleLocation",
+                                "MaxLocation": {
+                                    "X": 1.0,
+                                    "Y": 1.0,
+                                    "Z": 1.0
+                                },
+                                "MinLocation": {
+                                    "X": -1.0,
+                                    "Y": -1.0,
+                                    "Z": -1.0
+                                },
+                                "StartLocation": {
+                                    "X": 9.600000381469727,
+                                    "Y": 15.5,
+                                    "Z": -26.899999618530273
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleVelocity",
+                                "MaxVelocity": 1.0,
+                                "MinVelocity": 0.10000000149011612,
+                                "StartVelocity": {
+                                    "X": 0.0,
+                                    "Y": 0.0,
+                                    "Z": 1.0
+                                },
+                                "bHasRandomValue": true
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {
+                                    "X": 1.0,
+                                    "Y": 1.0,
+                                    "Z": 1.0
+                                }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {
+                                    "A": 1.0,
+                                    "B": 1.0,
+                                    "G": 1.0,
+                                    "R": 1.0
+                                }
+                            }
+                        ],
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "Material": "SpriteMaterial",
+                            "bUseLocalSpace": true
+                        },
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 100.80000305175781
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataBeam",
+                            "Distance": 9.5,
+                            "InterpolationPoints": 10,
+                            "MaxBeamCount": 1,
+                            "bAlwaysOn": true
+                        },
+                        "bEnable": true
+                    }
+                ],
+                "MaxParticleCount": 1000,
+                "ParticleSize": 308,
+                "bEnabled": true
             }
         ],
         "LODDistanceCheckTime": 0.25,

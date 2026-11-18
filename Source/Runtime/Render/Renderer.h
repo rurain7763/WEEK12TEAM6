@@ -148,7 +148,7 @@ private:
 	void UpdatePerObjectConstants(const FMatrix& World, const FMatrix& NormalMatrix, uint32 ObjectMask);
 
 	void BindMaterial(UMaterial* material, bool bReceiveShadow, bool bUseSkinning);
-	void UpdateMaterialParams(UMaterial* Material);
+	void UpdateMaterialParams(UMaterial* Material, const FLinearColor& ColorMultiplier = FLinearColor::White);
 	void UpdatePerObjectConstants(const FRenderPacket& RenderPacket);
 	void EnsurePerObjectSlotCapacity(uint32 SlotCount);
 	void UploadPerObjectConstants();

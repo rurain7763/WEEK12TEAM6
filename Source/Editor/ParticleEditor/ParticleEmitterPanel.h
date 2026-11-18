@@ -15,6 +15,7 @@ public:
 		AddEmitter,
 		DeleteEmitter,
 		MoveEmitter,
+		SetTypeData,
 		AddModule,
 		DeleteModule,
 		MoveModule,
@@ -71,6 +72,8 @@ private:
 	void DrawEmitterDragSource(UParticleEmitter* Emitter, const char* Label);
 	void DrawEmitterDropTarget(UParticleEmitter* Emitter, int32 EmitterIndex);
 	void DrawAddModuleMenu(UParticleEmitter* Emitter);
+	void DrawTypeDataMenu(UParticleEmitter* Emitter);
+	void DrawTypeDataMenuItem(UParticleEmitter* Emitter, UClass* ModuleClass, const char* Label);
 	void DrawEmitterContextMenu(UParticleEmitter* Emitter);
 	void HandleBackgroundClick();
 	void HandleDeleteShortcut();

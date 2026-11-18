@@ -13,6 +13,8 @@
 #include "Particle/ParticleSystem.h"
 #include "Particle/ParticleEmitter.h"
 #include "Particle/ParticleModule.h"
+#include "Particle/ParticleLODLevel.h"
+#include "Particle/Modules/ParticleModuleTypeDataBase.h"
 
 #include <algorithm>
 #include <cmath>
@@ -247,6 +249,13 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 			Changed = mEditSession->MoveEmitter(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mTargetIndex, mStatus);
 			if (Changed) {
 				Selection = mPendingStructureRequest.mEmitter;
+			}
+			break;
+		case FParticleEmitterPanel::EStructureAction::SetTypeData:
+			Changed = mEditSession->SetEmitterTypeData(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mModuleClass, mStatus);
+			if (Changed) {
+				UParticleLODLevel* LOD{ mPendingStructureRequest.mEmitter->GetLODLevel(mEditSession->GetSelectedLODIndex()) };
+				Selection = LOD->TypeDataModule ? static_cast<UObject*>(LOD->TypeDataModule) : mPendingStructureRequest.mEmitter;
 			}
 			break;
 		case FParticleEmitterPanel::EStructureAction::AddModule:

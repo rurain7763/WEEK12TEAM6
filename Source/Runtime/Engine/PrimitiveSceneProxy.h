@@ -5,6 +5,7 @@
 #include "Render/MeshRenderData.h"
 #include "Render/Material.h"
 #include "Render/Buffer.h"
+#include "Render/RenderPacket.h"
 #include <d3d11.h>
 #include <wrl/client.h>
 class FScene;
@@ -168,6 +169,8 @@ struct FParticleEmitterRenderData
     TArray<FParticleSpriteRenderData> Particles;
     EDynamicEmitterType DynamicEmitterType = EDynamicEmitterType::Sprite;
     TArray<FParticleStripRenderData> Strips;
+    UStaticMesh* mStaticMesh{};
+    TArray<FObjectInstance> mMeshParticles{};
 };
 
 class FParticleSystemSceneProxy : public FPrimitiveSceneProxy
@@ -183,6 +186,9 @@ public:
 protected:
     virtual FBox GetLocalBounds() const;
     virtual FLODSphere GetLocalLODSphere() const;
+
+private:
+    void SubmitMeshParticles(FRenderQueue& RenderQueue, const FViewBasis& View) const;
 
 private:
     TArray<FParticleEmitterRenderData> EmitterRenderDatas;

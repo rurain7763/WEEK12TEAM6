@@ -9,6 +9,9 @@
 #include "Particle/Modules/ParticleModuleRequired.h"
 #include "Particle/Modules/ParticleModuleSpawn.h"
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
+#include "Particle/Modules/ParticleModuleTypeDataBeam.h"
+#include "Particle/Modules/ParticleModuleTypeDataRibbon.h"
+#include "Particle/Modules/ParticleModuleTypeDataMesh.h"
 
 #include <algorithm>
 #include <cctype>
@@ -182,6 +185,7 @@ void FParticleEmitterPanel::DrawModule(UParticleEmitter* Emitter, UParticleModul
 			SelectObject(Module);
 		}
 		DrawAddModuleMenu(Emitter);
+		DrawTypeDataMenu(Emitter);
 		UParticleLODLevel* LOD{ Emitter ? Emitter->GetLODLevel(mSelectedLODIndex) : nullptr };
 		const bool CanDelete{ mStructureCallback && LOD && Module && LOD->Modules.Find(Module) >= 0 };
 		if (ImGui::MenuItem("Delete Module", "Delete", false, CanDelete)) {
@@ -245,11 +249,32 @@ void FParticleEmitterPanel::DrawAddModuleMenu(UParticleEmitter* Emitter) {
 	}
 }
 
+void FParticleEmitterPanel::DrawTypeDataMenu(UParticleEmitter* Emitter) {
+	if (ImGui::BeginMenu("Type Data", Emitter && mStructureCallback)) {
+		DrawTypeDataMenuItem(Emitter, nullptr, "Sprite (No Type Data)");
+		DrawTypeDataMenuItem(Emitter, UParticleModuleTypeDataMesh::StaticClass(), "Mesh");
+		DrawTypeDataMenuItem(Emitter, UParticleModuleTypeDataBeam::StaticClass(), "Beam");
+		DrawTypeDataMenuItem(Emitter, UParticleModuleTypeDataRibbon::StaticClass(), "Ribbon");
+		ImGui::EndMenu();
+	}
+}
+
+void FParticleEmitterPanel::DrawTypeDataMenuItem(UParticleEmitter* Emitter, UClass* ModuleClass, const char* Label) {
+	UParticleLODLevel* LOD{ Emitter->GetLODLevel(mSelectedLODIndex) };
+	UClass* CurrentClass{ LOD && LOD->TypeDataModule ? LOD->TypeDataModule->GetClass() : nullptr };
+	const bool Selected{ CurrentClass == ModuleClass };
+	if (ImGui::MenuItem(Label, nullptr, Selected, LOD && !Selected)) {
+		mStructureCallback(FStructureRequest{ EStructureAction::SetTypeData, Emitter, ModuleClass });
+	}
+	ImGui::SetItemTooltip("Applies to all LODs of this emitter. Changing type resets Type Data properties.");
+}
+
 void FParticleEmitterPanel::DrawEmitterContextMenu(UParticleEmitter* Emitter) {
 	if (mSelectedObject != Emitter) {
 		SelectObject(Emitter);
 	}
 	DrawAddModuleMenu(Emitter);
+	DrawTypeDataMenu(Emitter);
 	ImGui::Separator();
 	if (ImGui::MenuItem("Add Emitter", nullptr, false, mParticleSystem && mStructureCallback)) {
 		mStructureCallback(FStructureRequest{ EStructureAction::AddEmitter });
