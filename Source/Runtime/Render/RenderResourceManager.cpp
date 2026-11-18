@@ -99,8 +99,7 @@ FShaderProgram* FRenderResourceManager::RegisterProgram(FName Key, const FShader
 	return Manager.ShaderProgramMap[Key].Program.get();
 }
 
-void FRenderResourceManager::LoadOrCompileShader(const FString& Path, const FString& PermutationSuffix, const D3D_SHADER_MACRO* Defines, const TArray<D3D11_INPUT_ELEMENT_DESC>& InputLayoutDescs)
-{
+void FRenderResourceManager::LoadOrCompileShader(const FString& Path, const FString& PermutationSuffix, const D3D_SHADER_MACRO* Defines, const TArray<D3D11_INPUT_ELEMENT_DESC>& InputLayoutDescs, const char* PixelEntry) {
 	const FString Key = Path + PermutationSuffix;
 	if (ShaderProgramMap.Find(Key))
 		return;
@@ -108,7 +107,7 @@ void FRenderResourceManager::LoadOrCompileShader(const FString& Path, const FStr
 	FString VSCSOPath;
 	FString PSCSOPath;
 	FShaderByteCode VSCode = RenderUtil::GetOrCompile(Path, "mainVS", EShaderType::Vertex, VSCSOPath, PermutationSuffix, Defines);
-	FShaderByteCode PSCode = RenderUtil::GetOrCompile(Path, "mainPS", EShaderType::Pixel, PSCSOPath, PermutationSuffix, Defines);
+	FShaderByteCode PSCode = RenderUtil::GetOrCompile(Path, PixelEntry, EShaderType::Pixel, PSCSOPath, PermutationSuffix, Defines);
 
 	if (!VSCode.IsValid() || !PSCode.IsValid())
 	{
@@ -149,9 +148,8 @@ namespace
 	const char* const Digits[] = { "0", "1", "2", "3"};
 }
 
-FString FRenderResourceManager::GetUberLitSuffix(const FViewRenderMode& Mode, bool bUseSkinning)
-{
-	const FString SkinSuffix = bUseSkinning ? "_SKINNED" : "_STATIC";
+FString FRenderResourceManager::GetUberLitSuffix(const FViewRenderMode& Mode, bool bUseSkinning, bool UseInstancing, bool ColorOnly) {
+	const FString SkinSuffix{ FString{ UseInstancing ? "_STATIC_INSTANCED" : bUseSkinning ? "_SKINNED" : "_STATIC" } + (ColorOnly ? "_COLOR_ONLY" : "") };
 	switch (Mode.ViewMode)
 	{
 	case EViewMode::Unlit:
@@ -168,9 +166,8 @@ FString FRenderResourceManager::GetUberLitSuffix(const FViewRenderMode& Mode, bo
 		+ SkinSuffix;
 }
 
-FShaderProgram* FRenderResourceManager::GetUberLitProgram(const FViewRenderMode& Mode, bool bUseSkinning)
-{
-	return GetShaderProgram(UberLitPath + GetUberLitSuffix(Mode, bUseSkinning));
+FShaderProgram* FRenderResourceManager::GetUberLitProgram(const FViewRenderMode& Mode, bool bUseSkinning, bool UseInstancing, bool ColorOnly) {
+	return GetShaderProgram(UberLitPath + GetUberLitSuffix(Mode, bUseSkinning, UseInstancing, ColorOnly));
 }
 
 void FRenderResourceManager::LoadUberLitPermutations()
@@ -189,47 +186,49 @@ void FRenderResourceManager::LoadUberLitPermutations()
 
 	const TArray<D3D11_INPUT_ELEMENT_DESC> EmptyLayout{};
 
-	for (int32 Skin = 0; Skin < 2; ++Skin)
-	{
-		const bool bUseSkinning = Skin != 0;
-		const auto& Layout = bUseSkinning ? SkinLayout : EmptyLayout;
+	for (int32 Skin{}; Skin < 5; ++Skin) {
+		const bool bUseSkinning{ Skin == 1 || Skin == 4 };
+		const bool UseInstancing{ Skin == 2 };
+		const bool ColorOnly{ Skin >= 3 };
+		const char* PixelEntry{ ColorOnly ? "MainColorPS" : "mainPS" };
+		const auto& Layout{ UseInstancing ? GetStaticMeshInstanceLayout() : bUseSkinning ? SkinLayout : EmptyLayout };
 		const D3D_SHADER_MACRO UnlitDefines[] = {
-			{ "USE_SKINNING", Digits[Skin] },
+			{ "USE_SKINNING", Digits[bUseSkinning ? 1 : 0] },
+			{ "USE_INSTANCING", Digits[UseInstancing ? 1 : 0] },
 			{ "VIEWMODE", Digits[static_cast<int32>(EViewMode::Unlit)] },
 			{ nullptr, nullptr }          // 배열 끝
 		};
-		LoadOrCompileShader(UberLitPath, GetUberLitSuffix({ EViewMode::Unlit }, bUseSkinning), UnlitDefines, Layout);
+		LoadOrCompileShader(UberLitPath, GetUberLitSuffix({ EViewMode::Unlit }, bUseSkinning, UseInstancing, ColorOnly), UnlitDefines, Layout, PixelEntry);
 
 		const D3D_SHADER_MACRO WorldNormalDefines[] = {
-			{ "USE_SKINNING", Digits[Skin] },
+			{ "USE_SKINNING", Digits[bUseSkinning ? 1 : 0] },
+			{ "USE_INSTANCING", Digits[UseInstancing ? 1 : 0] },
 			{ "VIEWMODE",       Digits[static_cast<int32>(EViewMode::WorldNormal)] },
 			{ nullptr, nullptr }
 		};
-		LoadOrCompileShader(UberLitPath, GetUberLitSuffix({ EViewMode::WorldNormal }, bUseSkinning), WorldNormalDefines, Layout);
+		LoadOrCompileShader(UberLitPath, GetUberLitSuffix({ EViewMode::WorldNormal }, bUseSkinning, UseInstancing, ColorOnly), WorldNormalDefines, Layout, PixelEntry);
 
 		for (int32 LM = 0; LM < 3; ++LM)          // Lambert, Phong, Blinn-Phong
 		{
 			for (int32 SM = 0; SM < 2; ++SM)      // Gouraud, Phong
 			{
 				const D3D_SHADER_MACRO Defines[] = {
-					{ "USE_SKINNING", Digits[Skin] },
+					{ "USE_SKINNING", Digits[bUseSkinning ? 1 : 0] },
+					{ "USE_INSTANCING", Digits[UseInstancing ? 1 : 0] },
 					{ "VIEWMODE",       Digits[static_cast<int32>(EViewMode::Lit)] },
 					{ "LIGHTING_MODEL", Digits[LM] },
 					{ "SHADING_MODEL",  Digits[SM] },
 					{ nullptr, nullptr }
 				};
 				const FViewRenderMode Mode{ EViewMode::Lit, static_cast<ELightingModel>(LM), static_cast<EShadingModel>(SM) };
-				LoadOrCompileShader(UberLitPath, GetUberLitSuffix(Mode, bUseSkinning), Defines, Layout);
+				LoadOrCompileShader(UberLitPath, GetUberLitSuffix(Mode, bUseSkinning, UseInstancing, ColorOnly), Defines, Layout, PixelEntry);
 			}
 		}
 	}
 }
 
-void FRenderResourceManager::LoadTransparentUberShaders()
-{
-	FShaderProgramDesc Desc;
-	Desc.Path = "Resources/Shader/TransparentUber.hlsl";
-	Desc.InputLayout = {
+const TArray<D3D11_INPUT_ELEMENT_DESC>& FRenderResourceManager::GetStaticMeshInstanceLayout() {
+	static const TArray<D3D11_INPUT_ELEMENT_DESC> Layout{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, static_cast<UINT>(offsetof(FVertexPNCT, Position)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, static_cast<UINT>(offsetof(FVertexPNCT, Normal)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TANGENT",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, static_cast<UINT>(offsetof(FVertexPNCT, Tangent)), D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -246,6 +245,15 @@ void FRenderResourceManager::LoadTransparentUberShaders()
 		{ "INSTANCE_COLOR",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, static_cast<UINT>(offsetof(FObjectInstance, Color)), D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 		{ "INSTANCE_MASK",   0, DXGI_FORMAT_R32_UINT,           1, static_cast<UINT>(offsetof(FObjectInstance, ObjectMask)), D3D11_INPUT_PER_INSTANCE_DATA, 1 }
 	};
+
+	return Layout;
+}
+
+void FRenderResourceManager::LoadTransparentUberShaders()
+{
+	FShaderProgramDesc Desc;
+	Desc.Path = "Resources/Shader/TransparentUber.hlsl";
+	Desc.InputLayout = GetStaticMeshInstanceLayout();
 
 	Desc.Defines = {
 		{ "USE_SKINNING", "0" },

@@ -1,4 +1,5 @@
 #pragma pack_matrix(row_major)
+#include "ObjectInstanceInput.hlsli"
         
 struct FVSInput
 {
@@ -12,6 +13,9 @@ struct FVSInput
     float4 BoneWeights : BLENDWEIGHT;
     int BoneInfluenceCount : BONECOUNT;
 #endif
+#if USE_INSTANCING
+    FObjectInstanceInput Instance;
+#endif
 };
 
 struct FPSInput
@@ -19,6 +23,9 @@ struct FPSInput
     float4 Position : SV_POSITION;
     float2 UV : TEXCOORD0;
     float3 Normal : NORMAL;
+#if USE_INSTANCING
+    nointerpolation uint InstanceObjectMask : TEXCOORD1;
+#endif
 };
 
 struct FPSOutput
@@ -49,6 +56,11 @@ StructuredBuffer<float4x4> BoneMatrices : register(t0);
 FPSInput mainVS(FVSInput Input)
 {
     FPSInput Output;
+#if USE_INSTANCING
+    const float4x4 World = float4x4(Input.Instance.Model0, Input.Instance.Model1, Input.Instance.Model2, Input.Instance.Model3);
+    const float4x4 NormalMatrix = float4x4(Input.Instance.Normal0, Input.Instance.Normal1, Input.Instance.Normal2, Input.Instance.Normal3);
+    Output.InstanceObjectMask = Input.Instance.ObjectMask;
+#endif
     float3 LocalPosition = Input.Position;
     float3 LocalNormal = Input.Normal;
     
@@ -84,7 +96,11 @@ FPSOutput mainPS(FPSInput Input)
 {
     FPSOutput Output;
     
+#if USE_INSTANCING
+    Output.ObjectMask = Input.InstanceObjectMask;
+#else
     Output.ObjectMask = ObjectMask;
+#endif
     Output.Normal = float4(normalize(Input.Normal), 0.0f);
 
     return Output;

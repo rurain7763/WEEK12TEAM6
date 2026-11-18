@@ -1,4 +1,5 @@
 #pragma pack_matrix(row_major)
+#include "ObjectInstanceInput.hlsli"
 
 cbuffer ShadowViewConstants : register(b0)
 {
@@ -23,6 +24,9 @@ struct FVSInput
     float4 BoneWeights : BLENDWEIGHT;
     int BoneInfluenceCount : BONECOUNT;
 #endif
+#if USE_INSTANCING
+    FObjectInstanceInput Instance;
+#endif
 };
 
 struct FPSInput
@@ -39,6 +43,9 @@ StructuredBuffer<float4x4> BoneMatrices : register(t0);
 FPSInput mainVS(FVSInput Input)
 {
     FPSInput Output;
+#if USE_INSTANCING
+    const float4x4 World = float4x4(Input.Instance.Model0, Input.Instance.Model1, Input.Instance.Model2, Input.Instance.Model3);
+#endif
     
     float3 LocalPosition = Input.Position;
 #if USE_SKINNING

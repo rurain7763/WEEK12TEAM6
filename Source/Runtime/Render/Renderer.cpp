@@ -19,6 +19,11 @@
 #include <bit>
 
 #include "Engine/LightSceneProxy.h"
+#include "Component/SkeletalMeshComponent.h"
+#include "Component/ParticleSystemComponent.h"
+#include "Camera/CameraTypes.h"
+#include <map>
+#include <tuple>
 #include <Core/StatOverlay.h>
 #include "Core/Stats/ParticleStats.h"
 
@@ -72,6 +77,65 @@ namespace
 	{
 		if (Packet.NormalMatrix) return *Packet.NormalMatrix;
 		return MakeNormalMatrix(GetPacketWorld(Packet));
+	}
+
+	using FStaticDrawKey = std::tuple<UMaterial*, FVertexBuffer*, FIndexBuffer*, uint32, uint32>;
+	using FStaticDrawLookup = std::map<FStaticDrawKey, int32>;
+
+	bool IsSkeletalProxy(const FPrimitiveSceneProxy* Proxy) {
+		return Proxy && (Proxy->IsUsingSkinning() || Cast<USkeletalMeshComponent>(Proxy->GetComponent()));
+	}
+
+	bool IsStaticInstanceGeometry(const FGeometryBinding& Geometry) {
+		return Geometry.VertexBufferCount == 1 && Geometry.VertexBuffers[0] && Geometry.VertexBuffers[0]->GetStride() == sizeof(FVertexPNCT) && Geometry.IndexBuffer && Geometry.IndexCount > 0;
+	}
+
+	bool IsOpaqueStaticPacket(const FRenderPacket& Packet) {
+		return Packet.Material && Packet.Material->BlendState == EBlendState::Opaque && Packet.Material->bUseViewModeShader && !IsSkeletalProxy(Packet.Proxy) && IsStaticInstanceGeometry(Packet.Geometry);
+	}
+
+	bool IsOpaqueStaticGroup(const FMeshDrawGroup& Group) {
+		return !Group.bUseSkinning && Group.Material && Group.Material->bUseViewModeShader && Group.Material->BlendState == EBlendState::Opaque && IsStaticInstanceGeometry(Group.Geometry) && std::none_of(Group.Items.begin(), Group.Items.end(), [](const FMeshDrawItem& Item) { return IsSkeletalProxy(Item.Proxy); });
+	}
+
+	FMeshDrawGroup& FindStaticDrawGroup(TArray<FMeshDrawGroup>& Groups, FStaticDrawLookup& Lookup, const FGeometryBinding& Geometry, UMaterial* Material) {
+		const FStaticDrawKey Key{ Material, Geometry.VertexBuffers[0], Geometry.IndexBuffer, Geometry.StartIndex, Geometry.IndexCount };
+		const auto [Iterator, Added]{ Lookup.try_emplace(Key, Groups.Num()) };
+		if (Added) {
+			FMeshDrawGroup& Group{ Groups.AddDefaulted_GetRef() };
+			Group.Geometry = Geometry;
+			Group.Material = Material;
+		}
+		return Groups[Iterator->second];
+	}
+
+	bool UploadStaticInstances(const TArray<FMeshDrawGroup>& Groups, TUniquePtr<FVertexBuffer>& Buffer) {
+		uint32 InstanceCount{};
+		for (const FMeshDrawGroup& Group : Groups) {
+			InstanceCount += static_cast<uint32>(Group.Instances.Num());
+		}
+		if (InstanceCount == 0) {
+			return false;
+		}
+
+		const uint32 DataSize{ InstanceCount * static_cast<uint32>(sizeof(FObjectInstance)) };
+		if (!Buffer || Buffer->GetBufferSize() < DataSize) {
+			Buffer = RenderCommand::CreateDynamicVertexBuffer(DataSize, sizeof(FObjectInstance));
+		}
+		if (!Buffer || !Buffer->GetBuffer()) {
+			return false;
+		}
+
+		FObjectInstance* Destination{ static_cast<FObjectInstance*>(RenderCommand::MapWriteDiscard(Buffer.get())) };
+		if (!Destination) {
+			return false;
+		}
+		for (const FMeshDrawGroup& Group : Groups) {
+			std::memcpy(Destination, Group.Instances.GetData(), Group.Instances.Num() * sizeof(FObjectInstance));
+			Destination += Group.Instances.Num();
+		}
+		RenderCommand::Unmap(Buffer.get());
+		return true;
 	}
 }
 
@@ -148,6 +212,13 @@ bool FRenderer::Init()
 	};
 	SurfaceSkinningPipeline.Shader = FRenderResourceManager::RegisterProgram("Surface_Skinned", SurfaceSkinningSPDesc);
 
+	ShadowStaticSPDesc.Defines.Add({ "USE_INSTANCING", "1" });
+	ShadowStaticSPDesc.InputLayout = FRenderResourceManager::GetStaticMeshInstanceLayout();
+	mShadowInstancedPipeline.Shader = FRenderResourceManager::RegisterProgram("Shadow_Static_Instanced", ShadowStaticSPDesc);
+	SurfaceStaticSPDesc.Defines.Add({ "USE_INSTANCING", "1" });
+	SurfaceStaticSPDesc.InputLayout = FRenderResourceManager::GetStaticMeshInstanceLayout();
+	mSurfaceInstancedPipeline.Shader = FRenderResourceManager::RegisterProgram("Surface_Static_Instanced", SurfaceStaticSPDesc);
+
 	TileLightCulling.Init();
 	GPUOcclusion.Init();   // 실패해도 오클루전만 못 쓸 뿐 렌더링은 된다
 
@@ -223,10 +294,14 @@ void FRenderer::RenderSurface()
 	SCOPE_CYCLE_COUNTER(STAT_DrawRenderPackets);
 
 	RenderCommand::BindConstantBuffer(0, ViewCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
+	DrawOpaqueStaticGroups(true);
 
 	FPipelineState* LastPipelinePtr = nullptr;
 	for (const FMeshDrawGroup* Group : MeshDrawGroups)
 	{
+		if (mOpaqueInstancesReady && IsOpaqueStaticGroup(*Group)) {
+			continue;
+		}
 		RenderCommand::BindVertexBuffers(Group->Geometry.VertexBuffers, Group->Geometry.VertexBufferCount);
 		RenderCommand::BindIndexBuffer(Group->Geometry.IndexBuffer);
 
@@ -267,6 +342,9 @@ void FRenderer::RenderSurface()
 	for (uint32 Index = 0; Index < FirstTranslucentIndex; ++Index)
 	{
 		const FRenderPacket& Packet = RenderPackets[Index];
+		if (mOpaqueInstancesReady && IsOpaqueStaticPacket(Packet)) {
+			continue;
+		}
 		const bool bUseSkinning = Packet.Proxy && Packet.Proxy->IsUsingSkinning();
 
 		FPipelineState* Pipeline = bUseSkinning ? &SurfaceSkinningPipeline : &SurfaceStaticPipeline;
@@ -308,6 +386,7 @@ void FRenderer::RenderSurface()
 void FRenderer::RenderOpaque()
 {
 	TileLightCulling.BindForShading(LocalLight);
+	DrawOpaqueStaticGroups(false);
 	DrawMeshGroups();
 	DrawPackets(0, FirstTranslucentIndex);
 	TileLightCulling.UnbindForShading();
@@ -341,6 +420,9 @@ void FRenderer::DrawMeshGroups()
 
 	for (const FMeshDrawGroup* Group : MeshDrawGroups)
 	{
+		if (mOpaqueInstancesReady && IsOpaqueStaticGroup(*Group)) {
+			continue;
+		}
 		RenderCommand::BindVertexBuffers(Group->Geometry.VertexBuffers, Group->Geometry.VertexBufferCount);
 		RenderCommand::BindIndexBuffer(Group->Geometry.IndexBuffer);
 		for (int32 ItemIndex = 0; ItemIndex < Group->Items.Num(); ++ItemIndex)
@@ -539,6 +621,7 @@ void FRenderer::RenderQueueSorting(FRenderQueue& InQueue, const FMatrix& ViewPro
 		});
 
 		BuildTranslucentGroups();
+		BuildOpaqueStaticGroups();
 	}
 
 	// Gather uploads group and packet slots together. Other queues need an upload here.
@@ -548,6 +631,126 @@ void FRenderer::RenderQueueSorting(FRenderQueue& InQueue, const FMatrix& ViewPro
 	}
 
 	bObjectConstantsPrepared = false;
+}
+
+void FRenderer::BuildOpaqueStaticGroups() {
+	mOpaqueStaticGroups.Reset();
+	FStaticDrawLookup Lookup{};
+	for (const FMeshDrawGroup* Source : MeshDrawGroups) {
+		if (!IsOpaqueStaticGroup(*Source)) {
+			continue;
+		}
+		FMeshDrawGroup& Group{ FindStaticDrawGroup(mOpaqueStaticGroups, Lookup, Source->Geometry, Source->Material) };
+		for (int32 Index{}; Index < Source->Instances.Num(); ++Index) {
+			FObjectInstance Instance{ Source->Instances[Index] };
+			const FMeshDrawItem& Item{ Source->Items[Index] };
+			Instance.ObjectMask = Item.Proxy ? Item.Proxy->GetObjectMask() : Instance.ObjectMask;
+			Group.Instances.Add(Instance);
+		}
+	}
+	for (uint32 Index{}; Index < FirstTranslucentIndex; ++Index) {
+		const FRenderPacket& Packet{ RenderPackets[Index] };
+		if (!IsOpaqueStaticPacket(Packet)) {
+			continue;
+		}
+		FMeshDrawGroup& Group{ FindStaticDrawGroup(mOpaqueStaticGroups, Lookup, Packet.Geometry, Packet.Material) };
+		Group.Instances.Add(FObjectInstance{ GetPacketWorld(Packet), GetPacketNormalMatrix(Packet), Packet.ColorMultiplier, Packet.Proxy ? Packet.Proxy->GetObjectMask() : 0u });
+	}
+	mOpaqueInstancesReady = UploadStaticInstances(mOpaqueStaticGroups, mOpaqueInstanceVB);
+}
+
+void FRenderer::DrawOpaqueStaticGroups(bool SurfacePass) {
+	if (!mOpaqueInstancesReady) {
+		return;
+	}
+	RenderCommand::BindConstantBuffer(0, ViewCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
+	if (SurfacePass) {
+		RenderCommand::BindPipelineState(mSurfaceInstancedPipeline);
+	} else {
+		RenderCommand::BindConstantBuffer(3, LightingCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
+		if (!mInstancedViewModeShader) {
+			SetViewMode(FViewRenderMode{});
+		}
+	}
+
+	uint32 FirstInstance{};
+	for (const FMeshDrawGroup& Group : mOpaqueStaticGroups) {
+		if (!SurfacePass) {
+			BindMaterial(Group.Material, false);
+			RenderCommand::BindShaderProgram(mInstancedViewModeShader);
+			UpdateMaterialParams(Group.Material);
+		}
+		RenderCommand::BindVertexBuffers(Group.Geometry.VertexBuffers, Group.Geometry.VertexBufferCount);
+		RenderCommand::BindIndexBuffer(Group.Geometry.IndexBuffer);
+		RenderCommand::BindVertexBuffer(1, mOpaqueInstanceVB.get());
+		const uint32 InstanceCount{ static_cast<uint32>(Group.Instances.Num()) };
+		RenderCommand::DrawIndexedInstanced(Group.Geometry.IndexCount, InstanceCount, Group.Geometry.StartIndex, 0, FirstInstance);
+		FirstInstance += InstanceCount;
+	}
+	RenderCommand::BindVertexBuffer(1, nullptr);
+	LastVertexBufferCount = 0;
+	LastIndexBuffer = nullptr;
+	LastMaterial = nullptr;
+}
+
+void FRenderer::BuildShadowStaticGroups(const TArray<FPrimitiveSceneProxy*>& Casters) {
+	mShadowStaticGroups.Reset();
+	FStaticDrawLookup Lookup{};
+	for (FPrimitiveSceneProxy* Proxy : Casters) {
+		if (!Proxy || !Proxy->IsVisible() || !Proxy->IsCastShadow() || IsSkeletalProxy(Proxy)) {
+			continue;
+		}
+		const FMeshRenderState* State{ Proxy->GetRenderState() };
+		if (State && State->LODCount > 0 && State->LODs[0].NumSections > 0) {
+			const FCachedMeshLOD& LOD{ State->LODs[0] };
+			for (uint32 Index{}; Index < LOD.NumSections; ++Index) {
+				const FCachedMeshSection& Section{ Proxy->GetSection(LOD.FirstSection + Index) };
+				if (Section.Material && Section.Material->BlendState != EBlendState::Opaque) {
+					continue;
+				}
+				FGeometryBinding Geometry{};
+				Geometry.SetVertexBuffers(LOD.VertexBuffers, LOD.VertexBufferCount);
+				Geometry.IndexBuffer = LOD.IndexBuffer;
+				Geometry.StartIndex = Section.StartIndex;
+				Geometry.IndexCount = Section.IndexCount;
+				if (!IsStaticInstanceGeometry(Geometry)) {
+					continue;
+				}
+				FMeshDrawGroup& Group{ FindStaticDrawGroup(mShadowStaticGroups, Lookup, Geometry, Section.Material) };
+				Group.Instances.Add(FObjectInstance{ Proxy->GetLocalToWorld(), Proxy->GetNormalMatrix(), FLinearColor::White, Proxy->GetObjectMask() });
+			}
+		} else if (Cast<UParticleSystemComponent>(Proxy->GetComponent())) {
+			FRenderQueue Queue{};
+			const FViewBasis View{};
+			Proxy->SubmitToRenderQueue(Queue, View);
+			for (const FRenderPacket& Packet : Queue) {
+				if (!Packet.Material || Packet.Material->BlendState != EBlendState::Opaque || !IsStaticInstanceGeometry(Packet.Geometry)) {
+					continue;
+				}
+				FMeshDrawGroup& Group{ FindStaticDrawGroup(mShadowStaticGroups, Lookup, Packet.Geometry, Packet.Material) };
+				Group.Instances.Add(FObjectInstance{ GetPacketWorld(Packet), GetPacketNormalMatrix(Packet), Packet.ColorMultiplier, Proxy->GetObjectMask() });
+			}
+		}
+	}
+	mShadowInstancesReady = UploadStaticInstances(mShadowStaticGroups, mShadowInstanceVB);
+}
+
+void FRenderer::DrawShadowStaticGroups(FShadowStats& ShadowStats) {
+	if (!mShadowInstancesReady) {
+		return;
+	}
+	RenderCommand::BindPipelineState(mShadowInstancedPipeline);
+	uint32 FirstInstance{};
+	for (const FMeshDrawGroup& Group : mShadowStaticGroups) {
+		RenderCommand::BindVertexBuffers(Group.Geometry.VertexBuffers, Group.Geometry.VertexBufferCount);
+		RenderCommand::BindIndexBuffer(Group.Geometry.IndexBuffer);
+		RenderCommand::BindVertexBuffer(1, mShadowInstanceVB.get());
+		const uint32 InstanceCount{ static_cast<uint32>(Group.Instances.Num()) };
+		RenderCommand::DrawIndexedInstanced(Group.Geometry.IndexCount, InstanceCount, Group.Geometry.StartIndex, 0, FirstInstance);
+		FirstInstance += InstanceCount;
+		++ShadowStats.NumShadowDrawCalls;
+	}
+	RenderCommand::BindVertexBuffer(1, nullptr);
 }
 
 void FRenderer::BuildTranslucentGroups()
@@ -598,6 +801,9 @@ void FRenderer::DrawPackets(uint32 Begin, uint32 End)
 	for (uint32 k = Begin; k < End; ++k)
 	{
 		const FRenderPacket& RenderPacket = RenderPackets[k];
+		if (mOpaqueInstancesReady && IsOpaqueStaticPacket(RenderPacket)) {
+			continue;
+		}
 
 		// 불투명 파티클은 패킷마다 개별 드로우
 		if (IsParticleProxy(RenderPacket.Proxy))
@@ -847,7 +1053,9 @@ void FRenderer::SetViewMode(const FViewRenderMode& Mode)
 	for (int32 Skinning = 0; Skinning < 2; Skinning++)
 	{
 		ViewModeShaders[Skinning] = FRenderResourceManager::GetUberLitProgram(Mode, Skinning != 0);
+		mTranslucentViewModeShaders[Skinning] = FRenderResourceManager::GetUberLitProgram(Mode, Skinning != 0, false, true);
 	}
+	mInstancedViewModeShader = FRenderResourceManager::GetUberLitProgram(Mode, false, true);
 }
 
 void FRenderer::SetLighting(const FLightingConstants& GlobalLights,
@@ -869,7 +1077,8 @@ void FRenderer::BindMaterial(UMaterial* Material, bool UseSkinning) {
 			SetViewMode(FViewRenderMode{});
 		}
 
-		RenderCommand::BindShaderProgram(ViewModeShaders[UseSkinning ? 1 : 0]);
+		FShaderProgram* Shader{ Material->BlendState == EBlendState::Opaque ? ViewModeShaders[UseSkinning ? 1 : 0] : mTranslucentViewModeShaders[UseSkinning ? 1 : 0] };
+		RenderCommand::BindShaderProgram(Shader);
 	}
 	else
 	{
@@ -1008,7 +1217,9 @@ void FRenderer::RenderShadowPass(
 
 	// 아틀라스
 	// 캐스터 메쉬들을 그리는 공통 람다
+	BuildShadowStaticGroups(Casters);
 	auto DrawCasters = [&]() {
+		DrawShadowStaticGroups(ShadowStats);
 		for (FPrimitiveSceneProxy* Proxy : Casters)
 		{
 			if (!Proxy || !Proxy->IsVisible() || !Proxy->GetRenderState() || (!bDrawSkeletalMeshes && Proxy->IsUsingSkinning()))
@@ -1024,6 +1235,9 @@ void FRenderer::RenderShadowPass(
 			const FCachedMeshLOD& LOD = Proxy->GetLOD(0);
 			if (!LOD.VertexBufferCount || !LOD.IndexBuffer)
 			{
+				continue;
+			}
+			if (mShadowInstancesReady && !IsSkeletalProxy(Proxy) && LOD.VertexBufferCount == 1 && LOD.VertexBuffers[0] && LOD.VertexBuffers[0]->GetStride() == sizeof(FVertexPNCT)) {
 				continue;
 			}
 

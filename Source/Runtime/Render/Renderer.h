@@ -141,6 +141,10 @@ public:
 
 private:
 	void BuildTranslucentGroups();
+	void BuildOpaqueStaticGroups();
+	void BuildShadowStaticGroups(const TArray<FPrimitiveSceneProxy*>& Casters);
+	void DrawOpaqueStaticGroups(bool SurfacePass);
+	void DrawShadowStaticGroups(FShadowStats& ShadowStats);
 
 	void DrawPackets(uint32 Begin, uint32 End);
 	void DrawMeshGroups();
@@ -198,4 +202,15 @@ private:
 	TUniquePtr<FConstantBuffer> ShadowViewCB;
 
 	TUniquePtr<FVertexBuffer> ObjectInstanceVB;
+
+	TArray<FMeshDrawGroup> mOpaqueStaticGroups{};
+	TArray<FMeshDrawGroup> mShadowStaticGroups{};
+	TUniquePtr<FVertexBuffer> mOpaqueInstanceVB{};
+	TUniquePtr<FVertexBuffer> mShadowInstanceVB{};
+	bool mOpaqueInstancesReady{};
+	bool mShadowInstancesReady{};
+	FShaderProgram* mInstancedViewModeShader{};
+	FShaderProgram* mTranslucentViewModeShaders[2]{};
+	FPipelineState mSurfaceInstancedPipeline{};
+	FPipelineState mShadowInstancedPipeline{};
 };

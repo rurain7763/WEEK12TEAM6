@@ -3,6 +3,7 @@
 #ifndef HITORI_UBER_LIT_INCLUDED
 #define HITORI_UBER_LIT_INCLUDED
 #include "ColorBlend.hlsli"
+#include "ObjectInstanceInput.hlsli"
 // EViewMode 순서와 일치해야 한다.
 #define VIEWMODE_LIT          0
 #define VIEWMODE_UNLIT        1
@@ -108,6 +109,9 @@ struct FVSInput
     float4 BoneWeights : BLENDWEIGHT;
     int BoneInfluenceCount : BONECOUNT;
 #endif
+#if USE_INSTANCING
+    FObjectInstanceInput Instance;
+#endif
 };
 
 struct FPSInput
@@ -118,6 +122,10 @@ struct FPSInput
     float3 WorldPosition : TEXCOORD1;
     float3 Tangent : TANGENT;
     int BitangentSign : BITANGENT_SIGN;
+#if USE_INSTANCING
+    float4 InstanceColor : COLOR0;
+    nointerpolation uint InstanceObjectMask : TEXCOORD5;
+#endif
 #if GOURAUD
     float3 DiffuseLight : TEXCOORD2;
     float3 SpecularLight : TEXCOORD3;
@@ -975,6 +983,12 @@ FPSInput mainVS(FVSInput Input)
     FPSInput Output;
 
     const FLocalVertex Local = GetLocalVertex(Input);
+#if USE_INSTANCING
+    const float4x4 World = float4x4(Input.Instance.Model0, Input.Instance.Model1, Input.Instance.Model2, Input.Instance.Model3);
+    const float4x4 NormalMatrix = float4x4(Input.Instance.Normal0, Input.Instance.Normal1, Input.Instance.Normal2, Input.Instance.Normal3);
+    Output.InstanceColor = Input.Instance.Color;
+    Output.InstanceObjectMask = Input.Instance.ObjectMask;
+#endif
     float4 WorldPosition = mul(float4(Local.Position, 1.0f), World);
 
     Output.Position = mul(WorldPosition, ViewProjection);
@@ -1010,6 +1024,9 @@ FPSInput mainVS(FVSInput Input)
 
 FPSOutput mainPS(FPSInput Input)
 {
+#if USE_INSTANCING
+    const uint ObjectMask = Input.InstanceObjectMask;
+#endif
     FPSOutput Output;
 
     float4 FinalColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1017,6 +1034,9 @@ FPSOutput mainPS(FPSInput Input)
     float4 TextureColor = AlbedoTexture.Sample(AlbedoSampler, Input.UV + UVScrollOffset);
     float4 DecalColor = DecalTexture.Load(int3(Input.Position.xy, 0));
     float4 SurfaceColor = TextureColor * BaseColor;
+#if USE_INSTANCING
+    SurfaceColor *= Input.InstanceColor;
+#endif
     SurfaceColor.rgb = BlendPremultipliedColor(SurfaceColor.rgb, DecalColor.rgb, DecalColor.a, DecalColorBlendMode);
 
     float3 Albedo = SurfaceColor.rgb;
@@ -1153,6 +1173,10 @@ Output.Color = FinalColor;
     Output.ObjectMask = ObjectMask;
 
     return Output;
+}
+
+float4 MainColorPS(FPSInput Input) : SV_Target0 {
+    return mainPS(Input).Color;
 }
 #endif
 #endif

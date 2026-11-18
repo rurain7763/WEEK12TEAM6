@@ -117,8 +117,6 @@ struct FPSInput
 struct FPSOutput
 {
     float4 Color : SV_Target0;
-    float4 Normal : SV_Target1;
-    uint ObjectMask : SV_Target2;
 };
 
 cbuffer ViewConstants : register(b0)
@@ -992,8 +990,6 @@ FPSOutput mainPS(FPSInput Input)
         }
 
         Output.Color = float4(Color, 1.0f);
-        Output.Normal = float4(WorldNormal, 0.f);
-        Output.ObjectMask = Input.InstanceObjectMask;
 
         return Output;
     }
@@ -1027,8 +1023,6 @@ FPSOutput mainPS(FPSInput Input)
         float3 Color = BaseColor * (0.35f + 0.65f * Shadow);
 
         Output.Color = float4(Color, 1.0f);
-        Output.Normal = float4(WorldNormal, 0.f);
-        Output.ObjectMask = Input.InstanceObjectMask;
 
         return Output;
     }
@@ -1060,9 +1054,6 @@ FPSOutput mainPS(FPSInput Input)
         Output.Color = float4(Red, Green, Blue, 1.0f);
     }
 #endif
-
-    Output.Normal = float4(normalize(WorldNormal), 0.f);
-    Output.ObjectMask = Input.InstanceObjectMask;
 
     return Output;
 }

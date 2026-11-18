@@ -5,6 +5,13 @@
 #include <Core/StatOverlay.h>
 #include "Component/DecalComponent.h"
 #include "Engine/DecalSceneProxy.h"
+#include "Component/ParticleSystemComponent.h"
+
+namespace {
+	bool HasShadowRenderPath(const FPrimitiveSceneProxy* Proxy) {
+		return Proxy->GetRenderState() || Cast<UParticleSystemComponent>(Proxy->GetComponent());
+	}
+}
 
 void FScene::AddPrimitive(UPrimitiveComponent* Component)
 {
@@ -417,7 +424,7 @@ bool FScene::HasAnyShadowCaster(const FLightSceneProxy* LightProxy) const
 	if (TryGetLightBounds(LightProxy, Bounds)) {
 		// Proxies(Object) 와 LightProxy(Light) AABB 에 겹치는 Caster가 있는 경우에만 true
 		for (auto CasterProxy : Proxies) {
-			if (!CasterProxy || !CasterProxy->IsVisible() || !CasterProxy->GetRenderState() || !CasterProxy->IsCastShadow()) {
+			if (!CasterProxy || !CasterProxy->IsVisible() || !HasShadowRenderPath(CasterProxy) || !CasterProxy->IsCastShadow()) {
 				continue;
 			}
 
@@ -432,7 +439,7 @@ bool FScene::HasAnyShadowCaster(const FLightSceneProxy* LightProxy) const
 	
 	// directional light : 범위 무한이므로 씬 전체 검사 필요
 	for (auto CasterProxy : Proxies) {
-		if (CasterProxy && CasterProxy->IsVisible() && CasterProxy->GetRenderState() && CasterProxy->IsCastShadow()) {
+		if (CasterProxy && CasterProxy->IsVisible() && HasShadowRenderPath(CasterProxy) && CasterProxy->IsCastShadow()) {
 			return true;
 		}
 	}
@@ -449,7 +456,7 @@ bool FScene::HasAnyShadowReceiver(const FLightSceneProxy* LightProxy, const FFru
 		// Proxies(Object) 와 LightProxy(Light) AABB 에 겹치는 Caster가 있는 경우에만 true
 		for (auto CasterProxy : Proxies) {
 			
-			if (!CasterProxy || !CasterProxy->IsVisible() || !CasterProxy->GetRenderState() || !IsAABBInFrustum(CasterProxy->GetBounds(), *FrustemPlanes)) {
+			if (!CasterProxy || !CasterProxy->IsVisible() || !HasShadowRenderPath(CasterProxy) || !IsAABBInFrustum(CasterProxy->GetBounds(), *FrustemPlanes)) {
 				continue;
 			}
 			FAABB CasterBounds = CasterProxy->GetBounds();
@@ -463,7 +470,7 @@ bool FScene::HasAnyShadowReceiver(const FLightSceneProxy* LightProxy, const FFru
 
 	// directional light : 범위 무한이므로 씬 전체 검사 필요
 	for (auto CasterProxy : Proxies) {
-		if (CasterProxy && CasterProxy->IsVisible() && CasterProxy->GetRenderState()) {
+		if (CasterProxy && CasterProxy->IsVisible() && HasShadowRenderPath(CasterProxy)) {
 			return true;
 		}
 	}

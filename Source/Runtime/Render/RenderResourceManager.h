@@ -44,12 +44,13 @@ public:
 
 	static FShaderProgram* GetShaderProgram(FName Key);
 
-	static FShaderProgram* GetUberLitProgram(const FViewRenderMode& Mode, bool bUseSkinning = false);
+	static FShaderProgram* GetUberLitProgram(const FViewRenderMode& Mode, bool bUseSkinning = false, bool UseInstancing = false, bool ColorOnly = false);
+	static const TArray<D3D11_INPUT_ELEMENT_DESC>& GetStaticMeshInstanceLayout();
 
 private:
-	static FString GetUberLitSuffix(const FViewRenderMode& Mode, bool bUseSkinning = false);
+	static FString GetUberLitSuffix(const FViewRenderMode& Mode, bool bUseSkinning = false, bool UseInstancing = false, bool ColorOnly = false);
 
-	void LoadOrCompileShader(const FString& Path, const FString& PermutationSuffix = "", const D3D_SHADER_MACRO* Defines = nullptr, const TArray<D3D11_INPUT_ELEMENT_DESC>& InputLayoutDescs = {});
+	void LoadOrCompileShader(const FString& Path, const FString& PermutationSuffix = "", const D3D_SHADER_MACRO* Defines = nullptr, const TArray<D3D11_INPUT_ELEMENT_DESC>& InputLayoutDescs = {}, const char* PixelEntry = "mainPS");
 
 	void LoadUberLitPermutations();
 	void LoadTransparentUberShaders();
