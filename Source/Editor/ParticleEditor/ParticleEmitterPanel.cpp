@@ -11,6 +11,7 @@
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
 #include "Particle/Modules/ParticleModuleTypeDataBeam.h"
 #include "Particle/Modules/ParticleModuleTypeDataRibbon.h"
+#include "Particle/Modules/ParticleModuleTypeDataAnimTrail.h"
 #include "Particle/Modules/ParticleModuleTypeDataMesh.h"
 
 #include <algorithm>
@@ -255,6 +256,7 @@ void FParticleEmitterPanel::DrawTypeDataMenu(UParticleEmitter* Emitter) {
 		DrawTypeDataMenuItem(Emitter, UParticleModuleTypeDataMesh::StaticClass(), "Mesh");
 		DrawTypeDataMenuItem(Emitter, UParticleModuleTypeDataBeam::StaticClass(), "Beam");
 		DrawTypeDataMenuItem(Emitter, UParticleModuleTypeDataRibbon::StaticClass(), "Ribbon");
+		DrawTypeDataMenuItem(Emitter, UParticleModuleTypeDataAnimTrail::StaticClass(), "AnimTrail");
 		ImGui::EndMenu();
 	}
 }

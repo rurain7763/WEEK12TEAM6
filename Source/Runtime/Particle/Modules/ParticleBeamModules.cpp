@@ -9,36 +9,33 @@
 #include "Animation/Skeleton.h"
 #include "GameFramework/Actor.h"
 #include "Serialization/MathSerialization.h"
+#include "Particle/ParticleBoneLookup.h"
 
-namespace
+// 빔 모듈과 LocationBoneSocket 모듈이 같이 쓴다 (선언: ParticleBoneLookup.h)
+bool FindBoneWorldPoints(const UParticleSystemComponent* PSC, const FString& BoneName, FVector& OutBone, FVector& OutParent)
 {
-	// 파티클 컴포넌트의 주인 액터 -> 스켈레탈 메시 -> 본 이름으로 노드를 찾아 본과 부모 본의 월드 위치를 구한다
-	// 방향은 부모 -> 본으로 잡는다. 본 축 규약이 FBX 변환을 거치며 바뀌어도 영향을 받지 않는다
-	bool FindBoneWorldPoints(const UParticleSystemComponent* PSC, const FString& BoneName, FVector& OutBone, FVector& OutParent)
+	AActor* Actor = PSC ? PSC->GetOwner() : nullptr;
+	const USkeletalMeshComponent* Mesh = Actor ? static_cast<USkeletalMeshComponent*>(Actor->FindComponentByClass(USkeletalMeshComponent::StaticClass())) : nullptr;
+	const USkeleton* Skeleton = Mesh ? Mesh->GetSkeleton() : nullptr;
+	if (!Skeleton)
 	{
-		AActor* Actor = PSC ? PSC->GetOwner() : nullptr;
-		const USkeletalMeshComponent* Mesh = Actor ? static_cast<USkeletalMeshComponent*>(Actor->FindComponentByClass(USkeletalMeshComponent::StaticClass())) : nullptr;
-		const USkeleton* Skeleton = Mesh ? Mesh->GetSkeleton() : nullptr;
-		if (!Skeleton)
-		{
-			return false;
-		}
-
-		const TArray<FModelBone>& Bones = Skeleton->GetBones();
-		const TArray<FModelNode>& Nodes = Skeleton->GetNodes();
-		for (int32 i = 0; i < Bones.Num(); ++i)
-		{
-			if (Nodes[Bones[i].NodeIndex].Name == BoneName)
-			{
-				const FMatrix MeshWorld = Mesh->GetWorldMatrix();
-				const int32 Parent = Bones[i].ParentBoneIndex;
-				OutBone = (Mesh->GetBoneComponentMatrix(i) * MeshWorld).GetOrigin(); // 행벡터 규약: 로컬 * 부모
-				OutParent = Parent >= 0 ? (Mesh->GetBoneComponentMatrix(Parent) * MeshWorld).GetOrigin() : OutBone;
-				return true;
-			}
-		}
 		return false;
 	}
+
+	const TArray<FModelBone>& Bones = Skeleton->GetBones();
+	const TArray<FModelNode>& Nodes = Skeleton->GetNodes();
+	for (int32 i = 0; i < Bones.Num(); ++i)
+	{
+		if (Nodes[Bones[i].NodeIndex].Name == BoneName)
+		{
+			const FMatrix MeshWorld = Mesh->GetWorldMatrix();
+			const int32 Parent = Bones[i].ParentBoneIndex;
+			OutBone = (Mesh->GetBoneComponentMatrix(i) * MeshWorld).GetOrigin(); // 행벡터 규약: 로컬 * 부모
+			OutParent = Parent >= 0 ? (Mesh->GetBoneComponentMatrix(Parent) * MeshWorld).GetOrigin() : OutBone;
+			return true;
+		}
+	}
+	return false;
 }
 
 // ---------------- BeamSource ----------------
