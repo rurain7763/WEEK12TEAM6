@@ -16,6 +16,7 @@
 class ULevel;
 class UBillboardComponent;
 class APlayerController;
+class AParticleEventManager;
 
 struct FLODViewContext;
 struct FViewBasis;
@@ -59,6 +60,8 @@ public:
 
 	bool HasPlayerStart() const { return bHasPlayerStart; }
 	APlayerController* GetPlayerController() const { return PlayerController; }
+	// Play 중에만 존재 (BeginPlay에서 생성)
+	AParticleEventManager* GetParticleEventManager() const { return ParticleEventManager; }
 
 	// Level
 	ULevel* GetPersistentLevel() const { return PersistentLevel; }
@@ -117,6 +120,7 @@ private:
 	void ProcessPendingDestroys();
 
 	void SpawnPlayerController();
+	void SpawnParticleEventManager();
 	void RestartPlayer();
 
 private:
@@ -143,6 +147,7 @@ private:
 
 	bool bHasPlayerStart = false;
 	APlayerController* PlayerController = nullptr;
+	AParticleEventManager* ParticleEventManager = nullptr;
 
 	ULevel* PersistentLevel = nullptr;
 	ULevel* CurrentLevel = nullptr;

@@ -5,6 +5,7 @@
 #include "Core/EngineStatics.h"
 #include "GameFramework/Actor/StaticMeshActor.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/Actor/ParticleEventManager.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/DefaultPawn.h"
 #include "GameFramework/PlayerStart.h"
@@ -247,6 +248,7 @@ void UWorld::ClearWorld()
 	}
 	
 	PlayerController = nullptr;
+	ParticleEventManager = nullptr;
 	bHasPlayerStart = false;
 
 	HTR_LOG(Info, "{} : ", PersistentLevel->GetActorNum());
@@ -645,6 +647,11 @@ bool UWorld::DestroyActor(AActor* Actor)
 		PlayerController = nullptr;
 	}
 
+	if (Actor == ParticleEventManager)
+	{
+		ParticleEventManager = nullptr;
+	}
+
 	if (PlayerController)
 	{
 		PlayerController->NotifyActorDestroyed(Actor);
@@ -746,6 +753,7 @@ bool UWorld::LineTraceSingle(const FRay& WorldRay, FHitResult& OutHit,
 void UWorld::BeginPlay()
 {
 	SpawnPlayerController();
+	SpawnParticleEventManager();
 	RestartPlayer();
 }
 
@@ -858,6 +866,12 @@ void UWorld::SpawnPlayerController()
 {
 	PlayerController = SpawnActor<APlayerController>(FName("PlayerController"));
 	PlayerController->SetFlags(EObjectFlags::RF_Transient);
+}
+
+void UWorld::SpawnParticleEventManager()
+{
+	ParticleEventManager = SpawnActor<AParticleEventManager>(FName("ParticleEventManager"));
+	ParticleEventManager->SetFlags(EObjectFlags::RF_Transient);
 }
 
 // 우선순위: Auto Possess Pawn > PlayerStart > 원점

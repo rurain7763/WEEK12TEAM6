@@ -75,6 +75,7 @@
 #include "GameFramework/Actor/FakeSpotLightActor.h"
 #include "GameFramework/Actor/LuaTestActor.h"
 #include "GameFramework/Actor/ParticleActor.h"
+#include "GameFramework/Actor/ParticleEventManager.h"
 #include "GameFramework/Actor/PlayerActor.h"
 #include "GameFramework/Actor/PointLightActor.h"
 #include "GameFramework/Actor/RootMotionTestActor.h"
@@ -225,6 +226,7 @@ void RegisterUClasses()
 	AFakeSpotLightActor::StaticClass();
 	ALuaTestActor::StaticClass();
 	AParticleActor::StaticClass();
+	AParticleEventManager::StaticClass();
 	APlayerActor::StaticClass();
 	APointLightActor::StaticClass();
 	ARootMotionTestActor::StaticClass();

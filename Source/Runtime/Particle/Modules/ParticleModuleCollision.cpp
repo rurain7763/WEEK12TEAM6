@@ -6,6 +6,8 @@
 #include "Component/ParticleSystemComponent.h"
 #include "Engine/World.h"
 #include "Collision/HitResult.h"
+#include "Particle/ParticleLODLevel.h"
+#include "Particle/Modules/ParticleModuleEventGenerator.h"
 
 namespace
 {
@@ -72,6 +74,13 @@ bool UParticleModuleCollision::MoveParticle(FParticleEmitterInstance& Owner, FBa
 	Particle.Velocity = WorldToSim.TransformVector(NewWorldVelocity);
 
 	Payload.CollisionCount++;
+
+	// Kill로 슬롯이 재사용되기 전에 충돌 보고
+	if (UParticleModuleEventGenerator* Generator = Owner.CurrentLODLevel->EventGeneratorModule)
+	{
+		Generator->HandleParticleCollision(Owner, Particle, Payload.CollisionCount, MaxCollisions, Hit, WorldVelocity);
+	}
+
 	if (Payload.CollisionCount < MaxCollisions)
 	{
 		return false;

@@ -17,6 +17,9 @@ struct FParticleEmitterInstance
 	UParticleLODLevel* CurrentLODLevel = nullptr;
 
 	UParticleSystemComponent* Owner = nullptr;
+
+	// PSC 안에서 이 이미터의 순번 (충돌 이벤트 구분용)
+	int32 EmitterIndex = -1;
 	
 	// 파티클 데이터 배열 시작 주소
 	uint8* ParticleData = nullptr;

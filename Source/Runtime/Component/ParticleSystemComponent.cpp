@@ -6,6 +6,7 @@
 #include "Engine/PrimitiveSceneProxy.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/Actor/ParticleEventManager.h"
 
 
 UParticleSystemComponent::UParticleSystemComponent()
@@ -32,6 +33,7 @@ void UParticleSystemComponent::BeginPlay()
 	{
 		UParticleEmitter* Emitter = Template->Emitters[i];
 		EmitterInstances[i] = Emitter->CreateInstance(this);
+		EmitterInstances[i]->EmitterIndex = i;
 	}
 
 	if (!Template->LODDistances.IsValidIndex(CurrentLODLevel)) {
@@ -54,6 +56,18 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
 	for (FParticleEmitterInstance* Instance : EmitterInstances)
 	{
 		Instance->Tick(DeltaTime);
+	}
+
+	// 모든 이미터 갱신 후 충돌 이벤트를 한 번에 전달
+	if (!CollisionEvents.IsEmpty())
+	{
+		UWorld* World = GetWorld();
+		AParticleEventManager* EventManager = World ? World->GetParticleEventManager() : nullptr;
+		if (EventManager)
+		{
+			EventManager->HandleParticleCollisionEvents(this, CollisionEvents);
+		}
+		CollisionEvents.Reset();
 	}
 
 	UpdateDynamicData();
