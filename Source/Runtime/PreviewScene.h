@@ -9,7 +9,7 @@ class AAmbientLightActor;
 class FPreviewScene
 {
 public:
-	FPreviewScene();
+	explicit FPreviewScene(bool CreateFloor = true);
 	~FPreviewScene();
 
 	FPreviewScene(const FPreviewScene&) = delete;

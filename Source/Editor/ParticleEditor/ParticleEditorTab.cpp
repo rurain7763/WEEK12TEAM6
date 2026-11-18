@@ -13,11 +13,15 @@
 #include "Particle/ParticleSystem.h"
 #include "Particle/ParticleEmitter.h"
 #include "Particle/ParticleModule.h"
+#include "Particle/ParticleLODLevel.h"
+#include "Particle/Modules/ParticleModuleTypeDataBase.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace {
 	constexpr float ParticlePreviewCameraDistance{ 10.0f };
+	constexpr float ParticlePreviewMotionAngularSpeed{ 1.0f };
 
 	FEditorTabSettings MakeParticleEditorTabSettings(UParticleSystem* ParticleSystem) {
 		FEditorTabSettings Settings{ "Particle Editor", "ParticleEditorDock", true, true };
@@ -32,10 +36,11 @@ namespace {
 }
 
 FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
-	: FPreviewEditorTab{ MakeParticleEditorTabSettings(InParticleSystem), InParticleSystem ? "Particle Preview##ParticleEditor:" + InParticleSystem->GetPath() : "Particle Preview##ParticleEditor" },
+	: FPreviewEditorTab{ MakeParticleEditorTabSettings(InParticleSystem), InParticleSystem ? "Particle Preview##ParticleEditor:" + InParticleSystem->GetPath() : "Particle Preview##ParticleEditor", false },
 	  mParticleSystem{ InParticleSystem },
 	  mEditSession{ MakeUnique<FParticleSystemEditSession>(InParticleSystem) } {
 	ViewportPanel->GetViewport()->SetGridVisible(false);
+	ViewportPanel->SetGridControlVisible(false);
 	UParticleSystem* WorkingCopy{ mEditSession->GetWorkingCopy() };
 	const FString PanelSuffix{ "##ParticleEditor:" + (mParticleSystem ? mParticleSystem->GetPath() : FString{}) };
 	mEmitterPanel = AddPanel<FParticleEmitterPanel>(WorkingCopy, "Emitters" + PanelSuffix, [this](UObject* Object) {
@@ -46,6 +51,9 @@ FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 	}, [this](const FParticleEmitterPanel::FStructureRequest& Request) {
 		mPendingStructureRequest = Request;
 		mHasPendingStructureRequest = true;
+	}, [this]() {
+		mDirty = true;
+		mStatus.clear();
 	});
 	mDetailsPanel = AddPanel<FParticleModuleDetailsPanel>("Module Details" + PanelSuffix, [this]() {
 		OnPropertiesChanged();
@@ -66,6 +74,7 @@ FParticleEditorTab::FParticleEditorTab(UParticleSystem* InParticleSystem)
 	if (mPreviewComponent) {
 		mPreviewComponent->SetWorldLocation(FVector::ZeroVector, false);
 		mPreviewComponent->SetTemplate(WorkingCopy);
+		mPreviewComponent->SetLODMethod(EParticleSystemLODMethod::DirectSet);
 		mPreviewComponent->BeginPlay();
 	}
 }
@@ -101,7 +110,10 @@ void FParticleEditorTab::TickPreview(float DeltaTime) {
 			RestartPreview();
 		}
 
-		mPreviewComponent->TickComponent(DeltaTime);
+		const float PreviewDelta{ std::isfinite(DeltaTime) ? std::max(0.0f, DeltaTime) : 0.0f };
+		UpdatePreviewMotion(PreviewDelta);
+		mPreviewComponent->TickComponent(PreviewDelta);
+		mPreviewTime += PreviewDelta;
 	}
 }
 
@@ -112,6 +124,16 @@ void FParticleEditorTab::InitializePreviewCamera() {
 	Camera.Transform.Location = FVector::ZeroVector - ViewportCameraMath::CameraForward(Camera.Transform.Rotation) * ParticlePreviewCameraDistance;
 	Client->InitializeCamera(Camera, EMultipleViewportsCameraPreset::Perspective);
 	mPendingCameraSetup = false;
+}
+
+void FParticleEditorTab::UpdatePreviewMotion(float DeltaTime) {
+	FVector Location{ FVector::ZeroVector };
+	if (mMotionEnabled) {
+		const float ElapsedTime{ std::isfinite(DeltaTime) ? std::max(0.0f, DeltaTime) : 0.0f };
+		mMotionAngle = std::fmod(mMotionAngle + ElapsedTime * ParticlePreviewMotionAngularSpeed, 2.0f * ViewportCameraMath::Pi);
+		Location = FVector{ std::cos(mMotionAngle) * mMotionRadius, std::sin(mMotionAngle) * mMotionRadius, 0.0f };
+	}
+	mPreviewComponent->SetWorldLocation(Location, false);
 }
 
 void FParticleEditorTab::BuildDefaultLayout(ImGuiID DockSpaceRoot) {
@@ -125,9 +147,57 @@ void FParticleEditorTab::BuildDefaultLayout(ImGuiID DockSpaceRoot) {
 
 void FParticleEditorTab::RestartPreview() {
 	mPreviewComponent->EndPlay();
+	mMotionAngle = 0.0f;
+	mPreviewTime = 0.0;
+	UpdatePreviewMotion(0.0f);
+	mPreviewComponent->SetLODLevel(mEditSession->GetSelectedLODIndex());
 	mPreviewComponent->BeginPlay();
 	mPreviewComponent->UpdateDynamicData();
 	mPendingPreviewRestart = false;
+}
+
+void FParticleEditorTab::DrawPreviewToolbar() {
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, ImGui::GetFrameHeight() * 0.5f);
+	if (ImGui::Button("View")) {
+		ImGui::OpenPopup("ParticlePreviewView");
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Time")) {
+		ImGui::OpenPopup("ParticlePreviewTime");
+	}
+	ImGui::PopStyleVar();
+
+	if (ImGui::BeginPopup("ParticlePreviewView", ImGuiWindowFlags_NoMove)) {
+		bool GridVisible{ ViewportPanel->GetViewport()->IsGridVisible() };
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+		if (ImGui::Checkbox("Grid", &GridVisible)) {
+			ViewportPanel->GetViewport()->SetGridVisible(GridVisible);
+		}
+		ImGui::PopStyleVar();
+		ImGui::SameLine();
+		ImGui::TextUnformatted(GridVisible ? "On" : "Off");
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopup("ParticlePreviewTime", ImGuiWindowFlags_NoMove)) {
+		ImGui::BeginDisabled(mPreviewComponent == nullptr);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+		if (ImGui::Checkbox("Motion", &mMotionEnabled)) {
+			mPendingPreviewRestart = true;
+		}
+		ImGui::PopStyleVar();
+		ImGui::SameLine();
+		ImGui::TextUnformatted(mMotionEnabled ? "On" : "Off");
+		ImGui::SetNextItemWidth(100.0f);
+		if (ImGui::DragFloat("Motion Radius", &mMotionRadius, 0.05f, 0.0f, 1000.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+			mMotionRadius = std::isfinite(mMotionRadius) ? std::clamp(mMotionRadius, 0.0f, 1000.0f) : 0.0f;
+			mPendingPreviewRestart = true;
+		}
+		ImGui::Separator();
+		ImGui::Text("Time: %.2f s", mPreviewTime);
+		ImGui::EndDisabled();
+		ImGui::EndPopup();
+	}
 }
 
 void FParticleEditorTab::OnPropertiesChanged() {
@@ -141,8 +211,18 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 		return;
 	}
 	mHasPendingStructureRequest = false;
+	if (mPendingStructureRequest.mAction == FParticleEmitterPanel::EStructureAction::SelectLOD) {
+		if (mEditSession->SelectLOD(mPendingStructureRequest.mTargetIndex)) {
+			mEmitterPanel->SetSelectedLODIndex(mEditSession->GetSelectedLODIndex());
+			mPendingPreviewRestart = true;
+		}
+		mPendingStructureRequest = {};
+		return;
+	}
+
 	UParticleSystem* Working{ mEditSession->GetWorkingCopy() };
 	UObject* PreviousSelection{ mEmitterPanel->GetSelectedObject() };
+	UParticleEmitter* PreviousEmitter{ mEmitterPanel->GetSelectedEmitter() };
 	mEmitterPanel->SelectObject(nullptr);
 	if (mPreviewComponent) {
 		mPreviewComponent->EndPlay();
@@ -171,6 +251,13 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 				Selection = mPendingStructureRequest.mEmitter;
 			}
 			break;
+		case FParticleEmitterPanel::EStructureAction::SetTypeData:
+			Changed = mEditSession->SetEmitterTypeData(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mModuleClass, mStatus);
+			if (Changed) {
+				UParticleLODLevel* LOD{ mPendingStructureRequest.mEmitter->GetLODLevel(mEditSession->GetSelectedLODIndex()) };
+				Selection = LOD->TypeDataModule ? static_cast<UObject*>(LOD->TypeDataModule) : mPendingStructureRequest.mEmitter;
+			}
+			break;
 		case FParticleEmitterPanel::EStructureAction::AddModule:
 			Selection = mEditSession->AddModule(mPendingStructureRequest.mEmitter, mPendingStructureRequest.mModuleClass, mStatus);
 			Changed = Selection != nullptr;
@@ -187,12 +274,27 @@ void FParticleEditorTab::ApplyPendingStructureChange() {
 				Selection = mPendingStructureRequest.mModule;
 			}
 			break;
+		case FParticleEmitterPanel::EStructureAction::AddLOD:
+			Changed = mEditSession->AddLOD(mPendingStructureRequest.mTargetIndex, mStatus);
+			Selection = PreviousEmitter ? static_cast<UObject*>(PreviousEmitter) : Working;
+			break;
+		case FParticleEmitterPanel::EStructureAction::DeleteLOD:
+			Changed = mEditSession->DeleteLOD(mStatus);
+			Selection = PreviousEmitter ? static_cast<UObject*>(PreviousEmitter) : Working;
+			break;
+		case FParticleEmitterPanel::EStructureAction::RegenerateLODs:
+			Changed = mEditSession->RegenerateLODs(mStatus);
+			Selection = PreviousEmitter ? static_cast<UObject*>(PreviousEmitter) : Working;
+			break;
+		case FParticleEmitterPanel::EStructureAction::SelectLOD:
+			break;
 		}
 	} catch (const std::exception& Error) {
 		mStatus = "Could not update the particle system: " + FString{ Error.what() };
 	}
 
 	mPendingStructureRequest = {};
+	mEmitterPanel->SetSelectedLODIndex(mEditSession->GetSelectedLODIndex());
 	mEmitterPanel->SelectObject(Changed ? Selection : PreviousSelection);
 	if (Changed) {
 		OnPropertiesChanged();

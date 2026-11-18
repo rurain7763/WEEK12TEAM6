@@ -377,6 +377,8 @@ FParticleSystemSceneProxy::~FParticleSystemSceneProxy()
 void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, const FViewBasis& View)
 {
     FParticleFrameStats& Stats = FParticleStats::GetPending();
+    
+    SubmitMeshParticles(RenderQueue, View);
 
     // Strip(Beam,Ribbon) 처리
     uint32 NumStripVertices = 0;
@@ -491,9 +493,7 @@ void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, c
         {
             continue;
         }
-
-        if (Emitter.DynamicEmitterType == EDynamicEmitterType::Beam || Emitter.DynamicEmitterType == EDynamicEmitterType::Ribbon)
-        {
+        if (Emitter.DynamicEmitterType != EDynamicEmitterType::Sprite) {
             continue;
         }
 
@@ -528,7 +528,7 @@ void FParticleSystemSceneProxy::SetDynamicData(const TArray<FParticleEmitterRend
 
     bool bNoParticle = true;
 
-    const FBox& LocalBound = QuadMesh->GetRenderBounds();
+    const FBox LocalBound{ QuadMesh ? QuadMesh->GetRenderBounds() : FBox{} };
 
     float MaxPaddingSize = FMath::Max(LocalBound.Min.GetAbs().MaxComponent(), LocalBound.Max.GetAbs().MaxComponent());
 
@@ -543,6 +543,15 @@ void FParticleSystemSceneProxy::SetDynamicData(const TArray<FParticleEmitterRend
 
         // 에미터 복제
         DstEmitterRenderData = SrcEmitterRenderData;
+
+        if (DstEmitterRenderData.DynamicEmitterType == EDynamicEmitterType::Mesh && DstEmitterRenderData.mStaticMesh) {
+            for (const FObjectInstance& Particle : DstEmitterRenderData.mMeshParticles) {
+                const FBox Bounds{ DstEmitterRenderData.mStaticMesh->GetRenderBounds().GetWorldAABB(Particle.Model) };
+                LocalBounds.Expand(Bounds.Min);
+                LocalBounds.Expand(Bounds.Max);
+                bNoParticle = false;
+            }
+        }
 
         DstParticles.SetNum(SrcParticles.Num());
         for (int32 j = 0; j < SrcParticles.Num(); j++)
@@ -589,6 +598,43 @@ void FParticleSystemSceneProxy::SetDynamicData(const TArray<FParticleEmitterRend
     }
 
     GetScene()->MarkDirty(this);
+}
+
+void FParticleSystemSceneProxy::SubmitMeshParticles(FRenderQueue& RenderQueue, const FViewBasis& View) const {
+    for (const FParticleEmitterRenderData& Emitter : EmitterRenderDatas) {
+        UStaticMesh* StaticMesh{ Emitter.mStaticMesh };
+        if (Emitter.DynamicEmitterType != EDynamicEmitterType::Mesh || !StaticMesh || !StaticMesh->GetVertexBuffer(0) || !StaticMesh->GetIndexBuffer(0)) {
+            continue;
+        }
+
+        const FModelMeshData& MeshData{ StaticMesh->GetMeshData() };
+        for (const FObjectInstance& Particle : Emitter.mMeshParticles) {
+            for (const FMeshSection& Section : MeshData.Sections) {
+                if (Section.IndexCount == 0) {
+                    continue;
+                }
+
+                UMaterial* Material{ StaticMesh->GetMaterial(Section.MaterialSlotIndex) };
+                if (!Material) {
+                    continue;
+                }
+
+                FRenderPacket& Packet{ RenderQueue.AddDefaulted_GetRef() };
+                FParticleStats::GetPending().RenderPackets++;
+                Packet.Proxy = this;
+                Packet.Model = RenderQueue.StoreWorldMatrix(Particle.Model);
+                Packet.NormalMatrix = RenderQueue.StoreWorldMatrix(Particle.NormalMatrix);
+                Packet.Geometry.VertexBuffers[0] = StaticMesh->GetVertexBuffer(0);
+                Packet.Geometry.VertexBufferCount = 1;
+                Packet.Geometry.IndexBuffer = StaticMesh->GetIndexBuffer(0);
+                Packet.Geometry.StartIndex = Section.StartIndex;
+                Packet.Geometry.IndexCount = Section.IndexCount;
+                Packet.Material = Material;
+                Packet.ColorMultiplier = Particle.Color;
+                Packet.CameraDistanceSquared = (View.Location - Particle.Model.GetOrigin()).SizeSquared();
+            }
+        }
+    }
 }
 
 FBox FParticleSystemSceneProxy::GetLocalBounds() const

@@ -10,7 +10,7 @@ struct FBox;
 class FPreviewEditorTab : public FEditorTab
 {
 public:
-	FPreviewEditorTab(FEditorTabSettings InSettings, FString InViewportName);
+	FPreviewEditorTab(FEditorTabSettings InSettings, FString InViewportName, bool CreateFloor = true);
 	~FPreviewEditorTab() override;
 
 	void Tick(float DeltaTime) override;

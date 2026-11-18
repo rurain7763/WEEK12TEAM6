@@ -1,6 +1,7 @@
 #include "EnginePCH.h"
 #include "Particle/ParticleBeamEmitterInstance.h"
 #include "Particle/ParticleLODLevel.h"
+#include "Particle/ParticleEmitter.h"
 #include "Particle/Modules/ParticleModuleSpawn.h"
 #include "Particle/Modules/ParticleModuleTypeDataBeam.h"
 #include "Engine/PrimitiveSceneProxy.h"
@@ -18,8 +19,7 @@ void FParticleBeamEmitterInstance::Initialize()
 void FParticleBeamEmitterInstance::Tick(float DeltaTime)
 {
 	// TypeData가 아직 연결 안 됐으면 일반 파티클처럼 동작
-	if (!BeamTypeData)
-	{
+	if (!BeamTypeData || !EmitterTemplate || !EmitterTemplate->IsEnabled()) {
 		Super::Tick(DeltaTime);
 		return;
 	}
@@ -68,10 +68,11 @@ void FParticleBeamEmitterInstance::SpawnBeamParticles(float DeltaTime)
 	}
 }
 
-void FParticleBeamEmitterInstance::BuildRenderData(FParticleEmitterRenderData& RenderData) const
-{
-	RenderData.Particles.Reset();
-	RenderData.Strips.Reset();
+void FParticleBeamEmitterInstance::BuildRenderData(FParticleEmitterRenderData& RenderData) const {
+	RenderData = FParticleEmitterRenderData{};
+	if (!EmitterTemplate || !EmitterTemplate->IsEnabled() || !CurrentLODLevel) {
+		return;
+	}
 
 	if (!BeamTypeData) 
 	{

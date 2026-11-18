@@ -11,20 +11,20 @@
 #include "Component/BillboardComponent.h"
 
 
-FPreviewScene::FPreviewScene()
-{
+FPreviewScene::FPreviewScene(bool CreateFloor) {
     FWorldContext& Context = GEngine->CreateNewWorldContext(EWorldType::EditorPreview);
     PreviewWorld = UWorld::CreateWorld(EWorldType::EditorPreview, false);
     Context.SetCurrentWorld(PreviewWorld);
 
-    // 어떤 에셋을 보든 공통으로 쓰는 환경
-    Floor = Cast<AStaticMeshActor>(PreviewWorld->SpawnActor(AStaticMeshActor::StaticClass()));
-    // StaticMeshComponent 기본값이 Cube라 평면으로 바꾼다. Plane은 원점 중심, 한 변 1인 XY 평면이다
-    UStaticMeshComponent* FloorMesh = Floor->GetStaticMeshComponent();
-    FloorMesh->SetStaticMesh(UAssetManager::GetAssetByPath<UStaticMesh>("Plane"));
-    //바닥 사이즈 설정
-    FloorMesh->SetRelativeScale3D(FVector(20.0f, 20.0f, 1.0f));
-    FloorMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 20.0f));
+    if (CreateFloor) {
+        Floor = Cast<AStaticMeshActor>(PreviewWorld->SpawnActor(AStaticMeshActor::StaticClass()));
+        // StaticMeshComponent 기본값이 Cube라 평면으로 바꾼다. Plane은 원점 중심, 한 변 1인 XY 평면이다
+        UStaticMeshComponent* FloorMesh{ Floor->GetStaticMeshComponent() };
+        FloorMesh->SetStaticMesh(UAssetManager::GetAssetByPath<UStaticMesh>("Plane"));
+        //바닥 사이즈 설정
+        FloorMesh->SetRelativeScale3D(FVector{ 20.0f, 20.0f, 1.0f });
+        FloorMesh->SetRelativeLocation(FVector{ 0.0f, 0.0f, 20.0f });
+    }
 
     DirectionalLight = Cast<ADirectionalLightActor>(PreviewWorld->SpawnActor(ADirectionalLightActor::StaticClass()));
     // 정면 위쪽에서 비스듬히 내려 비추도록 Yaw 후 Pitch를 준다. Y축 양의 회전이 아래를 향한다

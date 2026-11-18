@@ -390,50 +390,62 @@ void FRenderer::DrawMeshGroups()
 	LastMaterial = nullptr;
 }
 
-void FRenderer::DrawTranslucentMeshGroups()
-{
+void FRenderer::DrawTranslucentMeshGroups() {
 	SCOPE_CYCLE_COUNTER(STAT_DrawRenderPackets);
-	int8 LastUseSkinning = -1;
 
 	RenderCommand::BindConstantBuffer(0, ViewCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
 	RenderCommand::BindConstantBuffer(3, LightingCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
 
-	for (const FMeshDrawGroup& Group : TranslucentMeshDrawGroups)
-	{
-		const bool bUseSkinning = Group.bUseSkinning;
+	for (const FMeshDrawGroup& Group : TranslucentMeshDrawGroups) {
+		RenderCommand::BindVertexBuffers(Group.Geometry.VertexBuffers, Group.Geometry.VertexBufferCount);
+		RenderCommand::BindIndexBuffer(Group.Geometry.IndexBuffer);
 
-		uint32 InstanceCount = Group.Instances.Num();
-		uint32 InstanceDataSize = InstanceCount * sizeof(FObjectInstance);
+		const bool UseSkinning{ Group.bUseSkinning };
+		BindMaterial(Group.Material, UseSkinning);
 
-		if (!ObjectInstanceVB || ObjectInstanceVB->GetBufferSize() < InstanceDataSize)
-		{
+		if (Group.Material->bUseViewModeShader) {
+			RenderCommand::BindConstantBuffer(2, PerObjectCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
+
+			for (int32 Index{}; Index < Group.Instances.Num(); ++Index) {
+				const FObjectInstance& Instance{ Group.Instances[Index] };
+				const FPrimitiveSceneProxy* Proxy{ Group.Items[Index].Proxy };
+				UpdateMaterialParams(Group.Material, Instance.Color);
+				UpdatePerObjectConstants(Instance.Model, Instance.NormalMatrix, Proxy ? Proxy->GetObjectMask() : 0u);
+				if (Proxy) {
+					BindSurfaceSkinningResources(Proxy);
+				}
+				RenderCommand::DrawIndexed(Group.Geometry.IndexCount, Group.Geometry.StartIndex);
+			}
+
+			// 조명 셰이더 머티리얼은 인스턴싱 없이 항목마다 개별 드로우
+			if (!Group.Items.IsEmpty() && IsParticleProxy(Group.Items[0].Proxy)) {
+				FParticleStats::GetPending().DrawCalls += Group.Items.Num();
+			}
+			continue;
+		}
+
+		const uint32 InstanceCount{ static_cast<uint32>(Group.Instances.Num()) };
+		const uint32 InstanceDataSize{ InstanceCount * sizeof(FObjectInstance) };
+		if (!ObjectInstanceVB || ObjectInstanceVB->GetBufferSize() < InstanceDataSize) {
 			ObjectInstanceVB = RenderCommand::CreateDynamicVertexBuffer(InstanceDataSize, sizeof(FObjectInstance));
 		}
 
-		FObjectInstance* MappedInstances = static_cast<FObjectInstance*>(RenderCommand::MapWriteDiscard(ObjectInstanceVB.get()));
+		FObjectInstance* MappedInstances{ static_cast<FObjectInstance*>(RenderCommand::MapWriteDiscard(ObjectInstanceVB.get())) };
 		std::memcpy(MappedInstances, Group.Instances.GetData(), InstanceDataSize);
 		RenderCommand::Unmap(ObjectInstanceVB.get());
 
-		RenderCommand::BindVertexBuffers(Group.Geometry.VertexBuffers, Group.Geometry.VertexBufferCount);
 		RenderCommand::BindVertexBuffer(Group.Geometry.VertexBufferCount, ObjectInstanceVB.get());
-		RenderCommand::BindIndexBuffer(Group.Geometry.IndexBuffer);
-
-		BindMaterial(Group.Material, bUseSkinning);
 		UpdateMaterialParams(Group.Material);
 
-		if (bUseSkinning)
-		{
+		if (UseSkinning) {
 			// NOTE: 스키닝 메시를 그릴때는 본 메트릭스가 다를 수 있기 때문에 개별 드로우로 진행한다.
-			for (int32 i = 0; i < Group.Items.Num(); i++)
-			{
-				const FMeshDrawItem& Item = Group.Items[i];
+			for (int32 Index{}; Index < Group.Items.Num(); ++Index) {
+				const FMeshDrawItem& Item{ Group.Items[Index] };
 
 				BindSurfaceSkinningResources(Item.Proxy);
-				RenderCommand::DrawIndexedInstanced(Group.Geometry.IndexCount, 1, Group.Geometry.StartIndex, 0, i);
+				RenderCommand::DrawIndexedInstanced(Group.Geometry.IndexCount, 1, Group.Geometry.StartIndex, 0, Index);
 			}
-		}
-		else
-		{
+		} else {
 			RenderCommand::DrawIndexedInstanced(Group.Geometry.IndexCount, InstanceCount, Group.Geometry.StartIndex);
 
 			if (!Group.Items.IsEmpty() && IsParticleProxy(Group.Items[0].Proxy))
@@ -578,6 +590,7 @@ void FRenderer::DrawPackets(uint32 Begin, uint32 End)
 	LastIndexBuffer = nullptr;
 	LastMaterial = nullptr;
 	int8 LastUseSkinning = -1;
+	FLinearColor LastColor{ FLinearColor::White };
 
 	RenderCommand::BindConstantBuffer(0, ViewCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
 	RenderCommand::BindConstantBuffer(3, LightingCB.get(), EShaderBindFlagBits::Vertex | EShaderBindFlagBits::Pixel);
@@ -608,9 +621,10 @@ void FRenderer::DrawPackets(uint32 Begin, uint32 End)
 			BindMaterial(RenderPacket.Material, bUseSkinning);
 		}
 
-		if (RenderPacket.Material != LastMaterial)
-		{
-			UpdateMaterialParams(RenderPacket.Material);
+		const FLinearColor& Color{ RenderPacket.ColorMultiplier };
+		if (RenderPacket.Material != LastMaterial || Color.R != LastColor.R || Color.G != LastColor.G || Color.B != LastColor.B || Color.A != LastColor.A) {
+			UpdateMaterialParams(RenderPacket.Material, Color);
+			LastColor = Color;
 		}
 
 		if (bUsePerObjectSlots && RenderPacket.ObjectConstantSlot != InvalidObjectConstantSlot)
@@ -846,8 +860,7 @@ void FRenderer::SetLighting(const FLightingConstants& GlobalLights,
 }
 
 // Material마다 Shader/Texture/Sampler/State 꽂기
-void FRenderer::BindMaterial(UMaterial* Material, bool bUseSkinning)
-{
+void FRenderer::BindMaterial(UMaterial* Material, bool UseSkinning) {
 	// Shader selection is independent of the common material constant-buffer layout.
 	if (Material->bUseViewModeShader)
 	{
@@ -856,7 +869,7 @@ void FRenderer::BindMaterial(UMaterial* Material, bool bUseSkinning)
 			SetViewMode(FViewRenderMode{});
 		}
 
-		RenderCommand::BindShaderProgram(ViewModeShaders[bUseSkinning ? 1 : 0]);
+		RenderCommand::BindShaderProgram(ViewModeShaders[UseSkinning ? 1 : 0]);
 	}
 	else
 	{
@@ -885,22 +898,24 @@ void FRenderer::BindMaterial(UMaterial* Material, bool bUseSkinning)
 }
 
 // b1 내용 채우고 꽂기
-void FRenderer::UpdateMaterialParams(UMaterial* Material)
-{
-	if (!Material->ParamBuffer || Material->ParamBuffer->GetBufferSize() != sizeof(FMaterialParams))
-	{
+void FRenderer::UpdateMaterialParams(UMaterial* Material, const FLinearColor& ColorMultiplier) {
+	if (!Material->ParamBuffer || Material->ParamBuffer->GetBufferSize() != sizeof(FMaterialParams)) {
 		Material->ParamBuffer = RenderCommand::CreateConstantBuffer(sizeof(FMaterialParams));
 	}
 
-	const float TotalTime = EngineTimer::GetTotalTime();
+	const float TotalTime{ EngineTimer::GetTotalTime() };
 
 	FMaterialParams Params{};
 	Params.BaseColor = ColorWorkflow::ToShaderColor(Material->BaseColor);
+	Params.BaseColor.R *= ColorMultiplier.R;
+	Params.BaseColor.G *= ColorMultiplier.G;
+	Params.BaseColor.B *= ColorMultiplier.B;
+	Params.BaseColor.A *= ColorMultiplier.A;
 	Params.UVScrollOffset = Material->UVScrollSpeed * TotalTime;
 	Params.bOpaque = Material->BlendState == EBlendState::Opaque ? 1u : 0u;
 	Params.Shininess = Material->Shininess;
-	const FLinearColor Specular = ColorWorkflow::ToShaderColor(Material->SpecularColor);
-	Params.SpecularColor = FVector(Specular.R, Specular.G, Specular.B);
+	const FLinearColor Specular{ ColorWorkflow::ToShaderColor(Material->SpecularColor) };
+	Params.SpecularColor = FVector{ Specular.R, Specular.G, Specular.B };
 	Params.bFlipNormalGreen = Material->bFlipNormalGreen ? 1u : 0u;
 	Params.TextureBindFlags = HasBoundNormalMap(Material) ? MTBF_NormalMap : 0u;
 

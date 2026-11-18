@@ -22,6 +22,10 @@ bool FPreviewViewportPanel::Init()
 	return true;
 }
 
+void FPreviewViewportPanel::SetGridControlVisible(bool Visible) {
+	mGridControlVisible = Visible;
+}
+
 void FPreviewViewportPanel::Tick(float DeltaTime)
 {
 	(void)DeltaTime;
@@ -71,9 +75,11 @@ void FPreviewViewportPanel::OnRender()
 		return;
 	}
 
-	bool GridVisible{ Viewport->IsGridVisible() };
-	if (ImGui::Checkbox("Grid", &GridVisible)) {
-		Viewport->SetGridVisible(GridVisible);
+	if (mGridControlVisible) {
+		bool GridVisible{ Viewport->IsGridVisible() };
+		if (ImGui::Checkbox("Grid", &GridVisible)) {
+			Viewport->SetGridVisible(GridVisible);
+		}
 	}
 
 	DrawToolbar();

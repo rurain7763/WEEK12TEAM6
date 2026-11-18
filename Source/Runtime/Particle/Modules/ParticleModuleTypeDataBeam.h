@@ -7,9 +7,18 @@ struct FBeamTypeDataPayload;
 class UParticleModuleTypeDataBeam : public UParticleModuleTypeDataBase
 {
 	DECLARE_CLASS(UParticleModuleTypeDataBeam, UParticleModuleTypeDataBase)
+
+	REFLECT_START(ThisClass)
+		PROPERTY(InterpolationPoints)
+		PROPERTY(MaxBeamCount)
+		PROPERTY(bAlwaysOn)
+		PROPERTY(Distance)
+	REFLECT_END()
+
 public:
 
 	void Serialize(FStructuredArchive::FRecord Record) override;
+	void PostEditChangeProperty(const FProperty& Property) override;
 	UParticleModuleTypeDataBeam();
 
 	FParticleEmitterInstance* CreateInstance(UParticleEmitter* Emitter, UParticleSystemComponent* Owner) override;
