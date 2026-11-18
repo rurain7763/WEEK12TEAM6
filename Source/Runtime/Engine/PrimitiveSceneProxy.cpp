@@ -374,6 +374,11 @@ FParticleSystemSceneProxy::~FParticleSystemSceneProxy()
 {
 }
 
+void FParticleSystemSceneProxy::UpdateRenderState() {
+    FPrimitiveSceneProxy::UpdateRenderState();
+    RenderState.reset();
+}
+
 void FParticleSystemSceneProxy::SubmitToRenderQueue(FRenderQueue& RenderQueue, const FViewBasis& View)
 {
     FParticleFrameStats& Stats = FParticleStats::GetPending();
