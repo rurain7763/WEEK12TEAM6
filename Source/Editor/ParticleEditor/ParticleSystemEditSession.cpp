@@ -15,6 +15,7 @@
 #include "Particle/Modules/ParticleModuleLocationPrimitiveSphere.h"
 #include "Particle/Modules/ParticleModuleLocationPrimitiveCylinder.h"
 #include "Particle/Modules/ParticleModuleVelocity.h"
+#include "Particle/Modules/ParticleModuleAccelerationConstant.h"
 #include "Particle/Modules/ParticleModuleSize.h"
 #include "Particle/Modules/ParticleModuleSizeScaleBySpeed.h"
 #include "Particle/Modules/ParticleModuleColor.h"
@@ -266,7 +267,7 @@ void FParticleSystemEditSession::DestroyEmitter(UParticleEmitter* Emitter) {
 }
 
 const TArray<UClass*>& FParticleSystemEditSession::GetAddableModuleClasses() {
-	static const TArray<UClass*> Classes{ UParticleModuleSizeScaleBySpeed::StaticClass(), UParticleModuleLifeTime::StaticClass(), UParticleModuleLocation::StaticClass(), UParticleModuleLocationPrimitiveBox::StaticClass(), UParticleModuleLocationPrimitiveSphere::StaticClass(), UParticleModuleLocationPrimitiveCylinder::StaticClass(), UParticleModuleVelocity::StaticClass(), UParticleModuleSize::StaticClass(), UParticleModuleColor::StaticClass(), UParticleModuleRotation::StaticClass(), UParticleModuleRotationRate::StaticClass(), UParticleModuleSizeOfLifeTime::StaticClass(), UParticleModuleColorOverLife::StaticClass(), UParticleModuleCollision::StaticClass(), UParticleModuleEventGenerator::StaticClass(), UParticleModuleBeamSource::StaticClass(), UParticleModuleBeamTarget::StaticClass() };
+	static const TArray<UClass*> Classes{ UParticleModuleSizeScaleBySpeed::StaticClass(), UParticleModuleLifeTime::StaticClass(), UParticleModuleLocation::StaticClass(), UParticleModuleLocationPrimitiveBox::StaticClass(), UParticleModuleLocationPrimitiveSphere::StaticClass(), UParticleModuleLocationPrimitiveCylinder::StaticClass(), UParticleModuleVelocity::StaticClass(), UParticleModuleAccelerationConstant::StaticClass(), UParticleModuleSize::StaticClass(), UParticleModuleColor::StaticClass(), UParticleModuleRotation::StaticClass(), UParticleModuleRotationRate::StaticClass(), UParticleModuleSizeOfLifeTime::StaticClass(), UParticleModuleColorOverLife::StaticClass(), UParticleModuleCollision::StaticClass(), UParticleModuleEventGenerator::StaticClass(), UParticleModuleBeamSource::StaticClass(), UParticleModuleBeamTarget::StaticClass() };
 	return Classes;
 }
 
