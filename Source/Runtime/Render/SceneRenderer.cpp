@@ -22,6 +22,7 @@
 #include "Core/Stats/LightweightStats.h"
 #include "Core/StatOverlay.h"
 #include "Core/Stats/SkinningStats.h"
+#include "Core/Stats/ParticleStats.h"
 
 DECLARE_CYCLE_STAT("Decal Draw Time", STAT_DecalDrawTime);
 
@@ -64,6 +65,7 @@ void FSceneRenderer::BeginFrame()
 
 	// 지난 프레임 동안 모은 스키닝 통계를 표시용으로 넘기고, 씬 GPU 시간을 갱신한다
 	FSkinningStats::EndFrame();
+	FParticleStats::EndFrame();
 	SceneGPUTimer.BeginFrame();
 	FSkinningStats::SetSceneGPUMs(SceneGPUTimer.GetSmoothedMs());
 }
