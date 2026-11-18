@@ -1,0 +1,83 @@
+{
+    "Version": 1,
+    "ParticleSystem": {
+        "LODMethod": 0,
+        "LODDistances": [0, 10],
+        "LODDistanceCheckTime": 0.25,
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "MaxParticleCount": 100,
+                "ParticleSize": 96,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 3
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": { "X": 0.2, "Y": 0.2, "Z": 0.2 }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": { "R": 0.2, "G": 0.7, "B": 1, "A": 1 }
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "bAlwaysInWorldSpace": true,
+                                "Acceleration": { "X": 0, "Y": 0, "Z": -3 }
+                            }
+                        ],
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 8
+                        },
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "bUseLocalSpace": true,
+                            "Material": "SpriteMaterial"
+                        }
+                    },
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 1,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleLifeTime",
+                                "LifeTime": 3
+                            },
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": { "X": 0.2, "Y": 0.2, "Z": 0.2 }
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": { "R": 0.2, "G": 0.7, "B": 1, "A": 1 }
+                            },
+                            {
+                                "ClassName": "UParticleModuleAccelerationConstant",
+                                "bAlwaysInWorldSpace": true,
+                                "Acceleration": { "X": 0, "Y": 0, "Z": -0.75 }
+                            }
+                        ],
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 2
+                        },
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "bUseLocalSpace": true,
+                            "Material": "SpriteMaterial"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -9,6 +9,7 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Engine/Level.h"
+#include "Particle/ParticleTypes.h"
 
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
@@ -407,6 +408,21 @@ void FLuaBindings::RegisterLuaBindings(sol::state& Lua, FLuaCoroutineScheduler* 
 		"bBlockingHit", & FHitResult::bBlockingHit,
 		"bStartPenetrating", & FHitResult::bStartPentrating,
 		"HitComponent", & FHitResult::HitComponent
+	);
+
+	// 파티클 충돌 이벤트 (OnParticleCollide(event)로 전달)
+	Lua.new_usertype<FParticleEventCollideData>(
+		"ParticleCollideEvent",
+		sol::no_constructor,
+
+		"EventName", &FParticleEventCollideData::EventName,
+		"EmitterIndex", &FParticleEventCollideData::EmitterIndex,
+		"ParticleRelativeTime", &FParticleEventCollideData::ParticleRelativeTime,
+		"Location", &FParticleEventCollideData::Location,
+		"Normal", &FParticleEventCollideData::Normal,
+		"Direction", &FParticleEventCollideData::Direction,
+		"Velocity", &FParticleEventCollideData::Velocity,
+		"Component", &FParticleEventCollideData::Component
 	);
 
 	Lua.new_usertype<SWidget>(

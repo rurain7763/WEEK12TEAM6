@@ -41,4 +41,7 @@ private:
 	int32 MaxParticleCount = 1000;
 	int32 ParticleSize = 0;
 	int32 TypeDataOffset = 0;
+
+	// 입자 안에서 Collision payload 시작 위치 (없으면 -1)
+	int32 CollisionPayloadOffset = -1;
 };

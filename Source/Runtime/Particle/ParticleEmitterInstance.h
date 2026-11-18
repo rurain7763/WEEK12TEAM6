@@ -17,6 +17,9 @@ struct FParticleEmitterInstance
 	UParticleLODLevel* CurrentLODLevel = nullptr;
 
 	UParticleSystemComponent* Owner = nullptr;
+
+	// PSC 안에서 이 이미터의 순번 (충돌 이벤트 구분용)
+	int32 EmitterIndex = -1;
 	
 	// 파티클 데이터 배열 시작 주소
 	uint8* ParticleData = nullptr;
@@ -70,6 +73,18 @@ struct FParticleEmitterInstance
 	//TypeDataBase계열 변수
 	int32 TypeDataOffset = 0;
 	UParticleModuleTypeDataBase* TypeDataModule = nullptr;
+
+	// Collision payload 시작 위치 (없으면 -1)
+	int32 CollisionPayloadOffset = -1;
+
+	// 이미터 전체 충돌 횟수 (EventGenerator Frequency 계산용)
+	FParticleEventInstancePayload EventPayload;
+
+	inline FParticleCollisionPayload* GetCollisionPayload(FBaseParticle* Particle) const
+	{
+		if (CollisionPayloadOffset < 0) return nullptr;
+		return (FParticleCollisionPayload*)((uint8*)Particle + CollisionPayloadOffset);
+	}
 
 
 	void SetCurrentLODIndex(int32 InLODIndex);

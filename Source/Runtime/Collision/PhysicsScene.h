@@ -57,6 +57,10 @@ public:
     // MoveComponent가 나중에 사용
     void QueueHit(const FPendingHitEvent& Event);
 
+    // 등록된 Block 형상 중 유한 선분에 가장 먼저 닿는 컴포넌트.
+    bool LineTraceSingle(const FVector& Start, const FVector& Delta,
+                         const AActor* IgnoreActor, FHitResult& OutHit) const;
+
     // Mover를 Delta만큼 sweep했을 때 가장 먼저 막히는 Block 컴포넌트
     bool ComponentSweepSingle(UPrimitiveComponent * Mover, const FVector & Delta,
                                   const FRotator & Rot, FHitResult & OutHit);

@@ -1,7 +1,52 @@
 #pragma once
 
+#include "Core/EngineString.h"
+#include "Core/Types.h"
 #include "Math/Vector.h"
 #include "Math/Color.h"
+
+class UPrimitiveComponent;
+
+// MaxCollisions 도달 시 입자 처리 방식
+enum class EParticleCollisionComplete : int32
+{
+	Kill,
+	Freeze
+};
+
+enum EParticleCollisionFlags : uint32
+{
+	PCF_None = 0,
+	PCF_Freeze = 1u << 0
+};
+
+// 입자별 충돌 상태. 0으로 초기화, 횟수는 올려 셈
+struct FParticleCollisionPayload
+{
+	int32 CollisionCount = 0;
+	uint32 Flags = PCF_None;
+};
+
+// 이미터 인스턴스별 누적 카운터. 개별 입자의 payload와 분리.
+struct FParticleEventInstancePayload
+{
+	uint32 CollisionTrackingCount = 0;
+};
+
+// 충돌 당시 값의 복사본. 입자 메모리의 주소는 저장하지 않음.
+struct FParticleEventCollideData
+{
+	FString EventName;
+	int32 EmitterIndex = -1;
+	float ParticleRelativeTime = 0.f;
+	float Time = 0.f; // 월드 시각
+
+	FVector Location = FVector::ZeroVector;
+	FVector Normal = FVector::ZeroVector;
+	FVector Direction = FVector::ZeroVector;
+	FVector Velocity = FVector::ZeroVector; // 충돌 직전 월드 속도
+	UPrimitiveComponent* Component = nullptr; // 비소유 참조
+};
 
 struct FBaseParticle
 {

@@ -2,6 +2,8 @@
 
 #include "Component/FXSystemComponent.h"
 #include "Particle/ParticleSystem.h"
+#include "Particle/ParticleTypes.h"
+#include "Core/Delegate.h"
 
 struct FParticleEmitterInstance;
 
@@ -51,6 +53,12 @@ public:
 
 	virtual FPrimitiveSceneProxy* CreateSceneProxy();
 
+	// Generator가 이번 프레임 충돌 이벤트 기록
+	void ReportCollisionEvent(const FParticleEventCollideData& Data) { CollisionEvents.Add(Data); }
+
+	// 파티클 충돌 이벤트 콜백 (EventManager가 Broadcast)
+	TMulticastDelegate<UParticleSystemComponent*, const FParticleEventCollideData&> OnParticleCollide;
+
 private:
 	void UpdateAutomaticLOD(float DeltaTime);
 	bool GetLODViewLocation(FVector& OutViewLocation) const;
@@ -64,6 +72,9 @@ private:
 	FVector LODViewLocation;
 
 	TArray<FParticleEmitterInstance*> EmitterInstances;
+
+	// 이번 프레임 충돌 이벤트. Tick 끝에서 EventManager로 넘긴 뒤 비움
+	TArray<FParticleEventCollideData> CollisionEvents;
 	bool mEmitterInstancesInitialized{};
 	float LODDistanceCheckElapsed = 0.f;
 };

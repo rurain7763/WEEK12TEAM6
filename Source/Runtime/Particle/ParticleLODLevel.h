@@ -7,6 +7,8 @@ class UParticleModule;
 class UParticleModuleSpawn;
 class UParticleModuleRequired;
 class UParticleModuleTypeDataBase;
+class UParticleModuleCollision;
+class UParticleModuleEventGenerator;
 struct FParticleEmitterInstance;
 
 class UParticleLODLevel : public UObject
@@ -27,6 +29,12 @@ public:
 	UParticleModuleSpawn* SpawnModule = nullptr;
 	UParticleModuleRequired* RequiredModule = nullptr;
 	UParticleModuleTypeDataBase* TypeDataModule = nullptr;
+
+	// 이 LOD의 Collision 모듈 (없으면 nullptr). BuildModuleLists에서 갱신
+	UParticleModuleCollision* CollisionModule = nullptr;
+
+	// 이 LOD의 EventGenerator 모듈 (없으면 nullptr). BuildModuleLists에서 갱신
+	UParticleModuleEventGenerator* EventGeneratorModule = nullptr;
 
 private:
 	friend struct FParticleEmitterInstance;

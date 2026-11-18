@@ -8,6 +8,10 @@
 class FPhysicsInterface
 {
 public:
+    // Start부터 Start + Delta까지 선분과 형상 하나의 최초 교차. Time은 0~1.
+    static bool LineTraceTest(const FVector& Start, const FVector& Delta, const FCollisionShape& Shape,
+                             const FVector& ShapeLocation, const FRotator& ShapeRotation, FHitResult& OutHit);
+
     // 두 형상이 겹치는가. 형상과 위치·회전을 따로 받는다.
     static bool OverlapTest(const FCollisionShape& ShapeA, const FVector& PosA, const FRotator& RotA,
                             const FCollisionShape& ShapeB, const FVector& PosB, const FRotator& RotB);
@@ -26,6 +30,13 @@ public:
     static FBox CalcShapeBounds(const FCollisionShape& Shape, const FVector& Pos, const FRotator& Rot);
 
 private:
+    static bool LineBox(const FVector& Start, const FVector& Delta, const FVector& Extent, FHitResult& OutHit);
+    static bool LineSphere(const FVector& Start, const FVector& Delta, float Radius, FHitResult& OutHit);
+    static bool LineCapsule(const FVector& Start, const FVector& Delta, float Radius, float HalfHeight, FHitResult& OutHit);
+
+    static bool SweepBoxBox(const FCollisionShape& ShapeA, const FVector& Start, const FVector& Delta, const FRotator& RotA,
+                            const FCollisionShape& ShapeB, const FVector& PosB, const FRotator& RotB, FHitResult& OutHit);
+
     static bool SphereSphere(const FVector& CenterA, float RadiusA,
                              const FVector& CenterB, float RadiusB);
 

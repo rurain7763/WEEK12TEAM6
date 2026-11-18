@@ -5,7 +5,8 @@
 #include "Particle/Modules/ParticleModuleRequired.h"
 #include "Serialization/StructuredArchiveHelpers.h"
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
-
+#include "Particle/Modules/ParticleModuleCollision.h"
+#include "Particle/Modules/ParticleModuleEventGenerator.h"
 void UParticleLODLevel::Serialize(FStructuredArchive::FRecord Record)
 {
 	Record << SA_VALUE("Level", Level);
@@ -25,9 +26,20 @@ void UParticleLODLevel::BuildModuleLists()
 {
 	SpawnModules.Reset();
 	UpdateModules.Reset();
+	CollisionModule = nullptr;
+	EventGeneratorModule = nullptr;
 
 	for (UParticleModule* Module : Modules)
 	{
+		if (UParticleModuleCollision* Collision = Cast<UParticleModuleCollision>(Module))
+		{
+			CollisionModule = Collision;
+		}
+		if (UParticleModuleEventGenerator* Generator = Cast<UParticleModuleEventGenerator>(Module))
+		{
+			EventGeneratorModule = Generator;
+		}
+
 		if (Module->bSpawnModule)
 		{
 			SpawnModules.Add(Module);

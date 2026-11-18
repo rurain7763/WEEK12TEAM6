@@ -70,3 +70,8 @@ void UScriptComponent::HanldeOnCollisionHit(UPrimitiveComponent* Other, FHitResu
 {
     ScriptInstance.OnComponentHit(Other, HitResult, bSelfMoved);
 }
+
+void UScriptComponent::HandleOnParticleCollide(UParticleSystemComponent* Component, const FParticleEventCollideData& Event)
+{
+    ScriptInstance.OnParticleCollide(Event);
+}
