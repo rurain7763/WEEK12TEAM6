@@ -124,6 +124,11 @@ float FVector::MaxComponent() const
 	return FMath::Max(FMath::Max(X, Y), Z);
 }
 
+float FVector::MinComponent() const
+{
+	return FMath::Min(FMath::Min(X, Y), Z);
+}
+
 FVector FVector::Add(const FVector& V1) const
 {
 	return FVector(X + V1.X, Y + V1.Y, Z + V1.Z);

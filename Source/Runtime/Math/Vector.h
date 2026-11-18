@@ -37,6 +37,7 @@ public:
 	float& Component(int32 index);		// 참조자 반환으로 lvalue로 직접 값수정 가능
 	float Component(int32 index) const;
 	float MaxComponent() const;
+	float MinComponent() const;
 
 	FVector Add(const FVector& V1) const;
 	FVector Subtract(const FVector& V1) const;
