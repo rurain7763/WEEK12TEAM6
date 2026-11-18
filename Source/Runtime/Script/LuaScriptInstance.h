@@ -3,6 +3,8 @@
 #include "LuaScriptSystem.h"
 #include "GameFramework/Actor.h"
 
+struct FParticleEventCollideData;
+
 class FLuaScriptInstance
 {
 public:
@@ -16,6 +18,7 @@ public:
     void OnComponentBeginOverlap(UPrimitiveComponent* Other);
     void OnComponentEndOverlap(UPrimitiveComponent* Other);
     void OnComponentHit(UPrimitiveComponent* Other, FHitResult& HitResult, bool bSelfMoved);
+    void OnParticleCollide(const FParticleEventCollideData& Event);
 
     inline sol::table GetTable()
     {
@@ -36,6 +39,7 @@ private:
     sol::protected_function OnComponentBeginOverlapFunc;
     sol::protected_function OnComponentEndOverlapFunc;
     sol::protected_function OnComponentHitFunc;
+    sol::protected_function OnParticleCollideFunc;
 
     bool bLoaded = false;
     bool bHasBegunPlay = false;

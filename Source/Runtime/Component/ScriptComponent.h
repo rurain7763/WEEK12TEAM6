@@ -4,6 +4,7 @@
 #include "Script/LuaScriptInstance.h"
 
 class UPrimitiveComponent;
+class UParticleSystemComponent;
 
 class UScriptComponent : public UActorComponent
 {
@@ -27,6 +28,7 @@ public:
     void HanldeOnCollisionEnter(UPrimitiveComponent* Other);
     void HanldeOnCollisionExit(UPrimitiveComponent* Other);
     void HanldeOnCollisionHit(UPrimitiveComponent* Other, FHitResult& HitResult, bool bSelfMoved);
+    void HandleOnParticleCollide(UParticleSystemComponent* Component, const FParticleEventCollideData& Event);
 
     inline sol::table GetLuaTable()
     {
