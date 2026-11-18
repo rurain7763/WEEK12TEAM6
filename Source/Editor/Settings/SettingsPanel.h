@@ -17,6 +17,7 @@ struct FEditorSettings
 	bool bDrawPrimitives = true;
 	bool bDrawSkeletalMeshes = true;
 	bool bDrawDecals = true;
+	bool bDrawParticles = true;
 	bool bDrawBoundingBox = false;
 	bool bShowUUID = false;
 	bool bExponentialHeightFog = true;
