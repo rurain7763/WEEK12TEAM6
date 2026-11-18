@@ -53,9 +53,9 @@
                                         "Z": 1.4938981533050537
                                     },
                                     "Rotation": {
-                                        "Pitch": 7.646044731140137,
-                                        "Roll": 1.0040702819824219,
-                                        "Yaw": 2.249674081802368
+                                        "Pitch": 47.007999420166016,
+                                        "Roll": 1.4594590663909912,
+                                        "Yaw": 3.1836931705474854
                                     },
                                     "Scale": {
                                         "X": 1.0,
@@ -79,6 +79,8 @@
                                         "R": 1.0
                                     },
                                     "BlendState": "AlphaBlend",
+                                    "DecalColorBlendMode": "Alpha",
+                                    "MaterialDomain": "Surface",
                                     "Properties": {},
                                     "SamplerState": "LinearClamp",
                                     "Shininess": 32.0,
@@ -95,12 +97,15 @@
                                         0.0,
                                         0.0
                                     ],
+                                    "bAffectBaseColor": true,
+                                    "bAffectNormal": true,
                                     "bFlipNormalGreen": false
                                 }
                             },
                             "Name": "UBillboardComponent",
                             "Parent": "UDirectionalLightComponent",
                             "Properties": {
+                                "Material": null,
                                 "ShowBeginOverlapLog": false,
                                 "ShowEndOverlapLog": false,
                                 "ShowHitLog": false,
@@ -125,17 +130,55 @@
                                 "bCastShadow": true,
                                 "bGenerateOverlapEvents": true,
                                 "bReceiveShadow": true,
+                                "bReceivesDecals": true,
                                 "bVisible": true
                             }
                         }
                     ],
                     "Name": "ADirectionalLightActor_0",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "UDirectionalLightComponent"
                 },
                 {
                     "Class": "AStaticMeshActor",
                     "Components": [
+                        {
+                            "Class": "UStaticMeshComponent",
+                            "Name": "UStaticMeshComponent",
+                            "OverrideMaterials": [],
+                            "Parent": "",
+                            "Properties": {
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "StaticMesh": "Cube",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": -0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCastShadow": true,
+                                "bGenerateOverlapEvents": true,
+                                "bReceiveShadow": true,
+                                "bReceivesDecals": true,
+                                "bVisible": true
+                            }
+                        },
                         {
                             "Class": "UStaticMeshComponent",
                             "Name": "FloorMesh",
@@ -148,18 +191,18 @@
                                 "StaticMesh": "Cube",
                                 "Transform": {
                                     "Location": {
-                                        "X": 0,
-                                        "Y": 0,
-                                        "Z": 0
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
                                     },
                                     "Rotation": {
-                                        "Pitch": 0,
-                                        "Roll": 0,
-                                        "Yaw": 0
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
                                     },
                                     "Scale": {
-                                        "X": 20,
-                                        "Y": 20,
+                                        "X": 20.0,
+                                        "Y": 20.0,
                                         "Z": 1.0
                                     }
                                 },
@@ -167,6 +210,7 @@
                                 "bCastShadow": true,
                                 "bGenerateOverlapEvents": false,
                                 "bReceiveShadow": true,
+                                "bReceivesDecals": true,
                                 "bVisible": true
                             }
                         },
@@ -176,8 +220,8 @@
                             "Parent": "",
                             "Properties": {
                                 "BoxExtent": {
-                                    "X": 10,
-                                    "Y": 10,
+                                    "X": 10.0,
+                                    "Y": 10.0,
                                     "Z": 0.5
                                 },
                                 "ShapeColor": {
@@ -191,19 +235,19 @@
                                 "ShowHitLog": false,
                                 "Transform": {
                                     "Location": {
-                                        "X": 0,
-                                        "Y": 0,
-                                        "Z": 0
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
                                     },
                                     "Rotation": {
-                                        "Pitch": 0,
-                                        "Roll": 0,
-                                        "Yaw": 0
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
                                     },
                                     "Scale": {
-                                        "X": 1,
-                                        "Y": 1,
-                                        "Z": 1
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
                                     }
                                 },
                                 "bBlockComponet": true,
@@ -212,17 +256,55 @@
                                 "bGenerateOverlapEvents": false,
                                 "bIsGameHidden": false,
                                 "bReceiveShadow": false,
+                                "bReceivesDecals": true,
                                 "bVisible": true
                             }
                         }
                     ],
                     "Name": "Floor",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "Floor"
                 },
                 {
                     "Class": "AStaticMeshActor",
                     "Components": [
+                        {
+                            "Class": "UStaticMeshComponent",
+                            "Name": "UStaticMeshComponent",
+                            "OverrideMaterials": [],
+                            "Parent": "",
+                            "Properties": {
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "StaticMesh": "Cube",
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": -0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCastShadow": true,
+                                "bGenerateOverlapEvents": true,
+                                "bReceiveShadow": true,
+                                "bReceivesDecals": true,
+                                "bVisible": true
+                            }
+                        },
                         {
                             "Class": "UStaticMeshComponent",
                             "Name": "WallMesh",
@@ -235,25 +317,26 @@
                                 "StaticMesh": "Cube",
                                 "Transform": {
                                     "Location": {
-                                        "X": 0,
-                                        "Y": 0,
-                                        "Z": 0
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
                                     },
                                     "Rotation": {
-                                        "Pitch": 0,
-                                        "Roll": 0,
-                                        "Yaw": 0
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
                                     },
                                     "Scale": {
                                         "X": 1.0,
-                                        "Y": 20,
-                                        "Z": 8
+                                        "Y": 20.0,
+                                        "Z": 8.0
                                     }
                                 },
                                 "bBlockComponet": false,
                                 "bCastShadow": true,
                                 "bGenerateOverlapEvents": false,
                                 "bReceiveShadow": true,
+                                "bReceivesDecals": true,
                                 "bVisible": true
                             }
                         },
@@ -264,8 +347,8 @@
                             "Properties": {
                                 "BoxExtent": {
                                     "X": 0.5,
-                                    "Y": 10,
-                                    "Z": 4
+                                    "Y": 10.0,
+                                    "Z": 4.0
                                 },
                                 "ShapeColor": {
                                     "A": 255,
@@ -278,19 +361,19 @@
                                 "ShowHitLog": false,
                                 "Transform": {
                                     "Location": {
-                                        "X": 6,
-                                        "Y": 0,
+                                        "X": 6.0,
+                                        "Y": 0.0,
                                         "Z": 4.5
                                     },
                                     "Rotation": {
-                                        "Pitch": 0,
-                                        "Roll": 0,
-                                        "Yaw": 0
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
                                     },
                                     "Scale": {
-                                        "X": 1,
-                                        "Y": 1,
-                                        "Z": 1
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
                                     }
                                 },
                                 "bBlockComponet": true,
@@ -299,12 +382,15 @@
                                 "bGenerateOverlapEvents": false,
                                 "bIsGameHidden": false,
                                 "bReceiveShadow": false,
+                                "bReceivesDecals": true,
                                 "bVisible": true
                             }
                         }
                     ],
                     "Name": "Wall",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "Wall"
                 },
                 {
@@ -317,19 +403,19 @@
                             "Properties": {
                                 "Transform": {
                                     "Location": {
-                                        "X": 0,
-                                        "Y": 0,
-                                        "Z": 5
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 5.0
                                     },
                                     "Rotation": {
-                                        "Pitch": 0,
-                                        "Roll": 0,
-                                        "Yaw": 0
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
                                     },
                                     "Scale": {
-                                        "X": 1,
-                                        "Y": 1,
-                                        "Z": 1
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
                                     }
                                 }
                             }
@@ -339,24 +425,32 @@
                             "Name": "ParticleSystemComponent",
                             "Parent": "DefaultSceneRoot",
                             "Properties": {
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
                                 "Template": "Particles/ParticleCollisionTest.particlesys",
                                 "Transform": {
                                     "Location": {
-                                        "X": 0,
-                                        "Y": 0,
-                                        "Z": 0
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
                                     },
                                     "Rotation": {
-                                        "Pitch": 0,
-                                        "Roll": 0,
-                                        "Yaw": 0
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
                                     },
                                     "Scale": {
-                                        "X": 1,
-                                        "Y": 1,
-                                        "Z": 1
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
                                     }
                                 },
+                                "bBlockComponet": false,
+                                "bCastShadow": true,
+                                "bGenerateOverlapEvents": true,
+                                "bReceiveShadow": true,
+                                "bReceivesDecals": true,
                                 "bVisible": true
                             }
                         },
@@ -370,8 +464,144 @@
                         }
                     ],
                     "Name": "CollisionParticles",
-                    "Properties": {},
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
                     "RootComponent": "DefaultSceneRoot"
+                },
+                {
+                    "Class": "AAmbientLightActor",
+                    "Components": [
+                        {
+                            "Class": "USceneComponent",
+                            "Name": "DefaultSceneRoot",
+                            "Parent": "",
+                            "Properties": {
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "Class": "UAmbientLightComponent",
+                            "Name": "UAmbientLightComponent",
+                            "Parent": "",
+                            "Properties": {
+                                "Intensity": 0.20000000298023224,
+                                "LightColor": {
+                                    "A": 255,
+                                    "B": 255,
+                                    "G": 255,
+                                    "R": 255
+                                },
+                                "Transform": {
+                                    "Location": {
+                                        "X": -9.405768394470215,
+                                        "Y": -1.6444637775421143,
+                                        "Z": 7.8143310546875
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bCastShadows": true,
+                                "bVisible": true
+                            }
+                        },
+                        {
+                            "Class": "UBillboardComponent",
+                            "Material": {
+                                "Base": "SpriteMaterial",
+                                "Instance": {
+                                    "BaseColor": {
+                                        "A": 1.0,
+                                        "B": 1.0,
+                                        "G": 1.0,
+                                        "R": 1.0
+                                    },
+                                    "BlendState": "AlphaBlend",
+                                    "DecalColorBlendMode": "Alpha",
+                                    "MaterialDomain": "Surface",
+                                    "Properties": {},
+                                    "SamplerState": "LinearClamp",
+                                    "Shininess": 32.0,
+                                    "SpecularColor": {
+                                        "A": 1.0,
+                                        "B": 0.5,
+                                        "G": 0.5,
+                                        "R": 0.5
+                                    },
+                                    "Textures": [
+                                        "Resources/Icons/SkyLight.png"
+                                    ],
+                                    "UVScrollSpeed": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "bAffectBaseColor": true,
+                                    "bAffectNormal": true,
+                                    "bFlipNormalGreen": false
+                                }
+                            },
+                            "Name": "UBillboardComponent",
+                            "Parent": "UAmbientLightComponent",
+                            "Properties": {
+                                "Material": null,
+                                "ShowBeginOverlapLog": false,
+                                "ShowEndOverlapLog": false,
+                                "ShowHitLog": false,
+                                "Transform": {
+                                    "Location": {
+                                        "X": 0.0,
+                                        "Y": 0.0,
+                                        "Z": 0.0
+                                    },
+                                    "Rotation": {
+                                        "Pitch": 0.0,
+                                        "Roll": 0.0,
+                                        "Yaw": 0.0
+                                    },
+                                    "Scale": {
+                                        "X": 1.0,
+                                        "Y": 1.0,
+                                        "Z": 1.0
+                                    }
+                                },
+                                "bBlockComponet": false,
+                                "bCastShadow": true,
+                                "bGenerateOverlapEvents": true,
+                                "bReceiveShadow": true,
+                                "bReceivesDecals": true,
+                                "bVisible": true
+                            }
+                        }
+                    ],
+                    "Name": "AAmbientLightActor_0",
+                    "Properties": {
+                        "bTickInEditor": false
+                    },
+                    "RootComponent": "UAmbientLightComponent"
                 }
             ],
             "Properties": {}

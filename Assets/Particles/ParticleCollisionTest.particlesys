@@ -79,6 +79,17 @@
                                 },
                                 "MaxCollisions": 2,
                                 "RotationDampingFactor": 0.5
+                            },
+                            {
+                                "ClassName": "UParticleModuleEventGenerator",
+                                "Events": [
+                                    {
+                                        "EventName": "KillHit",
+                                        "Frequency": 5,
+                                        "bFirstTimeOnly": false,
+                                        "bLastTimeOnly": true
+                                    }
+                                ]
                             }
                         ],
                         "RequiredModule": {
@@ -89,7 +100,7 @@
                         },
                         "SpawnModule": {
                             "ClassName": "UParticleModuleSpawn",
-                            "SpawnRate": 247.3000030517578
+                            "SpawnRate": 10.0
                         },
                         "TypeDataModule": {
                             "ClassName": "UParticleModuleTypeDataMesh",

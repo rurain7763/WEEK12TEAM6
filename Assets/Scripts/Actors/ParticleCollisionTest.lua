@@ -15,10 +15,6 @@ function EndPlay()
 end
 
 function OnParticleCollide(event)
-    local loc = event.Location
-    Log(string.format("[ParticleCollide] %s emitter=%d loc=(%.2f, %.2f, %.2f)",
-        event.EventName, event.EmitterIndex, loc.x, loc.y, loc.z))
-
     -- 이벤트 이름별 소리
     if event.EventName == "FirstHit" then
         GamePlayStatics.PlaySound("Assets/Sounds/Pop.wav", 0.3)
