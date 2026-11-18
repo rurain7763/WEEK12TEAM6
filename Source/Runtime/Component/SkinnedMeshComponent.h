@@ -39,6 +39,7 @@ public:
 	const TArray<FMatrix>& GetLocalPose() const;
 
 	USkeletalMesh* GetSkeletalMesh();
+	const USkeleton* GetSkeleton() const { return Skeleton; }
 
 	FMatrix GetBoneComponentMatrix(const int32 BoneIndex) const;
 	// 본의 컴포넌트 기준 행렬을 지정한다. 부모 기준 로컬로 바꿔 이 컴포넌트의 포즈에 넣고 스키닝 행렬을 다시 만든다.

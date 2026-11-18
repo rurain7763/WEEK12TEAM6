@@ -33,6 +33,7 @@ public:
 	int32 GetMaxBeamCount() const { return MaxBeamCount; }
 	bool IsAlwaysOn() const { return bAlwaysOn; }
 	int32 GetInterpolationPonts() const { return InterpolationPoints; }
+	float GetDistance() const { return Distance; }
 
 	void ResolveEndPoints(const FParticleEmitterInstance* Emitter, FBeamTypeDataPayload* Payload) const;
 private:
@@ -40,4 +41,5 @@ private:
 	int32 MaxBeamCount = 1; 
 	bool bAlwaysOn = true; // 빔이 꺼지지 않게 할지
 	float Distance = 100.0f; // 빔길이
+	float NoiseRange = 0.f;  // 빔 안쪽 점을 수직으로 흔드는 최대 거리. 0 = 노이즈 없음
 };

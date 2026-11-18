@@ -1,0 +1,78 @@
+{
+    "Version": 1,
+    "ParticleSystem": {
+        "LODMethod": 0,
+        "LODDistances": [0],
+        "LODDistanceCheckTime": 0.25,
+        "Emitters": [
+            {
+                "ClassName": "UParticleEmitter",
+                "MaxParticleCount": 100,
+                "ParticleSize": 0,
+                "LODLevels": [
+                    {
+                        "ClassName": "UParticleLODLevel",
+                        "Level": 0,
+                        "bEnable": true,
+                        "Modules": [
+                            {
+                                "ClassName": "UParticleModuleSize",
+                                "StartSize": {"X": 0.25, "Y": 0.25, "Z": 0.25}
+                            },
+                            {
+                                "ClassName": "UParticleModuleColor",
+                                "StartColor": {"R": 1.0, "G": 0.82, "B": 0.3, "A": 1.0}
+                            },
+                            {
+                                "ClassName": "UParticleModuleBeamSource",
+                                "BoneName": "StaffTip",
+                                "Strength": 0.6
+                            },
+                            {
+                                "ClassName": "UParticleModuleBeamTarget",
+                                "TargetOffset": {"X": 0.0, "Y": 0.0, "Z": 1.0},
+                                "Strength": 0.3
+                            }
+                        ],
+                        "SpawnModule": {
+                            "ClassName": "UParticleModuleSpawn",
+                            "SpawnRate": 100
+                        },
+                        "RequiredModule": {
+                            "ClassName": "UParticleModuleRequired",
+                            "bUseLocalSpace": true,
+                            "Material": "BeamMaterial",
+                            "MaterialInstance": {
+                                "Base": "BeamMaterial",
+                                "Instance": {
+                                    "Properties": {},
+                                    "MaterialDomain": "Surface",
+                                    "BaseColor": {"R": 1.0, "G": 1.0, "B": 1.0, "A": 1.0},
+                                    "UVScrollSpeed": [0.0, 0.0],
+                                    "Shininess": 32.0,
+                                    "SpecularColor": {"R": 0.5, "G": 0.5, "B": 0.5, "A": 1.0},
+                                    "bFlipNormalGreen": false,
+                                    "bAffectBaseColor": true,
+                                    "bAffectNormal": true,
+                                    "DecalColorBlendMode": "Alpha",
+                                    "SamplerState": "LinearClamp",
+                                    "BlendState": "AlphaBlend",
+                                    "Textures": [
+                                        "Assets/Textures/Mercy_HealBeam/HealBeam_Strip.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "TypeDataModule": {
+                            "ClassName": "UParticleModuleTypeDataBeam",
+                            "InterpolationPoints": 24,
+                            "MaxBeamCount": 1,
+                            "bAlwaysOn": true,
+                            "Distance": 8
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

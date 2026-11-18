@@ -1,0 +1,81 @@
+{
+    "Blend1D": {
+        "Properties": {},
+        "Samples": [
+            {
+                "Animation": "Models/Mercy_Export/Mercy_Staff_SK_0000000006E9_Skeleton|Staff_HealRun_B",
+                "SampleValue": {
+                    "X": -180.0,
+                    "Y": 0.0,
+                    "Z": 0.0
+                }
+            },
+            {
+                "Animation": "Models/Mercy_Export/Mercy_Staff_SK_0000000006E9_Skeleton|Staff_HealRun_BL",
+                "SampleValue": {
+                    "X": -135.0,
+                    "Y": 0.0,
+                    "Z": 0.0
+                }
+            },
+            {
+                "Animation": "Models/Mercy_Export/Mercy_Staff_SK_0000000006E9_Skeleton|Staff_HealRun_L",
+                "SampleValue": {
+                    "X": -90.0,
+                    "Y": 0.0,
+                    "Z": 0.0
+                }
+            },
+            {
+                "Animation": "Models/Mercy_Export/Mercy_Staff_SK_0000000006E9_Skeleton|Staff_HealRun_FL",
+                "SampleValue": {
+                    "X": -45.0,
+                    "Y": 0.0,
+                    "Z": 0.0
+                }
+            },
+            {
+                "Animation": "Models/Mercy_Export/Mercy_Staff_SK_0000000006E9_Skeleton|Staff_HealRun_F",
+                "SampleValue": {
+                    "X": 0.0,
+                    "Y": 0.0,
+                    "Z": 0.0
+                }
+            },
+            {
+                "Animation": "Models/Mercy_Export/Mercy_Staff_SK_0000000006E9_Skeleton|Staff_HealRun_FR",
+                "SampleValue": {
+                    "X": 45.0,
+                    "Y": 0.0,
+                    "Z": 0.0
+                }
+            },
+            {
+                "Animation": "Models/Mercy_Export/Mercy_Staff_SK_0000000006E9_Skeleton|Staff_HealRun_R",
+                "SampleValue": {
+                    "X": 90.0,
+                    "Y": 0.0,
+                    "Z": 0.0
+                }
+            },
+            {
+                "Animation": "Models/Mercy_Export/Mercy_Staff_SK_0000000006E9_Skeleton|Staff_HealRun_BR",
+                "SampleValue": {
+                    "X": 135.0,
+                    "Y": 0.0,
+                    "Z": 0.0
+                }
+            },
+            {
+                "Animation": "Models/Mercy_Export/Mercy_Staff_SK_0000000006E9_Skeleton|Staff_HealRun_B",
+                "SampleValue": {
+                    "X": 180.0,
+                    "Y": 0.0,
+                    "Z": 0.0
+                }
+            }
+        ],
+        "Skeleton": "Models/Mercy_Export/Mercy_Staff_SK_Skeleton"
+    },
+    "Version": 1
+}

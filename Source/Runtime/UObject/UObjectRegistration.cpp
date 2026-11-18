@@ -106,6 +106,8 @@
 #include "Particle/Modules/ParticleModuleSpawn.h"
 #include "Particle/Modules/ParticleModuleTypeDataBase.h"
 #include "Particle/Modules/ParticleModuleTypeDataBeam.h"
+#include "Particle/Modules/ParticleModuleBeamSource.h"
+#include "Particle/Modules/ParticleModuleBeamTarget.h"
 #include "Particle/Modules/ParticleModuleTypeDataRibbon.h"
 #include "Particle/Modules/ParticleModuleTypeDataMesh.h"
 #include "Particle/Modules/ParticleModuleVelocity.h"
@@ -260,6 +262,8 @@ void RegisterUClasses()
 	UParticleModuleSpawn::StaticClass();
 	UParticleModuleTypeDataBase::StaticClass();
 	UParticleModuleTypeDataBeam::StaticClass();
+	UParticleModuleBeamSource::StaticClass();
+	UParticleModuleBeamTarget::StaticClass();
 	UParticleModuleTypeDataRibbon::StaticClass();
 	UParticleModuleTypeDataMesh::StaticClass();
 	UParticleModuleVelocity::StaticClass();

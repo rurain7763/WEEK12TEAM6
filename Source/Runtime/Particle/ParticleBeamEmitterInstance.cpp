@@ -6,6 +6,9 @@
 #include "Particle/Modules/ParticleModuleTypeDataBeam.h"
 #include "Engine/PrimitiveSceneProxy.h"
 #include "Particle/Modules/ParticleModuleRequired.h"
+#include "Particle/Modules/ParticleModuleBeamSource.h"
+#include "Particle/Modules/ParticleModuleBeamTarget.h"
+#include "UObject/Casts.h"
 
 void FParticleBeamEmitterInstance::Initialize()
 {
@@ -14,6 +17,30 @@ void FParticleBeamEmitterInstance::Initialize()
 
 	// UE: MaxBeamCount가 0이면 1로 (ParticleBeam2EmitterInstance.cpp:411)
 	BeamCount = BeamTypeData ? FMath::Max(BeamTypeData->GetMaxBeamCount(), 1) : 0;
+	CacheBeamModules();
+}
+
+void FParticleBeamEmitterInstance::CacheBeamModules()
+{
+	BeamModule_Source = nullptr;
+	BeamModule_Target = nullptr;
+	CachedBeamLOD = CurrentLODLevel;
+	if (!CurrentLODLevel)
+	{
+		return;
+	}
+
+	for (UParticleModule* Module : CurrentLODLevel->Modules)
+	{
+		if (UParticleModuleBeamSource* Source = Cast<UParticleModuleBeamSource>(Module))
+		{
+			BeamModule_Source = Source;
+		}
+		else if (UParticleModuleBeamTarget* Target = Cast<UParticleModuleBeamTarget>(Module))
+		{
+			BeamModule_Target = Target;
+		}
+	}
 }
 
 void FParticleBeamEmitterInstance::Tick(float DeltaTime)
@@ -22,6 +49,10 @@ void FParticleBeamEmitterInstance::Tick(float DeltaTime)
 	if (!BeamTypeData || !EmitterTemplate || !EmitterTemplate->IsEnabled()) {
 		Super::Tick(DeltaTime);
 		return;
+	}
+	if (CachedBeamLOD != CurrentLODLevel)
+	{
+		CacheBeamModules();
 	}
 
 	// UE Beam2 순서: Kill -> Spawn -> ModuleUpdate -> ModulePostUpdate
