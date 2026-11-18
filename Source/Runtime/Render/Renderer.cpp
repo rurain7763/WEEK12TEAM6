@@ -20,6 +20,16 @@
 
 #include "Engine/LightSceneProxy.h"
 #include <Core/StatOverlay.h>
+#include "Core/Stats/ParticleStats.h"
+
+namespace
+{
+	// 파티클 stat의 드로우콜 집계용
+	bool IsParticleProxy(const FPrimitiveSceneProxy* Proxy)
+	{
+		return dynamic_cast<const FParticleSystemSceneProxy*>(Proxy) != nullptr;
+	}
+}
 
 DECLARE_CYCLE_STAT("Draw Render Packets", STAT_DrawRenderPackets);
 DECLARE_CYCLE_STAT("Render Queue Sorting", STAT_RenderQueueSorting);
@@ -406,6 +416,11 @@ void FRenderer::DrawTranslucentMeshGroups() {
 				}
 				RenderCommand::DrawIndexed(Group.Geometry.IndexCount, Group.Geometry.StartIndex);
 			}
+
+			// 조명 셰이더 머티리얼은 인스턴싱 없이 항목마다 개별 드로우
+			if (!Group.Items.IsEmpty() && IsParticleProxy(Group.Items[0].Proxy)) {
+				FParticleStats::GetPending().DrawCalls += Group.Items.Num();
+			}
 			continue;
 		}
 
@@ -432,6 +447,13 @@ void FRenderer::DrawTranslucentMeshGroups() {
 			}
 		} else {
 			RenderCommand::DrawIndexedInstanced(Group.Geometry.IndexCount, InstanceCount, Group.Geometry.StartIndex);
+
+			if (!Group.Items.IsEmpty() && IsParticleProxy(Group.Items[0].Proxy))
+			{
+				FParticleFrameStats& Stats = FParticleStats::GetPending();
+				Stats.DrawCalls++;
+				Stats.InstancedParticles += InstanceCount;
+			}
 		}
 	}
 }
@@ -576,6 +598,12 @@ void FRenderer::DrawPackets(uint32 Begin, uint32 End)
 	for (uint32 k = Begin; k < End; ++k)
 	{
 		const FRenderPacket& RenderPacket = RenderPackets[k];
+
+		// 불투명 파티클은 패킷마다 개별 드로우
+		if (IsParticleProxy(RenderPacket.Proxy))
+		{
+			FParticleStats::GetPending().DrawCalls++;
+		}
 
 		if (!RenderPacket.Geometry.HasSameBuffers(LastVertexBuffers, LastVertexBufferCount, LastIndexBuffer))
 		{

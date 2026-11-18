@@ -14,8 +14,11 @@
 #include <algorithm>
 
 // 현재 World의 가시 컴포넌트에서 경계만 캡처한다. Mesh·삼각형은 복사하지 않는다.
-void FViewportRenderCollector::CaptureWorld(UWorld& World, bool bDrawSkeletalMeshes)
+void FViewportRenderCollector::CaptureWorld(UWorld& World, bool bDrawSkeletalMeshes, bool bDrawParticles)
 {
+    // 파티클 에디터 프리뷰는 Show 설정과 무관하게 항상 표시
+    const bool bHideParticles = !bDrawParticles && World.GetWorldType() != EWorldType::EditorPreview;
+
     RenderObjects.Reset();
     for (auto& Entry : PrimitiveById) Entry.second.bCaptured = false;
     bCapturedBillboard = false;
@@ -29,6 +32,11 @@ void FViewportRenderCollector::CaptureWorld(UWorld& World, bool bDrawSkeletalMes
 
         // 스켈레탈 표시 설정에 따른 렌더 후보 제외
         if (!bDrawSkeletalMeshes && Scene.Proxies[i]->IsUsingSkinning())
+        {
+            continue;
+        }
+        // 파티클 표시 설정에 따른 렌더 후보 제외
+        if (bHideParticles && dynamic_cast<const FParticleSystemSceneProxy*>(Scene.Proxies[i]))
         {
             continue;
         }
